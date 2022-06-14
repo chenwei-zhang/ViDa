@@ -58,63 +58,87 @@ traj[1][argmax(t_per[1])]
 t_per[1][argmax(t_per[1])]
 t_per[1][Sf_hat]
 
-scatter(traj[1],t_per[1])
+function getCoord(Shat,states,samples,Si_hat,Sf_hat)
+    d = size(states)[2]
+    l = length(Shat)    
+    states_hat = zeros(l,d)
+    for i=1:l
+        states_hat[i,:] = states[Shat[i],:]
+    end
 
-d = size(states)[2]
-l = length(Shat)
-states_hat = zeros(l,d)
-for i=1:l
-    states_hat[i,:] = states[Shat[i],:]
+    X=[];Y=[]
+    for Trj in samples
+        xx=[];yy=[]
+        for trj in Trj
+            x, y = states_hat[trj,:]
+            append!(xx,x)
+            append!(yy,y)
+        end
+        push!(X,xx)
+        push!(Y,yy)
+    end
+    
+    x_Si,y_Si=states_hat[Si_hat,:]
+    x_Sf,y_Sf=states_hat[Sf_hat,:]
+
+    return X,Y,x_Si,y_Si,x_Sf,y_Sf
 end
 
-X=[]; Y=[]
-for trj in traj[1]
-    x, y = states_hat[trj,:]
-    append!(X,x)
-    append!(Y,y)
-end
-X
-Y
-
+samples, t_per, t_total = gillespie(Si_hat, Khat, StoppingCondition(pred=AbsorbingStates([Sf_hat])), N);
 plot(X,Y)
+plotlyjs()
 
+plot()
 plot(X,Y,t_per)
+(x_Si,y_Si)=states_hat[Si_hat,:]
+(x_Sf,y_Sf)=states_hat[Sf_hat,:]
+
+plot!([x_Si],[y_Si], [0],seriestype = :scatter, markersize=5, color=cgrad(:reds)[.25],)
+        #series_annotations = [("I",:left,20)])
+plot!([x_Sf],[y_Sf], [0], seriestype = :scatter, markersize=5, color=cgrad(:greens)[.25],)
+        #series_annotations = [("F",:bottom,20)], right_margin = 4Plots.mm, left_margin = 4Plots.mm)
+
+
+plot([x_Si],[y_Si], [0],seriestype = :scatter, markersize=12, color=cgrad(:reds)[.25],
+series_annotations = [("I",:bottom,20)])
+
+
+scatter(traj[1],t_per[1])
 scatter(X,Y,t_per)
 
 
+plot()
+@gif for i in 1:length(X[1])
+    plot!([x_Si],[y_Si], seriestype = :scatter, markersize=12, color=cgrad(:greens)[.25],
+        series_annotations = [("I",:center,8)])
+    plot!([x_Sf],[y_Sf], seriestype = :scatter, markersize=12, color=cgrad(:greens)[.25],
+        series_annotations = [("F",:center,8)], right_margin = 4Plots.mm, left_margin = 4Plots.mm)
+    xlims!(-.9,50.1); ylims!(-.9,50.1);
 
-# State plot with General scatter plot function
-function statePlot(SAMPLES::Vector,Si::S,Sf::S,K::RateMatrix,states::Matrix,logscale::String) where {S<:Integer}
-    # Calculate state frequency
-    n = size(K)[1]
-    state_freq = zeros(n)
-    visited = vcat(SAMPLES...)
-    for i=1:n
-        state_freq[i] = sum(visited.==i)
+
+
+    if i < length(X[1])
+        if t_per[1][i] > 5e-7
+            plot!(X[1][i:i+1],Y[1][i:i+1],color=:red,linewidth=5,legend=false)
+        else
+            plot!(X[1][i:i+1],Y[1][i:i+1],color=:grey,legend=false)
+        end
     end
-    state_freq = state_freq./sum(state_freq) # normalization
-
-    X=[];Y=[];Z=[]  # Get position and corresponding frequency of each state
-    for s in visited
-        x, y = states[s,:]
-        z = state_freq[s]
-        append!(X,x);append!(Y,y);append!(Z,z)
-    end
-
-    if logscale == "ON"
-        Z = log.(Z)
-        colorbar_title="\nLog probability of state"
-    elseif logscale == "OFF"
-        colorbar_title="\nProbability of state"
-    end
-
-    # Scatter plot
-    plot()
-    scatter!(X,Y,m=cgrad(rev=true),zcolor=Z,markersize=5,legend=false,
-        colorbar=true,colorbar_title=colorbar_title,xlabel="X",ylabel="Y",grid=false)
-    xlims!(-0.4,sqrt(n)+1.4); ylims!(-0.4,sqrt(n)+1.4)
-    scatter!((states[Si,:]),(states[Sf,:]),markersize=0,
-    series_annotations = [("Si",:center,:green,8),("Sf",:center,:red,8)], right_margin = 4Plots.mm, left_margin = 4Plots.mm)
 end
 
 
+plot()
+@gif for i in 1:length(X[1])
+    plot!([x_Si],[y_Si], seriestype = :scatter, markersize=12, color=cgrad(:greens)[.25],
+        series_annotations = [("I",:center,8)])
+    plot!([x_Sf],[y_Sf], seriestype = :scatter, markersize=12, color=cgrad(:greens)[.25],
+        series_annotations = [("F",:center,8)], right_margin = 4Plots.mm, left_margin = 4Plots.mm)
+    xlims!(-.9,50.1); ylims!(-.9,50.1);
+    if i < length(X[1])
+        if t_per[1][i] > 5e-7
+            scatter!(X[1][i:i+1],Y[1][i:i+1],t_per[1][i:i+1],color=cgrad(:cool)[0.1],markersize=8,legend=false)
+        else
+            scatter!(X[1][i:i+1],Y[1][i:i+1],t_per[1][i:i+1],color=cgrad(:Blues)[0.1],legend=false)
+        end    
+    end
+end
