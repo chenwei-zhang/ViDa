@@ -1,5 +1,6 @@
 # Personalize
 *.h5
+*.hdf5
 *.log
 *.gz
 *.aux
@@ -10,6 +11,10 @@
 *.fdb_latexmk
 *.out
 *.docx
+*.txt
+*.gif
+*.npy
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
