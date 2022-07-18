@@ -31,22 +31,37 @@ def loadtrj(f,FINAL_STRUCTURE,type):
             eg. ['...............', 0.0, 0.0]
     """
     TRAJ=[];i=0;SIM=[]
+    
     for s in f:
-        i+=1
-        if i>1: # remove headers
-            ss = s.split(" ",3)
-            s_dotparan=ss[0] # dp notation
-            s_time = float(ss[1].split("=",1)[1]) # simulation time
-            s_energy = float(ss[3].split("=")[1].split("kcal")[0]) # energy
-            TRAJ.append([s_dotparan,s_time,s_energy])
+        ss = s.split(" ",3)
+        s_dotparan=ss[0] # dp notation
+        s_time = float(ss[1].split("=",1)[1]) # simulation time
+        s_energy = float(ss[3].split("=")[1].split("kcal")[0]) # energy
+        TRAJ.append([s_dotparan,s_time,s_energy])
 
-            if type == "Single":
-                if s_dotparan == FINAL_STRUCTURE: # split to individual trajectory
-                    SIM.append(TRAJ)
-                    TRAJ = []
+        if type == "Single":
+            if s_dotparan == FINAL_STRUCTURE: # split to individual trajectory
+                SIM.append(TRAJ)
+                TRAJ = []
+                
     if type == "Multiple":
         SIM = TRAJ
     return SIM
+
+
+# load multiple trajectories from multiple files
+def load_multitrj(folder_name,FINAL_STRUCTURE,num_files):
+    # load text file
+    SIMS = []; SIMS_concat = []
+    for i in range(num_files):
+        STR_name = "{}_{}.txt".format(folder_name,i) # PT0
+        f = open(STR_name, 'r') # PT0
+        SIM = loadtrj(f,FINAL_STRUCTURE,type="Multiple")
+        SIMconcat = concat_helix_structures(SIM) 
+        SIMS += SIM
+        SIMS_concat += SIMconcat
+        
+    return SIMS,np.array(SIMS),SIMS_concat
 
 
 # convert concantenate two individual structures to one structure
