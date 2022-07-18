@@ -14,8 +14,11 @@
 *.txt
 *.gif
 *.npy
+*.npz
 *.csv
 *.pickle
+RPE_Proposal_edits
+plot
 
 lightning_logs
 # Byte-compiled / optimized / DLL files
