@@ -298,7 +298,6 @@ def save_h5(filename,
     hf.create_dataset("SIM_scar_uniq", data=SIM_scar_uniq)
     hf.create_dataset("SIM_G_uniq", data=SIM_G_uniq)
     hf.create_dataset("SIM_HT_uniq", data=SIM_HT_uniq)
-    # hf.create_dataset("SIM_dict", data=SIM_dict)
     hf.create_dataset("occp", data=occ_density)
     hf.create_dataset("data_embed", data=data_embed)
     hf.create_dataset("coord_id", data=coord_id)
@@ -307,6 +306,4 @@ def save_h5(filename,
     hf.create_dataset("phate_coords", data=phate_coords)
     hf.create_dataset("phate_all_coords", data=phate_all_coords)    
     hf.close
-
-# if __name__ == "__main__":
-#     main()
+    
