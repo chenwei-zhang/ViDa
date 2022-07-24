@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import networkx as nx
 from numpy.testing import assert_almost_equal
 import copy
 import h5py
@@ -10,7 +11,6 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from gsae.models.gsae_model import GSAE
-from gsae.data_processing.utils import dot2adj
 from gsae.data_processing.create_splits import split_data
 from gsae.scattering.scattering import transform_dataset, get_normalized_moments
 from gsae.utils import eval_metrics
@@ -102,6 +102,107 @@ def label_structures(SIM_concat,indices):
         indx = np.argwhere(temp==True)
         SIM_dict[indx,3] = i
     return SIM_dict
+
+# convert dot-parenthesis notation to adjacency matrix
+def dot2adj(db_str,hairpin=False,helix=True):
+    """converts DotBracket str to np adj matrix
+    
+    Args:
+        db_str (str): N-len dot bracket string
+    
+    Returns:
+        [np array]: NxN adjacency matrix
+    """
+    
+    dim = len(str(db_str))
+
+    # get pair tuples
+    pair_list = dot2pairs(db_str)
+    sym_pairs = symmetrized_edges(pair_list)
+
+
+    # initialize the NxN mat (N=len of RNA str)
+    adj_mat = np.zeros((dim,dim))
+
+    adj_mat[sym_pairs[0,:], sym_pairs[1,:]] = 1
+    
+    if hairpin == True:
+        True
+
+    if helix == True:
+        assert dim % 2 == 0, "Not a valid helix sequence."
+        end2head = np.ceil(dim/2).astype(int)
+        if db_str[end2head-1:end2head+1] == "..":
+            adj_mat[end2head-1, end2head] = 0
+            adj_mat[end2head, end2head-1] = 0
+
+    return adj_mat
+
+def dot2pairs(dp_str):
+    """converts a DotBracket str to adj matrix
+
+    uses a dual-checking method
+    - str1 = original str
+    - str2 = reversed str
+
+    iterates through both strings simult and collects indices
+    forward str iteration: collecting opening indicies - list1
+    backwards str iteration: collecting closing indices - list2
+    - as soon as a "(" is found in str2, the first entry of list1 is paired
+      with the newly added index/entry of list2 
+    
+    Args:
+        dotbracket_str (str): dot bracket string (ex. "((..))")
+    
+    Returns:
+        [array]: numpy adjacency matrix
+    """ 
+    dim = len(str(dp_str))
+
+    # pairing indices lists
+    l1_indcs = []
+    l2_indcs = []
+    pair_list = []
+
+    for indx in range(dim):
+        
+        # checking stage
+        # forward str
+        if dp_str[indx] == "(":
+
+            l1_indcs.append(indx)
+ 
+        if dp_str[indx] == ")":
+            l2_indcs.append(indx)
+
+        # pairing stage
+        # check that either list is not empty
+        if len(l2_indcs) * len(l1_indcs) > 0:
+            pair = (l1_indcs[-1], l2_indcs[0])
+            pair_list.append(pair)
+        
+            # cleaning stage
+            l1_indcs.pop(-1)
+            l2_indcs.pop(0)
+    
+    # get path graph pairs
+    G = nx.path_graph(dim)
+    path_graph_pairs = G.edges()
+    
+    return pair_list + list(path_graph_pairs)
+
+def symmetrized_edges(pairs_list):
+    
+    # conver pairs to numpy array [2,-1]
+    edge_array = np.array(pairs_list)
+ 
+    # concatenate with opposite direction edges
+    # print(edge_array.T[[1,0]].T.shape)
+    reverse_edges = np.copy(edge_array)
+    reverse_edges[:, [0,1]] = reverse_edges[:, [1,0]]
+    full_edge_array = np.vstack((edge_array, reverse_edges))
+    
+    return full_edge_array.T
 
 
 # convert dot-parenthesis notation to adjacency matrix in a single trajectory
@@ -285,7 +386,7 @@ def load_trte(train_data,test_data,
 def save_h5(filename,
             SIM_adj, SIM_scar, SIM_G, SIM_HT,
             SIM_adj_uniq, SIM_scar_uniq, SIM_G_uniq, SIM_HT_uniq,
-            occ_density, data_embed, coord_id,
+            occ_density, data_embed, coord_id, indices,
             pca_coords, pca_all_coords,
             phate_coords, phate_all_coords):
     
@@ -301,6 +402,7 @@ def save_h5(filename,
     hf.create_dataset("occp", data=occ_density)
     hf.create_dataset("data_embed", data=data_embed)
     hf.create_dataset("coord_id", data=coord_id)
+    hf.create_dataset("indices", data=indices)
     hf.create_dataset("pca_coords", data=pca_coords)
     hf.create_dataset("pca_all_coords", data=pca_all_coords)
     hf.create_dataset("phate_coords", data=phate_coords)
