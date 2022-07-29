@@ -74,10 +74,11 @@ def concat_helix_structures(SIM):
     """
     SIM_concat = copy.deepcopy(SIM)
     for i in range(len(SIM)):
-        if i == 0:
-            SIM_concat[i][0] *=2 
-        else:
-            SIM_concat[i][0] = SIM[i][0].replace("+","")
+        # if i == 0:
+        #     SIM_concat[i][0] *=2 
+        # else:
+        #     SIM_concat[i][0] = SIM[i][0].replace("+","")
+        SIM_concat[i][0] = SIM[i][0].replace("+","")
     return SIM_concat
 
 
@@ -132,7 +133,8 @@ def dot2adj(db_str,hairpin=False,helix=True):
     if helix == True:
         assert dim % 2 == 0, "Not a valid helix sequence."
         end2head = np.ceil(dim/2).astype(int)
-        if db_str[end2head-1:end2head+1] == "..":
+
+        if db_str[end2head-1:end2head+1] != "()":
             adj_mat[end2head-1, end2head] = 0
             adj_mat[end2head, end2head-1] = 0
 
@@ -148,7 +150,7 @@ def dot2pairs(dp_str):
     iterates through both strings simult and collects indices
     forward str iteration: collecting opening indicies - list1
     backwards str iteration: collecting closing indices - list2
-    - as soon as a "(" is found in str2, the first entry of list1 is paired
+    - as soon as a "(" is found in str2, the first(typo,last?) entry of list1 is paired
       with the newly added index/entry of list2 
     
     Args:
