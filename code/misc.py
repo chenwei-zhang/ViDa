@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 import networkx as nx
 from numpy.testing import assert_almost_equal
 import copy
@@ -22,22 +23,23 @@ def loadtrj(f,FINAL_STRUCTURE,type):
     with seperated structure, time, and energy
 
     Args:
-        f: text file with trajectory dp notation, time, energy
-            eg. '..((((....)))).', 't=0.000000103', 'seconds, dG=  0.26 kcal/mol\n'
+        f: text file with trajectory dp notation, time, energy, and if paired (1) or not (0)
+            eg. '..((((....)))).', 't=0.000000103', 'seconds, dG=  0.26 kcal/mol\n', "0"
         FINAL_STRUCTURE: final state structure, eg. "..((((....))))."
         type: 'Single' or 'Multiple' mode
     Returns:
         [list]: dot-parenthesis notation, time floats, energy floats
-            eg. ['...............', 0.0, 0.0]
+            eg. ['...............', 0.0, 0.0, 0.0]
     """
     TRAJ=[];i=0;SIM=[]
     
     for s in f:
-        ss = s.split(" ",3)
+        ss = s.split(" ")
         s_dotparan=ss[0] # dp notation
         s_time = float(ss[1].split("=",1)[1]) # simulation time
         s_energy = float(ss[3].split("=")[1].split("kcal")[0]) # energy
-        TRAJ.append([s_dotparan,s_time,s_energy])
+        s_pair = int(ss[-1]) # paired or not
+        TRAJ.append([s_dotparan,s_time,s_energy,s_pair])
 
         if type == "Single":
             if s_dotparan == FINAL_STRUCTURE: # split to individual trajectory
@@ -83,25 +85,25 @@ def concat_helix_structures(SIM):
 
 
 # assign each states with their labels
-def label_structures(SIM_concat,indices):
+def label_structures(SIM,indices):
     """label the visited states of the trajectory 
             based on their unique structure indices
     Args:
-        SIM_concat: fully concatenated states of the trajectory
+        SIM: fully states info of the trajectory
     Returns:
         SIM_dict: fully labeled cstates of the trajectory
     """
     # add a nan column to full states array
-    new_col = np.empty(len(np.array(SIM_concat)))
+    new_col = np.empty(len(np.array(SIM)))
     new_col.fill(np.nan)
-    SIM_dict = np.c_[np.array(SIM_concat),new_col]
+    SIM_dict = np.c_[np.array(SIM),new_col]
     # get unique structures
     SIM_dict_uniq = SIM_dict[indices]
     # label the states with its corresponding unique structure indices
     for i in range(len(SIM_dict_uniq)):
         temp = SIM_dict[:,0] == SIM_dict_uniq[i,0]
         indx = np.argwhere(temp==True)
-        SIM_dict[indx,3] = i
+        SIM_dict[indx,-1] = i
     return SIM_dict
 
 # convert dot-parenthesis notation to adjacency matrix
@@ -219,10 +221,12 @@ def sim_adj(sim):
     adj_mtr = []
     sim_G = np.array([])
     sim_T = np.array([])
+    sim_pair = np.array([])
     
     for s in sim:
         sim_T = np.append(sim_T,s[1]) # get time array
         sim_G = np.append(sim_G,s[2]) # get energy array
+        sim_pair = np.append(sim_pair,s[3]) # get pair or not pair
         
         adj = dot2adj(s[0])
         adj_mtr.append(adj)
@@ -230,7 +234,7 @@ def sim_adj(sim):
     
     sim_HT = np.concatenate([np.diff(sim_T),[0]])
 
-    return adj_mtr,sim_G,sim_T,sim_HT
+    return adj_mtr,sim_G,sim_T,sim_HT,sim_pair
 
 
 # convert all simulations
@@ -251,7 +255,7 @@ def get_whole_data(SIM):
 
 
 # get unique structures
-def get_unique(SIM_concat,SIM_adj,SIM_G,SIM_T,SIM_HT):
+def get_unique(SIM_concat,SIM_adj,SIM_G,SIM_T,SIM_HT,SIM_pair):
     """
     # get unique states adjacency matrix with their occupancy density
     # get unique energy, and time
@@ -262,8 +266,9 @@ def get_unique(SIM_concat,SIM_adj,SIM_G,SIM_T,SIM_HT):
     SIM_G_uniq = SIM_G[indices]
     SIM_T_uniq = SIM_T[indices]
     SIM_HT_uniq = SIM_HT[indices]
+    SIM_pair_uniq = SIM_pair[indices]
     
-    return indices,occ_density,SIM_adj_uniq,SIM_G_uniq,SIM_T_uniq,SIM_HT_uniq
+    return indices,occ_density,SIM_adj_uniq,SIM_G_uniq,SIM_T_uniq,SIM_HT_uniq,SIM_pair_uniq
 
 
 # calulate the occupancy density of each state
@@ -386,28 +391,136 @@ def load_trte(train_data,test_data,
 # """save data to h5 file
 # """
 def save_h5(filename,
-            SIM_adj, SIM_scar, SIM_G, SIM_HT,
-            SIM_adj_uniq, SIM_scar_uniq, SIM_G_uniq, SIM_HT_uniq,
-            occ_density, data_embed, coord_id, indices,
+            SIMS_G_uniq, SIMS_pair_uniq, occ_density_S, 
             pca_coords, pca_all_coords,
-            phate_coords, phate_all_coords):
+            phate_coords, phate_all_coords,
+            umap_coord_2d, umap_all_coord_2d,
+            umap_coord_3d, umap_all_coord_3d,
+            tsne_coord_2d, tsne_all_coord_2d,
+            tsne_coord_3d, tsne_all_coord_3d):
     
     hf = h5py.File(filename, "w")
-    hf.create_dataset("SIM_adj", data=SIM_adj)
-    hf.create_dataset("SIM_scar", data=SIM_scar)
-    hf.create_dataset("SIM_G", data=SIM_G)
-    hf.create_dataset("SIM_HT", data=SIM_HT)
-    hf.create_dataset("SIM_adj_uniq", data=SIM_adj_uniq)
-    hf.create_dataset("SIM_scar_uniq", data=SIM_scar_uniq)
-    hf.create_dataset("SIM_G_uniq", data=SIM_G_uniq)
-    hf.create_dataset("SIM_HT_uniq", data=SIM_HT_uniq)
-    hf.create_dataset("occp", data=occ_density)
-    hf.create_dataset("data_embed", data=data_embed)
-    hf.create_dataset("coord_id", data=coord_id)
-    hf.create_dataset("indices", data=indices)
+    hf.create_dataset("SIMS_G_uniq", data=SIMS_G_uniq)
+    hf.create_dataset("SIMS_pair_uniq", data=SIMS_pair_uniq)
+    hf.create_dataset("occ_density_S", data=occ_density_S)
+    
     hf.create_dataset("pca_coords", data=pca_coords)
     hf.create_dataset("pca_all_coords", data=pca_all_coords)
+    
     hf.create_dataset("phate_coords", data=phate_coords)
-    hf.create_dataset("phate_all_coords", data=phate_all_coords)    
+    hf.create_dataset("phate_all_coords", data=phate_all_coords)
+    
+    hf.create_dataset("umap_coord_2d", data=umap_coord_2d)
+    hf.create_dataset("umap_all_coord_2d", data=umap_all_coord_2d)
+    
+    hf.create_dataset("umap_coord_3d", data=umap_coord_3d)
+    hf.create_dataset("umap_all_coord_3d", data=umap_all_coord_3d)
+    
+    hf.create_dataset("tsne_coord_2d", data=tsne_coord_2d)
+    hf.create_dataset("tsne_all_coord_2d", data=tsne_all_coord_2d)
+    
+    hf.create_dataset("tsne_coord_3d", data=tsne_coord_3d)
+    hf.create_dataset("tsne_all_coord_3d", data=tsne_all_coord_3d)  
+    
     hf.close
     
+
+# interactive plot function
+def interactive_plot(data_npz,SEQ,vis):
+    if vis == "PCA":
+        coords = "pca_coords"
+        all_coords = "pca_all_coords"
+    elif vis == "PHATE":
+        coords = "phate_coords"
+        all_coords = "phate_all_coords"
+    elif vis == "UMAP":
+        coords = "umap_coord_2d"
+        all_coords = "umap_all_coord_2d"
+    elif vis == "tSNE":
+        coords = "tsne_coord_2d"
+        all_coords = "tsne_all_coord_2d"
+
+    # get coordinates of the data points
+    X = data_npz[coords][:,0]
+    Y = data_npz[coords][:,1]
+    # get coordinates of Si and Sf
+    X_i = data_npz[all_coords][0][0]; Y_i = data_npz[all_coords][0][1]
+    X_f = data_npz[all_coords][-1][0]; Y_f = data_npz[all_coords][-1][1]
+    # get hover text
+    dp_annot = data_npz["SIMS_dict_uniq"][:,0]
+    energy_annot = data_npz["SIMS_G_uniq"]
+
+    # figure setup
+    fig,ax = plt.subplots(figsize=(10,6))
+    fig.subplots_adjust(
+        top=0.88,
+        bottom=0.11,
+        left=0.0,
+        right=0.75,
+        hspace=0.2,
+        wspace=0.2
+        )
+
+    # scatter plot
+    sc = plt.scatter(X, Y,
+            c=data_npz["SIMS_G_uniq"],
+            cmap='plasma',
+            s=12
+            )
+    
+    cbar = plt.colorbar(sc,location ='left') # show colorbar
+    cbar.set_label("Free energy",fontsize=15)
+    plt.title("Energy landscape of strands {}".format(SEQ),fontsize=18)
+    plt.xlabel("X")
+    plt.ylabel("Y")
+
+    # annotations
+    annotations_IF=["I","F"]
+    x = [X_i,X_f]
+    y = [Y_i,Y_f]
+    plt.scatter(x,y,s=60, c="lime", alpha=1)
+    for i, label in enumerate(annotations_IF):
+        plt.annotate(label, (x[i],y[i]),fontsize=12,c="black",fontweight="bold",
+                     horizontalalignment='center',verticalalignment='center')
+
+    # mouse over
+    annot = ax.annotate("", 
+                        xy=(0,0), 
+                        xytext=(10,10),
+                        textcoords="offset points",
+                        bbox=dict(boxstyle="round", fc="w"),
+                        arrowprops=dict(arrowstyle="->"),
+                        fontsize=8,
+                        )
+    annot.set_visible(False)
+
+    def update_annot(ind):
+        pos = sc.get_offsets()[ind["ind"][0]]
+        annot.xy = pos
+        text = "POS: (x={0:.3f}, y={1:.3f}) \nEnergy: {2:.3f} kcal/mol \nDP: ".format(
+                    pos[0], 
+                    pos[1],
+                    energy_annot[ind["ind"]][0]
+                    ) + r"$\bf{}$".format(
+                    dp_annot[ind["ind"]][0],
+                    )
+        annot.set_text(text)
+        annot.get_bbox_patch().set_alpha(0.7)
+
+    def hover(event):
+        vis = annot.get_visible()
+        if event.inaxes == ax:
+            cont, ind = sc.contains(event)
+            if cont:
+                update_annot(ind)
+                annot.set_visible(True)
+                fig.canvas.draw_idle()
+            else:
+                if vis:
+                    annot.set_visible(False)
+                    fig.canvas.draw_idle()
+
+    fig.canvas.mpl_connect("motion_notify_event", hover)
+
+    plt.show()
+
