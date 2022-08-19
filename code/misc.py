@@ -1,8 +1,5 @@
-import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 import networkx as nx
-from numpy.testing import assert_almost_equal
 import copy
 import h5py
 
@@ -221,6 +218,7 @@ def sim_adj(sim):
     adj_mtr = []
     sim_G = np.array([])
     sim_T = np.array([])
+    sim_HT = np.array([])
     sim_pair = np.array([])
     
     for s in sim:
@@ -232,12 +230,22 @@ def sim_adj(sim):
         adj_mtr.append(adj)
     adj_mtr = np.array(adj_mtr) # get adjacency matrix
     
-    sim_HT = np.concatenate([np.diff(sim_T),[0]])
+    idx = np.where(sim_T==0)[0]
+    for i in range(len(idx)):
+        if i < len(idx)-1:
+            temp_T = sim_T[idx[i]:idx[i+1]]
+            sim_HT = np.append(sim_HT,np.concatenate([np.diff(temp_T),[0]]))
+        else:
+            temp_T = sim_T[idx[i]:]
+            sim_HT = np.append(sim_HT,np.concatenate([np.diff(temp_T),[0]]))
+    
+    # get each individual trajectory's index
+    trj_id = np.where(sim_HT==0)[0]
 
-    return adj_mtr,sim_G,sim_T,sim_HT,sim_pair
+    return adj_mtr,sim_G,sim_T,sim_HT,sim_pair,trj_id
 
 
-# convert all simulations
+# convert all simulations  # not used anymore
 def get_whole_data(SIM):
     SIMS_adj=[]; SIMS_G=[]; SIMS_T=[]; SIMS_HT=[]
     for i in range(len(SIM)):
@@ -254,8 +262,8 @@ def get_whole_data(SIM):
     return SIMS_adj,SIMS_G,SIMS_T,SIMS_HT
 
 
-# get unique structures
-def get_unique(SIM_concat,SIM_adj,SIM_G,SIM_T,SIM_HT,SIM_pair):
+# get unique data except for holding time
+def get_unique(SIM_concat,SIM_adj,SIM_G,SIM_pair):
     """
     # get unique states adjacency matrix with their occupancy density
     # get unique energy, and time
@@ -264,11 +272,9 @@ def get_unique(SIM_concat,SIM_adj,SIM_G,SIM_T,SIM_HT,SIM_pair):
 
     SIM_adj_uniq = SIM_adj[indices]
     SIM_G_uniq = SIM_G[indices]
-    SIM_T_uniq = SIM_T[indices]
-    SIM_HT_uniq = SIM_HT[indices]
     SIM_pair_uniq = SIM_pair[indices]
     
-    return indices,occ_density,SIM_adj_uniq,SIM_G_uniq,SIM_T_uniq,SIM_HT_uniq,SIM_pair_uniq
+    return indices,occ_density,SIM_adj_uniq,SIM_G_uniq,SIM_pair_uniq
 
 
 # calulate the occupancy density of each state
@@ -286,30 +292,18 @@ def uniq_adj_occp(states):
     return indices, counts/counts.sum()
 
 
-# calulate the time fraction of each state
-def time_frac(SIM_adj,SIM_adj_uniq,SIM_HT):
-    """load time array and calculate the time fraction of each state
-    Args:
-        SIM_adj,SIM_adj_uniq,SIM_HT
-    Returns:
-        time fractions: time fraction of each unique state
+# calulate the average time fraction of unique states
+def mean_holdingtime(SIMS_HT, indices_S, coord_id_S):
+    """calculate the average time fraction of each unique state
+        based on the coordination number: coord_id_S
     """
-    time_count = np.zeros(len(SIM_adj_uniq))
+    SIMS_HT_uniq = np.empty(len(indices_S))
     
-    for i in range(len(SIM_adj_uniq)):
-        for j in range(len(SIM_adj)):
-            if np.array_equal(SIM_adj_uniq[i],SIM_adj[j]):
-                time_count[i] += SIM_HT[j]  
-                
-    time_fract = time_count/time_count.sum()
-    
-    # assert time_count.sum() == SIM_HT.sum(), "Time counts are not equal to total time."
-    # assert time_fract.sum() == 1, "Total time fraction is not equal to 1."
+    for i in range(len(indices_S)):
+        ht_temp = np.where(i==coord_id_S)[0]
+        SIMS_HT_uniq[i] = sum(SIMS_HT[ht_temp])/len(ht_temp)
 
-    assert_almost_equal(time_count.sum(),SIM_HT.sum(),err_msg='Time counts are not equal to total time.')
-    assert_almost_equal(time_fract.sum(),1,err_msg='Total time fraction is not equal to 1.')
-
-    return time_count, time_fract
+    return SIMS_HT_uniq
 
 
 # load training and test data
@@ -423,104 +417,3 @@ def save_h5(filename,
     hf.create_dataset("tsne_all_coord_3d", data=tsne_all_coord_3d)  
     
     hf.close
-    
-
-# interactive plot function
-def interactive_plot(data_npz,SEQ,vis):
-    if vis == "PCA":
-        coords = "pca_coords"
-        all_coords = "pca_all_coords"
-    elif vis == "PHATE":
-        coords = "phate_coords"
-        all_coords = "phate_all_coords"
-    elif vis == "UMAP":
-        coords = "umap_coord_2d"
-        all_coords = "umap_all_coord_2d"
-    elif vis == "tSNE":
-        coords = "tsne_coord_2d"
-        all_coords = "tsne_all_coord_2d"
-
-    # get coordinates of the data points
-    X = data_npz[coords][:,0]
-    Y = data_npz[coords][:,1]
-    # get coordinates of Si and Sf
-    X_i = data_npz[all_coords][0][0]; Y_i = data_npz[all_coords][0][1]
-    X_f = data_npz[all_coords][-1][0]; Y_f = data_npz[all_coords][-1][1]
-    # get hover text
-    dp_annot = data_npz["SIMS_dict_uniq"][:,0]
-    energy_annot = data_npz["SIMS_G_uniq"]
-
-    # figure setup
-    fig,ax = plt.subplots(figsize=(10,6))
-    fig.subplots_adjust(
-        top=0.88,
-        bottom=0.11,
-        left=0.0,
-        right=0.75,
-        hspace=0.2,
-        wspace=0.2
-        )
-
-    # scatter plot
-    sc = plt.scatter(X, Y,
-            c=data_npz["SIMS_G_uniq"],
-            cmap='plasma',
-            s=12
-            )
-    
-    cbar = plt.colorbar(sc,location ='left') # show colorbar
-    cbar.set_label("Free energy",fontsize=15)
-    plt.title("Energy landscape of strands {}".format(SEQ),fontsize=18)
-    plt.xlabel("X")
-    plt.ylabel("Y")
-
-    # annotations
-    annotations_IF=["I","F"]
-    x = [X_i,X_f]
-    y = [Y_i,Y_f]
-    plt.scatter(x,y,s=60, c="lime", alpha=1)
-    for i, label in enumerate(annotations_IF):
-        plt.annotate(label, (x[i],y[i]),fontsize=12,c="black",fontweight="bold",
-                     horizontalalignment='center',verticalalignment='center')
-
-    # mouse over
-    annot = ax.annotate("", 
-                        xy=(0,0), 
-                        xytext=(10,10),
-                        textcoords="offset points",
-                        bbox=dict(boxstyle="round", fc="w"),
-                        arrowprops=dict(arrowstyle="->"),
-                        fontsize=8,
-                        )
-    annot.set_visible(False)
-
-    def update_annot(ind):
-        pos = sc.get_offsets()[ind["ind"][0]]
-        annot.xy = pos
-        text = "POS: (x={0:.3f}, y={1:.3f}) \nEnergy: {2:.3f} kcal/mol \nDP: ".format(
-                    pos[0], 
-                    pos[1],
-                    energy_annot[ind["ind"]][0]
-                    ) + r"$\bf{}$".format(
-                    dp_annot[ind["ind"]][0],
-                    )
-        annot.set_text(text)
-        annot.get_bbox_patch().set_alpha(0.7)
-
-    def hover(event):
-        vis = annot.get_visible()
-        if event.inaxes == ax:
-            cont, ind = sc.contains(event)
-            if cont:
-                update_annot(ind)
-                annot.set_visible(True)
-                fig.canvas.draw_idle()
-            else:
-                if vis:
-                    annot.set_visible(False)
-                    fig.canvas.draw_idle()
-
-    fig.canvas.mpl_connect("motion_notify_event", hover)
-
-    plt.show()
-

@@ -17,6 +17,7 @@
 *.npz
 *.csv
 *.pickle
+*.html
 RPE_Proposal_edits
 plot
 
