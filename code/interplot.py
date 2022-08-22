@@ -122,7 +122,8 @@ def interactive_plotly_2D(SEQ,df,dfall,trj_id,vis):
                     sizeref=8e-11,
                     color=subdf["Energy"],
                     colorscale="Plasma",
-                    showscale=False,
+                    # showscale=False,
+                    colorbar_orientation='h',
                 ),
                 
                 text=subdf["Step"],
@@ -248,7 +249,9 @@ def interactive_plotly_3D(SEQ,df,dfall,trj_id,vis):
                     sizeref=8e-11,
                     color=subdf["Energy"],
                     colorscale="Plasma",
-                    showscale=False,
+                    # showscale=False,
+                    colorbar_orientation='h',
+
                 ),
                 
                 text=subdf["Step"],
