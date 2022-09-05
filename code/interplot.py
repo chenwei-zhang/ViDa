@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
+import plotly.express as px
+
 
 
 ###############################################################################
@@ -72,7 +74,7 @@ def plot_trj(trj_id,dfall,i,vis,dim):
 # plot 2D energy landscape
 ###############################################################################
 
-def interactive_plotly_2D(SEQ,df,dfall,trj_id,vis):
+def interactive_plotly_2D(SEQ,n_trace,df,dfall,trj_id,vis):
     fig = go.Figure()
     
     # plot energy landscape background
@@ -88,23 +90,26 @@ def interactive_plotly_2D(SEQ,df,dfall,trj_id,vis):
                 colorscale="Plasma",
                 showscale=True,
                 colorbar_x=-0.2,
+                line=dict(width=0.2
+                ),
             ),
             customdata = np.stack((df['Pair'],np.log(df["Occp"])),axis=-1),
             text=df['DP'],
             hovertemplate=
-                "DP notation: <br> <b>%{text}</b><br><br>" +
+                "DP notation: <br> <b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
                 "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                "Average Holding Time:  %{marker.size:.5g} s<br>"+
-                "Occupancy Density (logscale):  %{customdata[1]:.3f}<br>"+
-                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}",
+                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                "Average holding time:  %{marker.size:.5g} s<br>"+
+                "Occupancy density (logscale):  %{customdata[1]:.3f}<br>",
+                
             name="background",
             # showlegend=False,
         )
     )
 
     # layout trajectory on top of energy landscape
-    for i in range(100):
+    for i in range(n_trace):
         subdf = plot_trj(trj_id,dfall,i,vis,dim="2D")[0]
         fig.add_trace(
             go.Scattergl(
@@ -114,28 +119,32 @@ def interactive_plotly_2D(SEQ,df,dfall,trj_id,vis):
                 line=dict(
                     # color='rgb({}, {}, {})'.format((i/100*255),(i/100*255),(i/100*255)),
                     color="black",
-                    width=2+i/100,
+                    width=2,
                 ),
                 marker=dict(
                     sizemode='area',
                     size=subdf["HT"],
-                    sizeref=8e-11,
+                    # sizeref=8e-11,
+                    sizeref=5e-11,
                     color=subdf["Energy"],
                     colorscale="Plasma",
                     # showscale=False,
-                    colorbar_orientation='h',
+                    colorbar=dict(
+                        x=-0.2,
+                        tickvals=[],
+                        ),
                 ),
                 
                 text=subdf["Step"],
                 customdata = np.stack((subdf['Pair'],subdf["TotalT"],subdf["DP"]),axis=-1),
                 hovertemplate=
                     "Step:  <b>%{text}</b><br><br>"+
+                    "DP notation: <br> <b>%{customdata[2]}</b><br>" +
                     "X: %{x}   " + "   Y: %{y} <br>"+
-                    "DP: %{customdata[2]}<br>" +
                     "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                    "Average Holding Time:  %{marker.size:.5g} s<br>"+
-                    "Total Time:  %{customdata[1]:.5e} s<br>" +
-                    "Pair (0/1->unpaired/paired,resp):  %{customdata[0]} ",
+                    "Pair (0/1->unpaired/paired,resp):  %{customdata[0]} <br><br>"+
+                    "Holding time for last step:  %{marker.size:.5g} s<br>",
+                    # "Total Time:  %{customdata[1]:.5e} s<br>",
                 visible='legendonly'
                         )
         )
@@ -143,7 +152,7 @@ def interactive_plotly_2D(SEQ,df,dfall,trj_id,vis):
     # label initial and final states
     fig.add_trace(
         go.Scattergl(
-            x=plot_trj(trj_id,dfall,i,vis,dim="2D")[1],
+            x=plot_trj(trj_id,dfall,0,vis,dim="2D")[1],
             y=plot_trj(trj_id,dfall,0,vis,dim="2D")[2],
             mode='markers+text',
             marker_color="lime", 
@@ -158,6 +167,14 @@ def interactive_plotly_2D(SEQ,df,dfall,trj_id,vis):
             hoverinfo='skip',
             showlegend=False,
                         )
+    )
+    
+    fig.update_xaxes(
+        range=[min(df["{} 1".format(vis)])*1.1,max(df["{} 1".format(vis)])*1.1]
+    )
+    
+    fig.update_yaxes(
+        range=[min(df["{} 2".format(vis)])*1.1,max(df["{} 2".format(vis)])*1.1]
     )
 
     fig.update_layout(
@@ -336,6 +353,215 @@ def interactive_plotly_3D(SEQ,df,dfall,trj_id,vis):
 
 
 
+###############################################################################
+# separate paired and unpaired data 2D plots
+###############################################################################
+
+def interactive_plotly_2D_01(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
+    fig = go.Figure()
+    
+    # plot energy landscape background
+    fig.add_trace(go.Scattergl(
+            x=df0["{} 1".format(vis)], 
+            y=df0["{} 2".format(vis)], 
+            mode='markers',
+            marker=dict(
+                symbol='x',
+                # size=10,
+                sizemode='area',
+                size=df0["HT"],
+                sizeref=1e-11,
+                color=df0["Energy"],
+                # colorscale="Plasma",
+                colorscale="OrRd",
+                showscale=True,
+                colorbar_x=1.2,
+            ),
+            customdata = np.stack((df0['Pair'],np.log(df0["Occp"]),df0["HT"]),axis=-1),
+            text=df0['DP'],
+            hovertemplate=
+                "DP notation: <br> <b>%{text}</b><br>" +
+                "X: %{x}   " + "   Y: %{y} <br>"+
+                "Energy:  %{marker.color:.3f} kcal/mol<br>"+
+                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                "Average holding time:  %{customdata[2]:.5g} s<br>"+
+                "Occupancy density (logscale):  %{customdata[1]:.3f}<br>",
+            name="Unpaired",
+            # showlegend=False,
+        )
+    )
+
+    fig.add_trace(go.Scattergl(
+            x=df1["{} 1".format(vis)], 
+            y=df1["{} 2".format(vis)], 
+            mode='markers',
+            marker=dict(
+                sizemode='area',
+                # size=4,
+                size=df1["HT"],
+                sizeref=5e-11,
+                color=df1["Energy"],
+                # colorscale="Plasma",
+                colorscale="Greens",
+                opacity=0.5,
+                showscale=True,
+                colorbar_x=-0.2,
+            ),
+            customdata = np.stack((df1['Pair'],np.log(df1["Occp"]),df1["HT"]),axis=-1),
+            text=df1['DP'],
+            hovertemplate=
+                "DP notation: <br> <b>%{text}</b><br>" +
+                "X: %{x}   " + "   Y: %{y} <br>"+
+                "Energy:  %{marker.color:.3f} kcal/mol<br>"+
+                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                "Average holding time:  %{customdata[2]:.5g} s<br>"+
+                "Occupancy density (logscale):  %{customdata[1]:.3f}<br>",
+            name="Paired",
+            # showlegend=False,
+        )
+    )
+
+    # layout trajectory on top of energy landscape
+    for i in range(n_trace):
+        subdf = plot_trj(trj_id,dfall,i,vis,dim="2D")[0]
+        fig.add_trace(
+            go.Scattergl(
+                x=subdf["sub X"], 
+                y=subdf["sub Y"],
+                mode='lines+markers',
+                line=dict(
+                    # color='rgb({}, {}, {})'.format((i/100*255),(i/100*255),(i/100*255)),
+                    color="black",
+                    width=2,
+                ),
+                marker=dict(
+                    sizemode='area',
+                    size=subdf["HT"],
+                    sizeref=8e-11,
+                    color=subdf["Energy"],
+                    colorscale="plasma",
+                    # showscale=False,
+                    colorbar=dict(
+                        orientation='h',
+                        tickvals=[],
+                        # showticklabels=False,
+                        ),
+                    # colorbar_orientation='h',
+                ),
+                
+                text=subdf["Step"],
+                customdata = np.stack((subdf['Pair'],subdf["TotalT"],subdf["DP"]),axis=-1),
+                hovertemplate=
+                    "Step:  <b>%{text}</b><br><br>"+
+                    "DP: %{customdata[2]}<br>" +
+                    "X: %{x}   " + "   Y: %{y} <br>"+
+                    "Energy:  %{marker.color:.3f} kcal/mol<br>"+
+                    "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                    "Holding time for last step:  %{marker.size:.5g} s<br>",
+                    # "Total Time:  %{customdata[1]:.5e} s<br>",
+                visible='legendonly'
+                        )
+        )
+
+    # label initial and final states
+    fig.add_trace(
+        go.Scattergl(
+            x=plot_trj(trj_id,dfall,0,vis,dim="2D")[1],
+            y=plot_trj(trj_id,dfall,0,vis,dim="2D")[2],
+            mode='markers+text',
+            marker_color="lime", 
+            marker_size=15,
+            text=["I", "F"],
+            textposition="middle center",
+            textfont=dict(
+            family="sans serif",
+            size=16,
+            color="black"
+        ),
+            hoverinfo='skip',
+            showlegend=False,
+                        )
+    )
+    
+    fig.update_xaxes(
+        range=[min(dfall["{} 1".format(vis)])*1.1,max(dfall["{} 1".format(vis)])*1.1]
+    )
+    
+    fig.update_yaxes(
+        range=[min(dfall["{} 2".format(vis)])*1.1,max(dfall["{} 2".format(vis)])*1.1]
+    )
+
+    fig.update_layout(
+        title="{}: {} Vis".format(SEQ,vis),
+        xaxis=dict(
+                title="{} 1".format(vis),
+            ),
+        yaxis=dict(
+                title="{} 2".format(vis),
+            ),
+        legend=dict(
+            title="Single Trajectory",
+            title_font=dict(size=10),
+            font=dict(
+                # family="Courier",
+                size=10,
+                color="black"
+        )
+        ),
+        # hovermode="x",
+    )
+    
+    return fig
+
+
+
+###############################################################################
+# get unique structure density heatmap
+###############################################################################
+
+def interactive_density_heatmap(SEQ,df,dfall,trj_id,vis):
+    # get unique structure density heatmap
+    fig = px.density_heatmap(
+            df, x=f"{vis} 1", y=f"{vis} 2",
+            text_auto=True,
+            title=f"{SEQ} by {vis}: Unique Structure Density Heatmap"
+            )
+    
+    # label initial and final states
+    fig.add_trace(
+        go.Scattergl(
+            x=plot_trj(trj_id,dfall,0,vis,dim="2D")[1],
+            y=plot_trj(trj_id,dfall,0,vis,dim="2D")[2],
+            mode='markers+text',
+            marker_color="lime", 
+            marker_size=20,
+            text=["I", "F"],
+            textposition="middle center",
+            textfont=dict(
+            family="sans serif",
+            size=16,
+            color="black"
+        ),
+            hoverinfo='skip',
+            showlegend=False,
+                        )
+    )
+    
+    return fig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###################### OLD CODE ################################
 # old hard-code interactive plot function
@@ -438,5 +664,3 @@ def interactive_plot_old(data_npz,SEQ,vis):
     fig.canvas.mpl_connect("motion_notify_event", hover)
 
     plt.show()
-    
-###################### OLD CODE ################################

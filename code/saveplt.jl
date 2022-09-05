@@ -129,7 +129,7 @@ end
 
 
 # # parameters
-SEQ = ["PT0", "PT3"]
+SEQ = ["PT0", "PT3", "PT4", "PT3_hairpin", "PT4_hairpin"]
 PLOT_TYPE = ["energy", "pair", "occp"]
 VIS_METHOD = ["PCA", "PHATE", "UMAP", "tSNE"]
 
