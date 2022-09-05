@@ -20,6 +20,7 @@
 *.html
 RPE_Proposal_edits
 plot
+latex
 
 lightning_logs
 # Byte-compiled / optimized / DLL files
