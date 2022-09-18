@@ -129,16 +129,21 @@ end
 
 
 # # parameters
-SEQ = ["PT0", "PT3", "PT4", "PT3_hairpin", "PT4_hairpin"]
-PLOT_TYPE = ["energy", "pair", "occp"]
-VIS_METHOD = ["PCA", "PHATE", "UMAP", "tSNE"]
+# SEQ = ["PT0", "PT3", "PT4", "PT3_hairpin", "PT4_hairpin"]
+SEQ = ["PT4_hairpin"]
+# PLOT_TYPE = ["energy", "pair", "occp"]
+PLOT_TYPE = ["energy"]
+# VIS_METHOD = ["PCA", "PHATE", "UMAP", "tSNE"]
+VIS_METHOD = ["PCA", "PHATE", "tSNE"]
+
 
 # # batch save plots for each vis method and plot type of each reaction
 for seq in SEQ
     for plot_type in PLOT_TYPE
         for vis_method in VIS_METHOD
             # plot
-            fname = "helix_assoc_$(seq)_multrj_100epoch_jl"
+            # fname = "helix_assoc_$(seq)_multrj_100epoch_jl"
+            fname = "helix_assoc_$(seq)_multrj_30epoch_jl"
             statePlot(fname;seq=seq,plot_type=plot_type,vis_method=vis_method)
         end
     end

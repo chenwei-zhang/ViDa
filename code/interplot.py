@@ -30,11 +30,15 @@ def plot_trj(trj_id,dfall,i,vis,dim):
             "DP": dfall["DP"][s:s_prime],
             "HT": dfall["HT"][s:s_prime],
             "TotalT": dfall["TotalT"][s:s_prime],
+            "correct_interpair": dfall["correct_interpair"][s:s_prime],
+            "intrapair_top": dfall["intrapair_top"][s:s_prime],
+            "intrapair_bot": dfall["intrapair_bot"][s:s_prime],
+            "all_interpair": dfall["all_interpair"][s:s_prime],
             }
             )
         
-        # get step numbers for the trajectory less than 1000 steps
-        if len(subdf["DP"]) < 1000:
+        # get step numbers for the trajectory less than 2000 steps
+        if len(subdf["DP"]) < 2000:
                 Step = []
                 for i in range(len(subdf["DP"])):
                         step=[]
@@ -67,9 +71,35 @@ def plot_trj(trj_id,dfall,i,vis,dim):
         Yi=subdf["sub Y"].iloc[0]; Yf=subdf["sub Y"].iloc[-1]
         
         return subdf,(Xi,Xf),(Yi,Yf),(Zi,Zf)
-    
 
-    
+
+###############################################################################
+# get more hover over information
+###############################################################################
+
+def hover_addon(SIMS_adj_uniq,SIMS_dict_uniq):
+    correct_interpair_uniq = []
+    intrapair_top_uniq = []
+    intrapair_bot_uniq = []
+    all_interpair_uniq = []
+
+    for s_adj in SIMS_adj_uniq:
+        count = 0
+        for i in range(25):
+            if s_adj[i,49-i] == 1.0:
+                count += 1
+        correct_interpair_uniq.append(count)
+        
+    for i in range(len(SIMS_dict_uniq)):
+        ss = SIMS_dict_uniq[i][0].split("+")
+        intrapair_top_uniq.append(ss[0].count(")")) # number of intra base pairs for both strands
+        intrapair_bot_uniq.append(ss[1].count("(")) # number of intra base pairs for both strands
+        all_interpair_uniq.append(ss[0].count("(") - ss[0].count(")")) # number of inter base pairs (correct+incorrect)
+        
+    return  np.array(correct_interpair_uniq), np.array(intrapair_top_uniq), np.array(intrapair_bot_uniq), np.array(all_interpair_uniq)
+
+
+  
 ###############################################################################
 # plot 2D energy landscape
 ###############################################################################
@@ -89,20 +119,39 @@ def interactive_plotly_2D(SEQ,n_trace,df,dfall,trj_id,vis):
                 color=df["Energy"],
                 colorscale="Plasma",
                 showscale=True,
-                colorbar_x=-0.2,
+                # colorbar_x=-0.2,
+                colorbar=dict(
+                    title="Free energy (kcal/mol)",  
+                    x=-0.2,
+                    titleside="top",  
+                    len=1.065,
+                    y=0.5,
+                ),
                 line=dict(width=0.2
                 ),
             ),
-            customdata = np.stack((df['Pair'],np.log(df["Occp"])),axis=-1),
+            customdata = np.stack((df['Pair'],
+                                   np.log(df["Occp"]),
+                                   df["correct_interpair"],
+                                   df["intrapair_top"],
+                                   df["intrapair_bot"],
+                                   df["all_interpair"],
+                                   ),axis=-1),
             text=df['DP'],
             hovertemplate=
                 "DP notation: <br> <b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
-                "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
+                
+                "Intra-strand base pairs (left strand):  %{customdata[3]}<br>"+
+                "Intra-strand base pairs (right strand):  %{customdata[4]}<br>"+
+                "Correctly paired inter-strand base pairs: %{customdata[2]}<br>"+
+                "Total inter-strand base pairs: %{customdata[5]}<br>"+
+                "Two strands binding: (0->No; 1->Yes):  %{customdata[0]}<br><br>"+
+
                 "Average holding time:  %{marker.size:.5g} s<br>"+
                 "Occupancy density (logscale):  %{customdata[1]:.3f}<br>",
-                
+    
             name="background",
             # showlegend=False,
         )
@@ -132,17 +181,32 @@ def interactive_plotly_2D(SEQ,n_trace,df,dfall,trj_id,vis):
                     colorbar=dict(
                         x=-0.2,
                         tickvals=[],
+                        y=0.5,
+                        len=1,
                         ),
                 ),
                 
                 text=subdf["Step"],
-                customdata = np.stack((subdf['Pair'],subdf["TotalT"],subdf["DP"]),axis=-1),
+                customdata = np.stack((subdf['Pair'],
+                                       subdf["TotalT"],
+                                       subdf["DP"],
+                                       subdf["correct_interpair"],
+                                       subdf["intrapair_top"],
+                                       subdf["intrapair_bot"],
+                                       subdf["all_interpair"],
+                                       ),axis=-1),
                 hovertemplate=
                     "Step:  <b>%{text}</b><br><br>"+
                     "DP notation: <br> <b>%{customdata[2]}</b><br>" +
                     "X: %{x}   " + "   Y: %{y} <br>"+
-                    "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                    "Pair (0/1->unpaired/paired,resp):  %{customdata[0]} <br><br>"+
+                    "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
+                    
+                    "Intra-strand base pairs (left strand):  %{customdata[4]}<br>"+
+                    "Intra-strand base pairs (right strand):  %{customdata[5]}<br>"+
+                    "Correctly paired inter-strand base pairs: %{customdata[3]}<br>"+
+                    "Total inter-strand base pairs: %{customdata[6]}<br>"+
+                    "Two strands binding: (0->No; 1->Yes):  %{customdata[0]}<br><br>"+
+
                     "Holding time for last step:  %{marker.size:.5g} s<br>",
                     # "Total Time:  %{customdata[1]:.5e} s<br>",
                 visible='legendonly'
@@ -213,7 +277,6 @@ def interactive_plotly_2D(SEQ,n_trace,df,dfall,trj_id,vis):
 ###############################################################################
 # plot 3D energy landscape
 ###############################################################################
-
 def interactive_plotly_3D(SEQ,df,dfall,trj_id,vis):
     fig = go.Figure()
     
@@ -357,7 +420,7 @@ def interactive_plotly_3D(SEQ,df,dfall,trj_id,vis):
 # separate paired and unpaired data 2D plots
 ###############################################################################
 
-def interactive_plotly_2D_01(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
+def interactive_plotly_2D_parivsunpair(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
     fig = go.Figure()
     
     # plot energy landscape background
@@ -375,17 +438,37 @@ def interactive_plotly_2D_01(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
                 # colorscale="Plasma",
                 colorscale="OrRd",
                 showscale=True,
-                colorbar_x=1.2,
+                colorbar=dict(
+                    title="Free energy <br> (kcal/mol)",  
+                    x=1.15,
+                    titleside="top",  
+                    # len=1.065,
+                    # y=0.5,
+                ),
             ),
-            customdata = np.stack((df0['Pair'],np.log(df0["Occp"]),df0["HT"]),axis=-1),
+            customdata = np.stack((df0['Pair'],
+                                   np.log(df0["Occp"]),
+                                   df0["HT"],
+                                   df0["correct_interpair"],
+                                   df0["intrapair_top"],
+                                   df0["intrapair_bot"],
+                                   df0["all_interpair"],
+                                   ),axis=-1),
             text=df0['DP'],
             hovertemplate=
                 "DP notation: <br> <b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
-                "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
+                
+                "Intra-strand base pairs (left strand): %{customdata[4]} <br>"+
+                "Intra-strand base pairs (right strand): %{customdata[5]} <br>"+
+                "Correctly paired inter-strand base pairs: %{customdata[3]} <br>"+
+                "Total inter-strand base pairs: %{customdata[6]} <br>"+
+                "Two strands binding: (0->No; 1->Yes): %{customdata[0]} <br><br>"+
+                
                 "Average holding time:  %{customdata[2]:.5g} s<br>"+
                 "Occupancy density (logscale):  %{customdata[1]:.3f}<br>",
+            
             name="Unpaired",
             # showlegend=False,
         )
@@ -405,17 +488,37 @@ def interactive_plotly_2D_01(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
                 colorscale="Greens",
                 opacity=0.5,
                 showscale=True,
-                colorbar_x=-0.2,
+                colorbar=dict(
+                    title="Free energy <br> (kcal/mol)",  
+                    x=-0.2,
+                    titleside="top",  
+                    # len=1.065,
+                    # y=0.5,
+                ),                                
             ),
-            customdata = np.stack((df1['Pair'],np.log(df1["Occp"]),df1["HT"]),axis=-1),
+            customdata = np.stack((df1['Pair'],
+                                   np.log(df1["Occp"]),
+                                   df1["HT"],
+                                   df1["correct_interpair"],
+                                   df1["intrapair_top"],
+                                   df1["intrapair_bot"],
+                                   df1["all_interpair"],
+                                   ),axis=-1),
             text=df1['DP'],
             hovertemplate=
                 "DP notation: <br> <b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
-                "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
+                
+                "Intra-strand base pairs (left strand): %{customdata[4]} <br>"+
+                "Intra-strand base pairs (right strand): %{customdata[5]} <br>"+
+                "Correctly paired inter-strand base pairs: %{customdata[3]} <br>"+
+                "Total inter-strand base pairs: %{customdata[6]} <br>"+
+                "Two strands binding: (0->No; 1->Yes): %{customdata[0]} <br><br>"+
+                
                 "Average holding time:  %{customdata[2]:.5g} s<br>"+
                 "Occupancy density (logscale):  %{customdata[1]:.3f}<br>",
+                
             name="Paired",
             # showlegend=False,
         )
@@ -450,17 +553,31 @@ def interactive_plotly_2D_01(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
                 ),
                 
                 text=subdf["Step"],
-                customdata = np.stack((subdf['Pair'],subdf["TotalT"],subdf["DP"]),axis=-1),
+                customdata = np.stack((subdf['Pair'],
+                                       subdf["TotalT"],
+                                       subdf["DP"],
+                                       subdf["correct_interpair"],
+                                       subdf["intrapair_top"],
+                                       subdf["intrapair_bot"],
+                                       subdf["all_interpair"],
+                                       ),axis=-1),
                 hovertemplate=
                     "Step:  <b>%{text}</b><br><br>"+
-                    "DP: %{customdata[2]}<br>" +
+                    "DP notation: <br> <b>%{customdata[2]}<br>" +
                     "X: %{x}   " + "   Y: %{y} <br>"+
                     "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                    "Pair (0/1->unpaired/paired,resp):  %{customdata[0]}<br><br>"+
+                    
+                    "Intra-strand base pairs (left strand): %{customdata[4]} <br>"+
+                    "Intra-strand base pairs (right strand): %{customdata[5]} <br>"+
+                    "Correctly paired inter-strand base pairs: %{customdata[3]} <br>"+
+                    "Total inter-strand base pairs: %{customdata[6]} <br>"+
+                    "Two strands binding: (0->No; 1->Yes): %{customdata[0]} <br><br>"+
+                    
                     "Holding time for last step:  %{marker.size:.5g} s<br>",
                     # "Total Time:  %{customdata[1]:.5e} s<br>",
-                visible='legendonly'
-                        )
+                visible='legendonly',
+                name=f"trace {i+1}",
+                        ),
         )
 
     # label initial and final states
@@ -516,15 +633,24 @@ def interactive_plotly_2D_01(SEQ,n_trace,df0,df1,dfall,trj_id,vis):
 
 
 ###############################################################################
-# get unique structure density heatmap
+# get states density heatmap
 ###############################################################################
 
-def interactive_density_heatmap(SEQ,df,dfall,trj_id,vis):
-    # get unique structure density heatmap
-    fig = px.density_heatmap(
-            df, x=f"{vis} 1", y=f"{vis} 2",
+def interactive_density_heatmap(SEQ,df,dfall,trj_id,vis,state_type):
+    if state_type == "unique":
+        # get unique states' density heatmap
+        fig = px.density_heatmap(
+                df, x=f"{vis} 1", y=f"{vis} 2",
+                text_auto=True,
+                title=f"{SEQ} by {vis}: Structure Density Heatmap - No Repetition",
+                )
+    elif state_type == "all":
+        # get all states' density heatmap
+        fig = px.density_heatmap(
+            dfall, x=f"{vis} 1", y=f"{vis} 2",
+            histfunc = "count",
             text_auto=True,
-            title=f"{SEQ} by {vis}: Unique Structure Density Heatmap"
+            title=f"{SEQ} by {vis}: Structure Density Heatmap ",
             )
     
     # label initial and final states
