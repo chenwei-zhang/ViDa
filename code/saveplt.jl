@@ -3,7 +3,7 @@ using NPZ, Printf, NNlib, Statistics, Plots, JLD2, LinearAlgebra, Distributions
 # batch save plots
 function statePlot(fname;seq,plot_type,vis_method)
     # load data
-    data_h5 =load("code/data/helix_assoc/$(fname).h5")
+    data_h5 =load("code/data/vida_data/helix_assoc/$(fname).h5")
 
     # get coords from different vis methods and get each plot type data 
     all_coords, X, Y, x, y, trj_id, bg, color, linecolor, colorbar, colorbar_title = 
@@ -23,7 +23,7 @@ function statePlot(fname;seq,plot_type,vis_method)
         statePlot(trj_id,i,all_coords,linecolor)
         
         # save plots
-        path = "/Users/chenwei/Desktop/Github/RPE/plot/helix_assoc_$(seq)/$(plot_type)/$(vis_method)"
+        path = "/Users/chenwei/Desktop/Github/ViDa/output_files/saved_plots/helix_assoc_$(seq)/$(plot_type)/$(vis_method)"
         mkpath(path)
         savefig("$(path)/$(filename)")
     end

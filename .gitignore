@@ -11,18 +11,17 @@
 *.fdb_latexmk
 *.out
 *.docx
-*.txt
 *.gif
 *.npy
 *.npz
 *.csv
 *.pickle
 *.html
-RPE_Proposal_edits
-plot
 latex
-code/PE_codes
-interactive_plot
+output_files/saved_interactive_plots
+output_files/saved_plots
+output_files/saved_trained_models
+code/data/raw_data/helix_assoc
 
 
 lightning_logs
