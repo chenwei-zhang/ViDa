@@ -1,0 +1,23 @@
+Bootstrap: localimage
+From: multistrand.sif
+
+%environment
+    export SINGULARITY_BIND=/home/chenwei/Desktop/Github/:/mnt/
+
+%post
+    # cd /opt/
+    # pip install --upgrade pip
+    # pip install --target=/opt/ Jupyter
+    pip install ipython
+    pip install h5py
+    pip install pandas
+
+    cd /code/
+    sudo rm cmake-2.8.10.tar.gz
+    sudo rm nupack3.2.2.tar
+
+
+# %runscript
+#     echo "Starting notebook..."
+#     echo "Open browser to localhost:8888"
+#     exec /opt/jupyter notebook --notebook-dir=/opt/notebooks --ip='*' --port=8888 --no-browser --allow-root
