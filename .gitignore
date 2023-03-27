@@ -19,11 +19,11 @@
 *.html
 *.json
 latex
-output_files/saved_interactive_plots
-output_files/saved_plots
-output_files/saved_trained_models
+output_files
 code/data/raw_data/helix_assoc
 model_config
+
+
 
 
 lightning_logs
