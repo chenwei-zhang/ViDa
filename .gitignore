@@ -18,6 +18,7 @@
 *.pickle
 *.html
 *.json
+*.pkl
 latex
 output_files
 code/data/raw_data/helix_assoc
