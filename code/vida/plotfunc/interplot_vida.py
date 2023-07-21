@@ -104,7 +104,7 @@ def hover_addon(SIMS_adj_uniq,SIMS_dict_uniq):
 
   
 ###############################################################################
-# plot 2D energy landscape
+# plot 2D energy landscape (no sorted)
 ###############################################################################
 
 def interactive_plotly_2D(SEQ,n_trace,df,dfall,trj_id,vis):
@@ -264,6 +264,160 @@ def interactive_plotly_2D(SEQ,n_trace,df,dfall,trj_id,vis):
             ),
         legend=dict(
             title="Single Trajectory",
+            title_font=dict(size=10),
+            font=dict(
+                # family="Courier",
+                size=10,
+                color="black"
+        )
+        )
+    )
+    
+    return fig
+
+
+
+###############################################################################
+# plot 2D energy landscape (sorted)
+###############################################################################
+
+def interactive_plotly_2D_sort(SEQ,df,dfall,vis):
+    fig = go.Figure()
+    
+    # plot energy landscape background
+    fig.add_trace(go.Scattergl(
+            x=df["{} 1".format(vis)], 
+            y=df["{} 2".format(vis)], 
+            mode='markers',
+            marker=dict(
+                # sizemode='area',
+                sizemode='diameter',
+                size=df["HT"],
+                sizeref=5e-10,
+                color=df["Energy"],
+                colorscale="Plasma",
+                showscale=True,
+                # colorbar_x=-0.2,
+                colorbar=dict(
+                    title="Free energy (kcal/mol)",  
+                    x=-0.2,
+                    titleside="top",  
+                    len=1.065,
+                    y=0.5,
+                ),
+                line=dict(width=0.2
+                ),
+            ),
+            text=df['DP'],
+            hovertemplate=
+                "DP notation: <br> <b>%{text}</b><br>" +
+                "X: %{x}   " + "   Y: %{y} <br>"+
+                "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
+                "Average holding time:  %{marker.size:.5g} s<br>",
+                    
+            name="Energy landscape",
+            # showlegend=False,
+        )
+    )
+
+    # layout trajectory on top of energy landscape
+    for i in range(len(dfall)):
+        Step = []
+        if len(dfall["DP"][i]) < 2000:
+            Step = np.arange(len(dfall["DP"][i]))
+        else:
+            Step = np.full(len(dfall["DP"][i]), None, dtype=object)
+        
+        fig.add_trace(
+            go.Scattergl(
+                x=dfall[f"{vis}"][i][:,0],
+                y=dfall[f"{vis}"][i][:,1],
+                mode='lines+markers',
+                line=dict(
+                    color="black",
+                    width=2,
+                ),
+                marker=dict(
+                    # sizemode='area',
+                    sizemode='diameter',
+                    size=dfall["HT"][i],
+                    sizeref=5e-10,
+                    color=dfall["Energy"][i],
+                    colorscale="Plasma",
+                    # showscale=False,
+                    colorbar=dict(
+                        x=-0.2,
+                        y=0.5,
+                        tickvals=[],
+                        len=1,
+                    ),
+                ),
+                
+                text=Step,
+                customdata=np.stack((dfall['Pair'][i],
+                                     dfall['TotalT'][i],
+                                     dfall['DP'][i],
+                                     ),axis=-1),
+                hovertemplate=
+                    "Step:  <b>%{text}</b><br><br>"+
+                    "DP notation: <br> <b>%{customdata[2]}</b><br>" +
+                    "X: %{x}   " + "   Y: %{y} <br>"+
+                    "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
+                    "Holding time for last step:  %{marker.size:.5g} s<br>"+
+                    "Total time until current state:  %{customdata[1]:.5e} s<br>",
+                visible='legendonly',
+                name = "Trace {}".format(dfall["IDX"][i]),
+            )
+        )
+            
+    # label initial and final states
+    fig.add_trace(
+        go.Scattergl(
+            x=[dfall[f"{vis}"][0][0,0],dfall[f"{vis}"][0][-1,0]],
+            y=[dfall[f"{vis}"][0][0,1],dfall[f"{vis}"][0][-1,1]],
+            mode='markers+text',
+            marker_color="lime", 
+            marker_size=15,
+            text=["I", "F"],
+            textposition="middle center",
+            textfont=dict(
+            family="sans serif",
+            size=16,
+            color="black"
+        ),
+            hoverinfo='skip',
+            showlegend=False,
+                        )
+    )
+    
+    fig.update_xaxes(
+        range=[min(df["{} 1".format(vis)])*1.1,max(df["{} 1".format(vis)])*1.1]
+    )
+    
+    fig.update_yaxes(
+        range=[min(df["{} 2".format(vis)])*1.1,max(df["{} 2".format(vis)])*1.1]
+    )
+
+    fig.update_layout(
+        # autosize=True,
+        # width=700,
+        # height=700,
+        # margin=dict(
+        #     l=50,
+        #     r=50,
+        #     b=100,
+        #     t=100,
+        #     pad=4
+        # ),
+        title="{}: {} Vis".format(SEQ,vis),
+        xaxis=dict(
+                title="{} 1".format(vis),
+            ),
+        yaxis=dict(
+                title="{} 2".format(vis),
+            ),
+        legend=dict(
+            # title="Single Trajectory",
             title_font=dict(size=10),
             font=dict(
                 # family="Courier",
