@@ -45,6 +45,22 @@ def mean_holdingtime(SIMS_HT, indices_S, coord_id_S):
 
     return SIMS_HT_uniq
 
+# calulate the cumulative time fraction of unique states
+def cumu_holdingtime(SIMS_HT, indices_S, coord_id_S):
+    """calculate the average time fraction of each unique state
+        based on the coordination number: coord_id_S
+    """
+    SIMS_cumu_uniq = np.empty(len(indices_S))
+    cumu_account = np.zeros(len(indices_S),dtype=np.int64)
+    
+    for i in range(len(indices_S)):
+        ht_temp = np.where(i==coord_id_S)[0]
+        SIMS_cumu_uniq[i] = sum(SIMS_HT[ht_temp])
+        cumu_account[i] = len(ht_temp)
+
+    return SIMS_cumu_uniq, cumu_account
+
+
 # """save data to h5 file
 # """
 def save_h5(filename,
