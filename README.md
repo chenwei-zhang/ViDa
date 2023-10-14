@@ -87,7 +87,37 @@ docker build -t vida:v1.0.0 .
 docker run -it --gpus all --rm vida:v1.0.0 
 ```   
 
+## Data
+The data can be downloaded [here]().
 
+```
+vida-db-params
+├── params
+    ├── full_dataset
+├── Hata-data
+    ├── full_dataset
+|── Gao-data
+    ├── full_dataset
+        │── EMD_0
+           │── 0004
+             │-- emd_0004.map
+             │-- emd_resampled_map.mrc
+             |-- emd_normalized_map.mrc
+             |-- atom_emd_normalized_map.mrc
+             |-- ca_atom_emd_normalized_map.mrc
+             |-- amino_emd_normalized_map.mrc
+             |-- sec_struc_emd_normalized_map.mrc
+             |-- 6giq.pdb
+             |-- 6giq_helix.pdb
+             |-- 6giq_coil.pdb
+             |-- 6giq_strand.pdb
+             |-- 6giq.fasta
+             |-- 6giq_all_chain_combined.fasta
+             |-- atomic.fasta
+             |-- dealign_clustal_input.fasta
+             |-- dealign_clustal_output.fasta
+...
+```
 
 ## Workflow
 
