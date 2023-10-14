@@ -2,7 +2,7 @@
 *.h5
 *.hdf5
 *.log
-*.gz
+# *.gz
 *.aux
 *.synctex.gz
 *.blg
@@ -18,7 +18,7 @@
 *.pickle
 *.html
 *.json
-*.pkl
+# *.pkl
 latex
 output_files
 # code/data/raw_data/helix_assoc
