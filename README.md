@@ -88,35 +88,41 @@ docker run -it --gpus all --rm vida:v1.0.0
 ```   
 
 ## Data
-The data can be downloaded [here]().
+The full data can be downloaded [here]().
 
 ```
-vida-db-params
-├── params
-    ├── full_dataset
-├── Hata-data
-    ├── full_dataset
-|── Gao-data
-    ├── full_dataset
-        │── EMD_0
-           │── 0004
-             │-- emd_0004.map
-             │-- emd_resampled_map.mrc
-             |-- emd_normalized_map.mrc
-             |-- atom_emd_normalized_map.mrc
-             |-- ca_atom_emd_normalized_map.mrc
-             |-- amino_emd_normalized_map.mrc
-             |-- sec_struc_emd_normalized_map.mrc
-             |-- 6giq.pdb
-             |-- 6giq_helix.pdb
-             |-- 6giq_coil.pdb
-             |-- 6giq_strand.pdb
-             |-- 6giq.fasta
-             |-- 6giq_all_chain_combined.fasta
-             |-- atomic.fasta
-             |-- dealign_clustal_input.fasta
-             |-- dealign_clustal_output.fasta
-...
+raw_data
+   ├── Hata-data
+       ├── Hata-39.pkl.gz
+   |── Gao-data
+       ├── Gao-P0T0
+           │-- Gao-P0T0-0.txt
+           │-- Gao-P0T0-1.txt
+           ...
+       ├── Gao-P3T3
+           │-- Gao-P3T3-0.txt
+           │-- Gao-P3T3-1.txt
+           ...
+       ├── Gao-P3T3-hairpin
+           │-- Gao-P3T3-hairpin-0.txt
+           │-- Gao-P3T3-hairpin-1.txt
+           ...
+       ├── Gao-P4T4
+           │-- Gao-P4T4-0.txt
+           │-- Gao-P4T4-1.txt
+           ...
+       ├── Gao-P4T4-hairpin
+           │-- Gao-P4T4-hairpin-0.txt
+           │-- Gao-P4T4-hairpin-1.txt
+           ...
+
+model_params
+   ├── Hata-39_model.pt
+   ├── Gao-P0T0_model.pt
+   ├── Gao-P3T3_model.pt
+   ├── Gao-P3T3-hairpin_model.pt
+   ├── Gao-P4T4_model.pt
+   ├── Gao-P4T4-hairpin_model.pt
 ```
 
 ## Workflow
