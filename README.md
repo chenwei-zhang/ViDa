@@ -92,38 +92,37 @@ The full data can be downloaded [here]().
 
 ```
 raw_data
-├── Hata-data
-    ├── Hata-39.pkl.gz
-|── Gao-data
-    ├── Gao-P0T0
-        │-- Gao-P0T0-0.txt
-        │-- Gao-P0T0-1.txt
-        ...
-    ├── Gao-P3T3
-        │-- Gao-P3T3-0.txt
-        │-- Gao-P3T3-1.txt
-        ...
-    ├── Gao-P3T3-hairpin
-        │-- Gao-P3T3-hairpin-0.txt
-        │-- Gao-P3T3-hairpin-1.txt
-        ...
-    ├── Gao-P4T4
-        │-- Gao-P4T4-0.txt
-        │-- Gao-P4T4-1.txt
-        ...
-    ├── Gao-P4T4-hairpin
-        │-- Gao-P4T4-hairpin-0.txt
-        │-- Gao-P4T4-hairpin-1.txt
-        ...
+   ├── Hata-data
+       ├── Hata-39.pkl.gz
+   |── Gao-data
+       ├── Gao-P0T0
+           │-- Gao-P0T0-0.txt
+           │-- Gao-P0T0-1.txt
+           ...
+       ├── Gao-P3T3
+           │-- Gao-P3T3-0.txt
+           │-- Gao-P3T3-1.txt
+           ...
+       ├── Gao-P3T3-hairpin
+           │-- Gao-P3T3-hairpin-0.txt
+           │-- Gao-P3T3-hairpin-1.txt
+           ...
+       ├── Gao-P4T4
+           │-- Gao-P4T4-0.txt
+           │-- Gao-P4T4-1.txt
+           ...
+       ├── Gao-P4T4-hairpin
+           │-- Gao-P4T4-hairpin-0.txt
+           │-- Gao-P4T4-hairpin-1.txt
+           ...
 
 model_params
-├── Hata-39_model.pt
-├── Gao-P0T0_model.pt
-├── Gao-P3T3_model.pt
-├── Gao-P3T3-hairpin_model.pt
-├── Gao-P4T4_model.pt
-├── Gao-P4T4-hairpin_model.pt
-
+   ├── Hata-39_model.pt
+   ├── Gao-P0T0_model.pt
+   ├── Gao-P3T3_model.pt
+   ├── Gao-P3T3-hairpin_model.pt
+   ├── Gao-P4T4_model.pt
+   ├── Gao-P4T4-hairpin_model.pt
 ```
 
 ## Workflow
