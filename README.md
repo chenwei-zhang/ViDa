@@ -71,18 +71,93 @@ cd ViDa
 pip install -e .   
 pip install -r requirements.txt
 ```   
+**To install the Multistrand simulator, please follow [Multistrand officila tutorial](https://github.com/DNA-and-Natural-Algorithms-Group/multistrand).**
+
+## Run ViDa in Docker
+```bash
+# clone project   
+git clone https://github.com/chenwei-zhang/ViDa
+
+# install vida iamge by Dockerfile
+cd ViDa
+docker build -t vida:v1.0.0 .
+
+# create and run docker container from the built image
+docker run -it --gpus all --rm vida:v1.0.0 
+```   
+
+
 
 ## Workflow
 
-## 1. Loading data from Multistrand
+### Load Multistrand's output data
 
-## 2. Converting adjacency data to scattering coefficients
+### Preprocess data
 
-## 3. Create splits
+### Construct graph
 
-## 4. Train the model
+### Create splits
+
+### Train the model
+
+### Inference using trained model 
+
+### Further dimensionality reduction
+
+### Interactive visualization
 
 
+## Visualization results
+
+In short, what ViDa does is to biophysical-meaningfully reduce the dimensionality of Multistrand's outputs which are in very very high dimensions. Then visualize the features that are embedded in 2D space.
+
+Here is a simple example of Multistrand's output for a DNA hybridization reaction with strand length of 9.
+```bash
+$> python run_multistrand.py
+--------------------------------------------------------
+GCGTTTCAC+GTGAAACGC
+.(.......+.......).   t=0.000000 ms, dG=  0.16 kcal/mol
+((.......+.......))   t=0.000060 ms, dG= -1.26 kcal/mol
+GTGAAACGC+GCGTTTCAC
+....(..((+))..)....   t=0.000526 ms, dG=  0.05 kcal/mol
+....((.((+)).))....   t=0.000577 ms, dG= -1.46 kcal/mol
+...(((.((+)).)))...   t=0.000608 ms, dG= -2.73 kcal/mol
+...((((((+))))))...   t=0.000858 ms, dG= -7.90 kcal/mol
+..(((((((+)))))))..   t=0.001025 ms, dG=-10.74 kcal/mol
+.((((((((+)))))))).   t=0.001374 ms, dG= -9.79 kcal/mol
+..(((((((+)))))))..   t=0.001421 ms, dG=-10.74 kcal/mol
+.((((((((+)))))))).   t=0.002326 ms, dG= -9.79 kcal/mol
+..(((((((+)))))))..   t=0.002601 ms, dG=-10.74 kcal/mol
+..((((((.+.))))))..   t=0.002988 ms, dG= -9.33 kcal/mol
+..(((((((+)))))))..   t=0.003122 ms, dG=-10.74 kcal/mol
+..((((((.+.))))))..   t=0.003430 ms, dG= -9.33 kcal/mol
+..(((((((+)))))))..   t=0.003570 ms, dG=-10.74 kcal/mol
+..((((((.+.))))))..   t=0.003705 ms, dG= -9.33 kcal/mol
+..(((((((+)))))))..   t=0.004507 ms, dG=-10.74 kcal/mol
+..((((((.+.))))))..   t=0.006064 ms, dG= -9.33 kcal/mol
+..(((((((+)))))))..   t=0.006210 ms, dG=-10.74 kcal/mol
+..((((((.+.))))))..   t=0.006919 ms, dG= -9.33 kcal/mol
+.(((((((.+.))))))).   t=0.007772 ms, dG= -8.37 kcal/mol
+((((((((.+.))))))))   t=0.007780 ms, dG=-10.96 kcal/mol
+(((((((((+)))))))))   t=0.008021 ms, dG=-12.38 kcal/mol
+```
+
+Here's the ViDa's visualization for the high-dimensional output features.
+> **Visualization plots by ViDa for two different reactions**  
+<div style="text-align:left">
+    <img src="./assets/vis1.png" alt="cg" width="600"/>
+</div>
+<div style="text-align:left">
+    <img src="./assets/vis2.png" alt="cg" width="600"/>
+</div>
+
+Here's the state-of-the-art coarse-grained (CG) method's visualization.
+> **Visualization plots by CG for reaction Gao-P4T4**
+<div style="text-align:center">
+    <img src="./assets/cg.png" alt="cg" width="600"/>
+</div>
+
+By comparison, we find that in the plot made by CG, each macrostate is an ensemble of secondary structures. However, with this scheme, structurally dissimilar secondary structures may be mapped to the same macrostate, making it difficult to interpret each macrostate and trajectories through them, and to distinguish between different reaction mechanisms. In contrast, ViDa's fine-grained embedding overcomes this limitation. ViDa's plots show distinct reaction trajectories, enabling users to interpret reaction mechanisms more straightforwardly and accurately. 
 
 ## Citation   
 ```
