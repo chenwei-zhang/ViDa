@@ -93,7 +93,7 @@ The full data can be downloaded [here]().
 ```
 raw_data
    ├── Hata-data
-       ├── Hata-39.pkl.gz
+       ├── Hata-39.pkl.gz      # {'trajs_states', 'trajs_times', 'trajs_energies', 'trajs_types'}
    |── Gao-data
        ├── Gao-P0T0
            │-- Gao-P0T0-0.txt
@@ -117,12 +117,18 @@ raw_data
            ...
 
 model_params
-   ├── Hata-39_model.pt
-   ├── Gao-P0T0_model.pt
-   ├── Gao-P3T3_model.pt
-   ├── Gao-P3T3-hairpin_model.pt
-   ├── Gao-P4T4_model.pt
-   ├── Gao-P4T4-hairpin_model.pt
+   ├── Hata-39_model.pt             # trained parameters for Hata-39
+   ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
+   ├── Gao-P3T3_model.pt            # trained parameters for Gao-P3T3
+   ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
+   ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
+   ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
+
+precomp_dist
+   ├── Hata-39_mpt.npz    # minimum passage time distance for Hata-39
+   ├── Hata-39_ged.npz    # graph edit distance for Hata-39
+   ├── Gao-P4T4_mpt.npz   # minimum passage time distance for Gao-P4T4
+   ├── Gao-P4T4_ged.npz   # graph edit distance for Gao-P4T4
 ```
 
 ## Workflow
