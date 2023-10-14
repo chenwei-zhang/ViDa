@@ -335,13 +335,14 @@ def interactive_plotly_2D_sort(SEQ,df,dfall,vis):
                 mode='lines+markers',
                 line=dict(
                     color="black",
-                    width=2,
+                    # width=2,
+                    width=1,
                 ),
                 marker=dict(
                     # sizemode='area',
                     sizemode='diameter',
                     size=dfall["HT"][i],
-                    sizeref=5e-10,
+                    sizeref=3e-9,
                     color=dfall["Energy"][i],
                     colorscale="Plasma",
                     # showscale=False,
@@ -377,7 +378,7 @@ def interactive_plotly_2D_sort(SEQ,df,dfall,vis):
             y=[dfall[f"{vis}"][0][0,1],dfall[f"{vis}"][0][-1,1]],
             mode='markers+text',
             marker_color="lime", 
-            marker_size=15,
+            marker_size=25,
             text=["I", "F"],
             textposition="middle center",
             textfont=dict(
