@@ -38,9 +38,10 @@ The framework of ViDa is shown below.
 ## Pre-required software
 
 ```
-Python 3 : https://www.python.org/downloads/  
+Python 3 : 
+https://www.python.org/downloads/  
 
-PyTorch 2.0: 
+PyTorch 2.0 : 
 For Mac: MPS acceleration is available on MacOS 12.3+
 $ conda install pytorch::pytorch torchvision torchaudio -c pytorch 
 For Linux / Windows:
@@ -109,7 +110,7 @@ docker run -it --gpus all --rm vida:v1.0.0
 
 ## Visualization results
 
-In short, what ViDa does is to biophysical-meaningfully reduce the dimensionality of Multistrand's outputs which are in very very high dimensions. Then visualize the features that are embedded in 2D space.
+> In short, what ViDa does is to biophysical-meaningfully reduce the dimensionality of Multistrand's outputs which are in very very high dimensions. Then visualize the features that are embedded in 2D space.
 
 Here is a simple example of Multistrand's output for a DNA hybridization reaction with strand length of 9.
 ```bash
@@ -153,11 +154,11 @@ Here's the ViDa's visualization for the high-dimensional output features.
 
 Here's the state-of-the-art coarse-grained (CG) method's visualization.
 > **Visualization plots by CG for reaction Gao-P4T4**
-<div style="text-align:center">
+<div style="text-align:left">
     <img src="./assets/cg.png" alt="cg" width="600"/>
 </div>
 
-By comparison, we find that in the plot made by CG, each macrostate is an ensemble of secondary structures. However, with this scheme, structurally dissimilar secondary structures may be mapped to the same macrostate, making it difficult to interpret each macrostate and trajectories through them, and to distinguish between different reaction mechanisms. In contrast, ViDa's fine-grained embedding overcomes this limitation. ViDa's plots show distinct reaction trajectories, enabling users to interpret reaction mechanisms more straightforwardly and accurately. 
+> By comparison, we find that in the plot made by CG, each macrostate is an ensemble of secondary structures. However, with this scheme, structurally dissimilar secondary structures may be mapped to the same macrostate, making it difficult to interpret each macrostate and trajectories through them, and to distinguish between different reaction mechanisms. In contrast, ViDa's fine-grained embedding overcomes this limitation. ViDa's plots show distinct reaction trajectories, enabling users to interpret reaction mechanisms more straightforwardly and accurately. 
 
 ## Citation   
 ```
