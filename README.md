@@ -116,7 +116,6 @@ data
            │-- Gao-P4T4-hairpin-0.txt
            │-- Gao-P4T4-hairpin-1.txt
            ...
-
   ├──model_params
     ├── Hata-39_model.pt             # trained parameters for Hata-39
     ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
@@ -124,7 +123,6 @@ data
     ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
     ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
     ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
-
   ├──precomp_dist
     ├── Hata-39_mpt.npz    # minimum passage time distance for Hata-39
     ├── Hata-39_ged.npz    # graph edit distance for Hata-39
