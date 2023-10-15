@@ -1,5 +1,4 @@
 import numpy as np
-import h5py
 
 
 # get unique data except for holding time
@@ -59,40 +58,3 @@ def cumu_holdingtime(SIMS_HT, indices_S, coord_id_S):
         cumu_account[i] = len(ht_temp)
 
     return SIMS_cumu_uniq, cumu_account
-
-
-# """save data to h5 file
-# """
-def save_h5(filename,
-            SIMS_G_uniq, SIMS_pair_uniq, occ_density_S, 
-            pca_coords, pca_all_coords,
-            phate_coords, phate_all_coords,
-            umap_coord_2d, umap_all_coord_2d,
-            umap_coord_3d, umap_all_coord_3d,
-            tsne_coord_2d, tsne_all_coord_2d,
-            tsne_coord_3d, tsne_all_coord_3d):
-    
-    hf = h5py.File(filename, "w")
-    hf.create_dataset("SIMS_G_uniq", data=SIMS_G_uniq)
-    hf.create_dataset("SIMS_pair_uniq", data=SIMS_pair_uniq)
-    hf.create_dataset("occ_density_S", data=occ_density_S)
-    
-    hf.create_dataset("pca_coords", data=pca_coords)
-    hf.create_dataset("pca_all_coords", data=pca_all_coords)
-    
-    hf.create_dataset("phate_coords", data=phate_coords)
-    hf.create_dataset("phate_all_coords", data=phate_all_coords)
-    
-    hf.create_dataset("umap_coord_2d", data=umap_coord_2d)
-    hf.create_dataset("umap_all_coord_2d", data=umap_all_coord_2d)
-    
-    hf.create_dataset("umap_coord_3d", data=umap_coord_3d)
-    hf.create_dataset("umap_all_coord_3d", data=umap_all_coord_3d)
-    
-    hf.create_dataset("tsne_coord_2d", data=tsne_coord_2d)
-    hf.create_dataset("tsne_all_coord_2d", data=tsne_all_coord_2d)
-    
-    hf.create_dataset("tsne_coord_3d", data=tsne_coord_3d)
-    hf.create_dataset("tsne_all_coord_3d", data=tsne_all_coord_3d)  
-    
-    hf.close

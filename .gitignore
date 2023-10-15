@@ -14,7 +14,7 @@
 *.gif
 *.npy
 *.npz
-!precomp_dist/*.npz
+!data/precomp_dist/*.npz
 *.csv
 *.pickle
 *.html
@@ -22,11 +22,8 @@
 # *.pkl
 latex
 output_files
-# code/data/raw_data/helix_assoc
 model_config
-
-
-
+temp
 
 lightning_logs
 # Byte-compiled / optimized / DLL files
