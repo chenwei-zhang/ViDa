@@ -91,51 +91,69 @@ docker run -it --gpus all --rm vida:v1.0.0
 The full data can be downloaded [here]().
 
 ```
-raw_data
-   ├── Hata-data
-       ├── Hata-39.pkl.gz      # {'trajs_states', 'trajs_times', 'trajs_energies', 'trajs_types'}
-   |── Gao-data
-       ├── Gao-P0T0
+data
+  ├──raw_data
+    ├── Hata-data
+        ├── Hata-39.pkl.gz      # {'trajs_states', 'trajs_times', 'trajs_energies', 'trajs_types'}
+    |── Gao-data
+        ├── Gao-P0T0
            │-- Gao-P0T0-0.txt
            │-- Gao-P0T0-1.txt
            ...
-       ├── Gao-P3T3
+        ├── Gao-P3T3
            │-- Gao-P3T3-0.txt
            │-- Gao-P3T3-1.txt
            ...
-       ├── Gao-P3T3-hairpin
+        ├── Gao-P3T3-hairpin
            │-- Gao-P3T3-hairpin-0.txt
            │-- Gao-P3T3-hairpin-1.txt
            ...
-       ├── Gao-P4T4
+        ├── Gao-P4T4
            │-- Gao-P4T4-0.txt
            │-- Gao-P4T4-1.txt
            ...
-       ├── Gao-P4T4-hairpin
+        ├── Gao-P4T4-hairpin
            │-- Gao-P4T4-hairpin-0.txt
            │-- Gao-P4T4-hairpin-1.txt
            ...
 
-model_params
-   ├── Hata-39_model.pt             # trained parameters for Hata-39
-   ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
-   ├── Gao-P3T3_model.pt            # trained parameters for Gao-P3T3
-   ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
-   ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
-   ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
+  ├──model_params
+    ├── Hata-39_model.pt             # trained parameters for Hata-39
+    ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
+    ├── Gao-P3T3_model.pt            # trained parameters for Gao-P3T3
+    ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
+    ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
+    ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
 
-precomp_dist
-   ├── Hata-39_mpt.npz    # minimum passage time distance for Hata-39
-   ├── Hata-39_ged.npz    # graph edit distance for Hata-39
-   ├── Gao-P4T4_mpt.npz   # minimum passage time distance for Gao-P4T4
-   ├── Gao-P4T4_ged.npz   # graph edit distance for Gao-P4T4
+  ├──precomp_dist
+    ├── Hata-39_mpt.npz    # minimum passage time distance for Hata-39
+    ├── Hata-39_ged.npz    # graph edit distance for Hata-39
+    ├── Gao-P4T4_mpt.npz   # minimum passage time distance for Gao-P4T4
+    ├── Gao-P4T4_ged.npz   # graph edit distance for Gao-P4T4
 ```
 
 ## Workflow
-
 ### Load Multistrand's output data
+    $ cd vida/data_processing
+
+    $ python read_gaotxt.py --inpath /path/to/Gao-txtdata --rxn Gao-P4T4 --outpath /path/to/ouput
+    (eg. $ python read_gaotxt.py --inpath ../../data/raw_data/Gao-data --rxn Gao-P4T4 --outpath ../../temp/Gao-P4T4.pkl.gz)
 
 ### Preprocess data
+    $ python preprocess_data.py --inpath /path/to/pkl_file --outpath /path/to/output
+    (eg. $ python preprocess_data.py --inpath ../../temp/Gao-P4T4.pkl.gz  --outpath ../../temp/preprocess_Gao-P4T4.pkl.gz)
+
+### Collect time data
+    $ python  comp_time.py --inpath /path/to/preprocess_data --outpath /path/to/output
+    ($ python  comp_time.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/time_Gao-P4T4.pkl.gz)
+
+### Convert dot-parenthesis to adjacency matrix
+    $ python dp2adjmat.py --inpath /path/to/preprocess_data --output /path/to/output
+    ($ python dp2adjmat.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/adjmat_Gao-P4T4.pkl.gz)
+
+### Convert adjacency matrix to scattering coefficients
+    $ python adj2scatt.py --inpath /path/to/adj_mat --output /path/to/output
+    ($ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.pkl.gz --outpath ../../temp/scatt_Gao-P4T4.pkl.gz)
 
 ### Construct graph
 

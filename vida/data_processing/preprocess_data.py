@@ -50,9 +50,7 @@ def main():
     SIMS_dp_uniq, SIMS_dp_og_uniq, SIMS_pair_uniq, SIMS_G_uniq, indices_S, coord_id_S = get_uniq(SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G)
     
     # save read data
-    fsave = f'{outpath}/preprocess_{file_name}'
-
-    print(f"[Preprocess] Saving preprocessed data to {fsave}")
+    print(f"[Preprocess] Saving preprocessed data to {outpath}")
     
     data_to_save = {
     "SIMS_dp_uniq": SIMS_dp_uniq,
@@ -68,7 +66,7 @@ def main():
         data_to_save["SIMS_type_uniq"] = SIMS_type_uniq
     
     # Save the data to the file using pickle
-    with open(fsave, 'wb') as file:
+    with open(outpath, 'wb') as file:
         pickle.dump(data_to_save, file)
         
     print("[Preprocess] Done!")

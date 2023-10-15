@@ -16,10 +16,12 @@ def main():
     outpath = args.outpath
 
     # Load data
+    print(f"[Read] Loading data from {inpath}")
+    
     trajs_states, trajs_times, trajs_energies, trajs_pairs = read_Gao(inpath, rxn)
 
     # save read data
-    fsave = f'{outpath}/{rxn}.pkl.gz'
+    print(f"[Read] Saving preprocessed data to {outpath}")
 
     data_to_save = {
     "trajs_states": trajs_states,
@@ -29,8 +31,10 @@ def main():
     }
     
     # Save the data to the file using pickle
-    with open(fsave, 'wb') as file:
+    with open(outpath, 'wb') as file:
         pickle.dump(data_to_save, file)
+    
+    print("[Read] Done!")
         
         
 if __name__ == '__main__':
