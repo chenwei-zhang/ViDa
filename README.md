@@ -92,7 +92,7 @@ The full data can be downloaded [here]().
 
 ```
 data
-  ├──raw_data
+  ├── raw_data
     ├── Hata-data
         ├── Hata-39.pkl.gz      # {'trajs_states', 'trajs_times', 'trajs_energies', 'trajs_types'}
     |── Gao-data
@@ -116,18 +116,19 @@ data
            │-- Gao-P4T4-hairpin-0.txt
            │-- Gao-P4T4-hairpin-1.txt
            ...
-  ├──model_params
+  ├── model_params
     ├── Hata-39_model.pt             # trained parameters for Hata-39
     ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
     ├── Gao-P3T3_model.pt            # trained parameters for Gao-P3T3
     ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
     ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
     ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
-  ├──precomp_dist
-    ├── Hata-39_mpt.npz    # minimum passage time distance for Hata-39
-    ├── Hata-39_ged.npz    # graph edit distance for Hata-39
-    ├── Gao-P4T4_mpt.npz   # minimum passage time distance for Gao-P4T4
-    ├── Gao-P4T4_ged.npz   # graph edit distance for Gao-P4T4
+  ├── precomp_dist
+    ├── mpt-ged_Hata-39.pkl.gz   # mpt and ged for Hata-39     ##inside:  {'X_j', 'D_ij', 'ED_ij', 'P_tot'}
+    ├── mpt-ged_Gao-P4T4.pkl.gz   # mpt and ged for Gao-P4T4   ##inside:  {'X_j', 'D_ij', 'ED_ij', 'P_tot'}
+  ├── config_template.json   # configuration files when training the model (change it accordingly)
+  ...
+  ...
 ```
 
 ## Workflow
@@ -142,26 +143,40 @@ data
     (eg. $ python preprocess_data.py --inpath ../../temp/Gao-P4T4.pkl.gz  --outpath ../../temp/preprocess_Gao-P4T4.pkl.gz)
 
 ### Collect time data
-    $ python  comp_time.py --inpath /path/to/preprocess_data --outpath /path/to/output
-    ($ python  comp_time.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/time_Gao-P4T4.pkl.gz)
+    $ python comp_time.py --inpath /path/to/preprocess_data --outpath /path/to/output
+    (eg. $ python  comp_time.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/time_Gao-P4T4.pkl.gz)
 
 ### Convert dot-parenthesis to adjacency matrix
     $ python dp2adjmat.py --inpath /path/to/preprocess_data --output /path/to/output
-    ($ python dp2adjmat.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/adjmat_Gao-P4T4.pkl.gz)
+    (eg. $ python dp2adjmat.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/adjmat_Gao-P4T4.pkl.gz)
 
 ### Convert adjacency matrix to scattering coefficients
     $ python adj2scatt.py --inpath /path/to/adj_mat --output /path/to/output
-    ($ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.pkl.gz --outpath ../../temp/scatt_Gao-P4T4.pkl.gz)
+    (eg. $ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.pkl.gz --outpath ../../temp/scatt_Gao-P4T4.pkl.gz)
 
-### Construct graph
+### Compute MPF and GED distances
+    $ cd vida/compute_distance
 
-### Create splits
+    $ python comp_mpt-ged.py --inpath /path/to/preprocess_data --holdtime /path/to/timedata --adjmat /path/to/adj_mat --outpath /path/to/output
+    (eg. $ python comp_mpt-ged.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --holdtime ../../temp/time_Gao-P4T4.pkl.gz --adjmat ../../temp/adjmat_Gao-P4T4.pkl.gz --outpath ../../temp/mpt-ged_Gao-P4T4.pkl.gz)
+
+### Create dataloader
+    $ cd vida/models
+
+    $ python dataloader.py --predata /path/to/preprocess_data --scatter /path/to/scatter_data --dist /path/to/mpt-ged_distdata --fconfig /path/to/config_file --outpath /path/to/output
+    (eg. $ python dataloader.py --predata ../../temp/preprocess_Gao-P4T4.pkl.gz --scatter ../../temp/scatt_Gao-P4T4.pkl.gz --dist ../../temp/mpt-ged_Gao-P4T4.pkl.gz --fconfig ../../temp/config.json --outpath ../../temp/dataloader_Gao-P4T4.pkl.gz)
 
 ### Train the model
+    $ python train_vida.py --data /path/to/dataloader --fconfig /path/to/config_file --outpath /path/to/output
+    (eg. $ python train_vida.py --data ../../temp/dataloader_Gao-P4T4.pkl.gz --fconfig ../../temp/config.json --outpath ../../temp)
 
-### Inference using trained model 
+> If use Tensorbaod to monitor the training: <br>
+> $ tensorboard --logdir=/path/to/model_config --port=6007
 
-### Further dimensionality reduction
+### Inference using the trained model and futher dimensionality reduction
+    $ python embed_vida.py --data /path/to/dataloader --model /path/to/trained_model --fconfig /path/to/model_config_file --outpath /path/to/output
+    (eg. $ python embed_vida.py --data ../../temp/dataloader_Gao-P4T4.pkl.gz --model ../../temp/model_config/23-1017-1729/model.pt --fconfig ../../temp/model_config/23-1017-1729/config.json --outpath ../../temp/model_config/23-1017-1729/embed_Gao-P4T4.pkl.gz)
+
 
 ### Interactive visualization
 
@@ -172,7 +187,7 @@ data
 
 Here is a simple example of Multistrand's output for a DNA hybridization reaction with strand length of 9.
 ```bash
-$> python run_multistrand.py
+$ python run_multistrand.py
 --------------------------------------------------------
 GCGTTTCAC+GTGAAACGC
 .(.......+.......).   t=0.000000 ms, dG=  0.16 kcal/mol
