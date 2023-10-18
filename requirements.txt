@@ -1,5 +1,8 @@
 numpy==1.24.3
-torch==2.1.0
+torch
+torchvision
+torchaudio
+--index-url https://download.pytorch.org/whl/cu118
 plotly==5.17.0
 matplotlib==3.5.1
 PyYAML==6.0
