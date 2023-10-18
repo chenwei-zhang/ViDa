@@ -123,9 +123,6 @@ data
     ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
     ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
     ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
-  ├── precomp_dist
-    ├── mpt-ged_Hata-39.pkl.gz   # mpt and ged for Hata-39     ##inside:  {'X_j', 'D_ij', 'ED_ij', 'P_tot'}
-    ├── mpt-ged_Gao-P4T4.pkl.gz   # mpt and ged for Gao-P4T4   ##inside:  {'X_j', 'D_ij', 'ED_ij', 'P_tot'}
   ├── config_template.json   # configuration files when training the model (change it accordingly)
   ...
   ...

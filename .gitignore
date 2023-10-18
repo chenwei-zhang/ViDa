@@ -24,6 +24,7 @@ latex
 output_files
 model_config
 temp
+!data/*json
 
 lightning_logs
 # Byte-compiled / optimized / DLL files
