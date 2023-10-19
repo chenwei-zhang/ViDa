@@ -118,20 +118,21 @@ data
            ...
   ├── post_data
     ├── Gao-P4T4       
-        ├── preprocess_Gao-P4T4.npz # {'dp_uniq', 'dp_og_uniq', 'pair_uniq', 'energy_uniq', 'trans_time', 'indices_uniq', 'indices_all'}				
-        ├── time_Gao-P4T4.npz # {'hold_time', 'hold_time_uniq', 'cum_time_uniq', 'freq_uniq', 'trj_id'}
-        ├── adjmat_Gao-P4T4.npz # {'adj_uniq'}				
-        ├── scatt_Gao-P4T4.npz # {'scar_uniq'}   NOTE: large file, download from Drive				
-        ├── mpt-ged_Gao-P4T4.npz # {'x_j', 'd_ij', 'e_ij', 'w_ij'}				
-        ├── dataloader_Gao-P4T4.pkl.gz # {'data_loader', 'train_loader', 'val_loader', 'dist_loader'}   NOTE: large file, download from Drive				
+        ├── preprocess_Gao-P4T4.npz         # {'dp_uniq', 'dp_og_uniq', 'pair_uniq', 'energy_uniq', 'trans_time', 'indices_uniq', 'indices_all'}				
+        ├── time_Gao-P4T4.npz               # {'hold_time', 'hold_time_uniq', 'cum_time_uniq', 'freq_uniq', 'trj_id'}
+        ├── adjmat_Gao-P4T4.npz             # {'adj_uniq'}				
+        ├── scatt_Gao-P4T4.npz              # {'scar_uniq'}   NOTE: large file, download from Drive				
+        ├── mpt-ged_Gao-P4T4.npz            # {'x_j', 'd_ij', 'e_ij', 'w_ij'}				
+        ├── dataloader_Gao-P4T4.pkl.gz      # {'data_loader', 'train_loader', 'val_loader', 'dist_loader'}   NOTE: large file, download from Drive				
   ├── model_params
-    ├── Hata-39_model.pt             # trained parameters for Hata-39
-    ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
-    ├── Gao-P3T3_model.pt            # trained parameters for Gao-P3T3
-    ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
-    ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
-    ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
-  ├── config_template.json   # configuration template when training the model (change it accordingly)
+    ├── Hata-39_model.pt                # trained parameters for Hata-39
+    ├── Gao-P0T0_model.pt               # trained parameters for Gao-P0T0
+    ├── Gao-P3T3_model.pt               # trained parameters for Gao-P3T3
+    ├── Gao-P3T3-hairpin_model.pt       # trained parameters for Gao-P3T3-hairpin
+    ├── Gao-P4T4_model.pt               # trained parameters for Gao-P4T4
+    ├── Gao-P4T4-hairpin_model.pt       # trained parameters for Gao-P4T4-hairpin
+  ├── embed_data
+  ├── config_template.json      # configuration template when training the model (change it accordingly)
   ...
   ...
 ```
