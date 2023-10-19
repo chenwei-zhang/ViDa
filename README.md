@@ -116,6 +116,14 @@ data
            │-- Gao-P4T4-hairpin-0.txt
            │-- Gao-P4T4-hairpin-1.txt
            ...
+  ├── post_data
+    ├── Gao-P4T4       
+        ├── preprocess_Gao-P4T4.npz # {'dp_uniq', 'dp_og_uniq', 'pair_uniq', 'energy_uniq', 'trans_time', 'indices_uniq', 'indices_all'}				
+        ├── time_Gao-P4T4.npz # {'hold_time', 'hold_time_uniq', 'cum_time_uniq', 'freq_uniq', 'trj_id'}
+        ├── adjmat_Gao-P4T4.npz # {'adj_uniq'}				
+        ├── scatt_Gao-P4T4.npz # {'scar_uniq'}   NOTE: large file, download from Drive				
+        ├── mpt-ged_Gao-P4T4.npz # {'x_j', 'd_ij', 'e_ij', 'w_ij'}				
+        ├── dataloader_Gao-P4T4.pkl.gz # {'data_loader', 'train_loader', 'val_loader', 'dist_loader'}   NOTE: large file, download from Drive				
   ├── model_params
     ├── Hata-39_model.pt             # trained parameters for Hata-39
     ├── Gao-P0T0_model.pt            # trained parameters for Gao-P0T0
@@ -123,7 +131,7 @@ data
     ├── Gao-P3T3-hairpin_model.pt    # trained parameters for Gao-P3T3-hairpin
     ├── Gao-P4T4_model.pt            # trained parameters for Gao-P4T4
     ├── Gao-P4T4-hairpin_model.pt    # trained parameters for Gao-P4T4-hairpin
-  ├── config_template.json   # configuration files when training the model (change it accordingly)
+  ├── config_template.json   # configuration template when training the model (change it accordingly)
   ...
   ...
 ```
@@ -137,31 +145,31 @@ data
 
 ### Preprocess data
     $ python preprocess_data.py --inpath /path/to/pkl_file --outpath /path/to/output
-    (eg. $ python preprocess_data.py --inpath ../../temp/Gao-P4T4.pkl.gz  --outpath ../../temp/preprocess_Gao-P4T4.pkl.gz)
+    (eg. $ python preprocess_data.py  --inpath ../../temp/Gao-P4T4.pkl.gz  --outpath ../../temp/preprocess_Gao-P4T4.npz)
 
 ### Collect time data
     $ python comp_time.py --inpath /path/to/preprocess_data --outpath /path/to/output
-    (eg. $ python  comp_time.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/time_Gao-P4T4.pkl.gz)
+    (eg. $ python  comp_time.py --inpath ../../temp/preprocess_Gao-P4T4.npz --outpath ../../temp/time_Gao-P4T4.npz)
 
 ### Convert dot-parenthesis to adjacency matrix
     $ python dp2adjmat.py --inpath /path/to/preprocess_data --output /path/to/output
-    (eg. $ python dp2adjmat.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --outpath ../../temp/adjmat_Gao-P4T4.pkl.gz)
+    (eg. $ python dp2adjmat.py --inpath ../../temp/preprocess_Gao-P4T4.npz --outpath ../../temp/adjmat_Gao-P4T4.npz)
 
 ### Convert adjacency matrix to scattering coefficients
     $ python adj2scatt.py --inpath /path/to/adj_mat --output /path/to/output
-    (eg. $ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.pkl.gz --outpath ../../temp/scatt_Gao-P4T4.pkl.gz)
+    (eg. $ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.npz --outpath ../../temp/scatt_Gao-P4T4.npz)
 
 ### Compute MPF and GED distances
     $ cd vida/compute_distance
 
     $ python comp_mpt-ged.py --inpath /path/to/preprocess_data --holdtime /path/to/timedata --adjmat /path/to/adj_mat --outpath /path/to/output
-    (eg. $ python comp_mpt-ged.py --inpath ../../temp/preprocess_Gao-P4T4.pkl.gz --holdtime ../../temp/time_Gao-P4T4.pkl.gz --adjmat ../../temp/adjmat_Gao-P4T4.pkl.gz --outpath ../../temp/mpt-ged_Gao-P4T4.pkl.gz)
+    (eg. $ python comp_mpt-ged.py --inpath ../../temp/preprocess_Gao-P4T4.npz --holdtime ../../temp/time_Gao-P4T4.npz --adjmat ../../temp/adjmat_Gao-P4T4.npz --outpath ../../temp/mpt-ged_Gao-P4T4.npz)
 
 ### Create dataloader
     $ cd vida/models
 
     $ python dataloader.py --predata /path/to/preprocess_data --scatter /path/to/scatter_data --dist /path/to/mpt-ged_distdata --fconfig /path/to/config_file --outpath /path/to/output
-    (eg. $ python dataloader.py --predata ../../temp/preprocess_Gao-P4T4.pkl.gz --scatter ../../temp/scatt_Gao-P4T4.pkl.gz --dist ../../temp/mpt-ged_Gao-P4T4.pkl.gz --fconfig ../../temp/config.json --outpath ../../temp/dataloader_Gao-P4T4.pkl.gz)
+    (eg. $ python dataloader.py --predata ../../temp/preprocess_Gao-P4T4.npz --scatter ../../temp/scatt_Gao-P4T4.npz --dist ../../temp/mpt-ged_Gao-P4T4.npz --fconfig ../../temp/config.json --outpath ../../temp/dataloader_Gao-P4T4.pkl.gz)
 
 ### Train the model
     $ python train_vida.py --data /path/to/dataloader --fconfig /path/to/config_file --outpath /path/to/output
@@ -172,7 +180,7 @@ data
 
 ### Inference using the trained model and futher dimensionality reduction
     $ python embed_vida.py --data /path/to/dataloader --model /path/to/trained_model --fconfig /path/to/model_config_file --outpath /path/to/output
-    (eg. $ python embed_vida.py --data ../../temp/dataloader_Gao-P4T4.pkl.gz --model ../../temp/model_config/23-1017-1729/model.pt --fconfig ../../temp/model_config/23-1017-1729/config.json --outpath ../../temp/model_config/23-1017-1729/embed_Gao-P4T4.pkl.gz)
+    (eg. $ python embed_vida.py --data ../../temp/dataloader_Gao-P4T4.pkl.gz --model ../../temp/model_config/23-1017-1729/model.pt --fconfig ../../temp/model_config/23-1017-1729/config.json --outpath ../../temp/model_config/23-1017-1729/embed_Gao-P4T4.npz)
 
 
 ### Interactive visualization
