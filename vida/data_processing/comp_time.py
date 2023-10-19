@@ -1,59 +1,63 @@
 import numpy as np
-import pickle
 import argparse
+import time
 
 
-def sim_ht(sim_T):
+def sim_ht(trans_time):
     """calculate holding time for each trajectory
     """
-    sim_HT = np.array([])
-    idx = np.where(sim_T==0)[0]
+    hold_time = np.array([])
+    idx = np.where(trans_time==0)[0]
     
     for i in range(len(idx)):
         if i < len(idx)-1:
-            temp_T = sim_T[idx[i]:idx[i+1]]
-            sim_HT = np.append(sim_HT,np.concatenate([np.diff(temp_T),[0]]))
+            temp_t = trans_time[idx[i]:idx[i+1]]
+            hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
         else:
-            temp_T = sim_T[idx[i]:]
-            sim_HT = np.append(sim_HT,np.concatenate([np.diff(temp_T),[0]]))
+            temp_t = trans_time[idx[i]:]
+            hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
     
     # get each individual trajectory's index
-    trj_id = np.where(sim_HT==0)[0]
+    trj_id = np.where(hold_time==0)[0]
 
-    return sim_HT, trj_id
+    return hold_time, trj_id
 
 
 # calulate the average time fraction of unique states
-def mean_holdingtime(SIMS_HT, indices_S, coord_id_S):
+def mean_holdingtime(hold_time, indices_uniq, indices_all):
     """calculate the average time fraction of each unique state
-        based on the coordination number: coord_id_S
+        based on the coordination number: indices_all
     """
-    SIMS_HT_uniq = np.empty(len(indices_S))
+    hold_time_uniq = np.empty(len(indices_uniq))
     
-    for i in range(len(indices_S)):
-        ht_temp = np.where(i==coord_id_S)[0]
-        SIMS_HT_uniq[i] = sum(SIMS_HT[ht_temp])/len(ht_temp)
+    for i in range(len(indices_uniq)):
+        ht_temp = np.where(i==indices_all)[0]
+        hold_time_uniq[i] = sum(hold_time[ht_temp])/len(ht_temp)
 
-    return SIMS_HT_uniq
+    return hold_time_uniq
+
 
 # calulate the cumulative time fraction of unique states
-def cumu_holdingtime(SIMS_HT, indices_S, coord_id_S):
+def cumu_holdingtime(hold_time, indices_uniq, indices_all):
     """calculate the average time fraction of each unique state
-        based on the coordination number: coord_id_S
+        based on the coordination number: indices_all
     """
-    SIMS_cumu_uniq = np.empty(len(indices_S))
-    cumu_account = np.zeros(len(indices_S),dtype=np.int64)
+    cum_time_uniq = np.empty(len(indices_uniq))
+    freq_uniq = np.zeros(len(indices_uniq),dtype=np.int64)
     
-    for i in range(len(indices_S)):
-        ht_temp = np.where(i==coord_id_S)[0]
-        SIMS_cumu_uniq[i] = sum(SIMS_HT[ht_temp])
-        cumu_account[i] = len(ht_temp)
+    for i in range(len(indices_uniq)):
+        ht_temp = np.where(i==indices_all)[0]
+        cum_time_uniq[i] = sum(hold_time[ht_temp])
+        freq_uniq[i] = len(ht_temp)
 
-    return SIMS_cumu_uniq, cumu_account
+    return cum_time_uniq, freq_uniq
+
 
 
 
 if __name__ == '__main__':
+    # Record the start time
+    start_time = time.time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--inpath', required=True, help='preprocessed data file')
@@ -65,42 +69,47 @@ if __name__ == '__main__':
     outpath = args.outpath
     
     # Load the data
-    print(f"[comp_time] Loading preprocessed SIMS_T and index from {inpath}")
+    print(f"[Comp_time] Loading preprocessed trans_time and index from {inpath}")
 
-    with open(inpath, 'rb') as file:
-        loaded_data = pickle.load(file)
+    loaded_data = np.load(inpath)
     
-    SIMS_T = loaded_data["SIMS_T"]
-    indices_S = loaded_data["indices_S"]
-    coord_id_S = loaded_data["coord_id_S"]
+    trans_time = loaded_data["trans_time"]
+    indices_uniq = loaded_data["indices_uniq"]
+    indices_all = loaded_data["indices_all"]
     
     # calculate holding time for each trajectory
-    print("[comp_time] Calculating holding time for each trajectory")
+    print("[Comp_time] Calculating holding time for each trajectory")
 
-    SIMS_HT, trj_id = sim_ht(SIMS_T)
+    hold_time, trj_id = sim_ht(trans_time)
     
     # calculate the average (unique) holding time
-    print("[comp_time] Calculating the average holding time for each unique state")
+    print("[Comp_time] Calculating the average holding time for each unique state")
     
-    SIMS_HT_uniq = mean_holdingtime(SIMS_HT, indices_S, coord_id_S)
+    hold_time_uniq = mean_holdingtime(hold_time, indices_uniq, indices_all)
 
 
     # calculate the cumulative (unique) holding time
-    print("[comp_time] Calculating the cumulative holding time for each unique state")
+    print("[Comp_time] Calculating the cumulative holding time for each unique state")
 
-    SIMS_cumu_HT_uniq,cumu_account_uniq = cumu_holdingtime(SIMS_HT, indices_S, coord_id_S)
+    cum_time_uniq,freq_uniq = cumu_holdingtime(hold_time, indices_uniq, indices_all)
 
     # save time data
-    print(f"[comp_time] Saving time data to {outpath}")
+    print(f"[Comp_time] Saving time data to {outpath}")
     
     data_to_save = {
-    "SIMS_HT": SIMS_HT,
-    "SIMS_HT_uniq": SIMS_HT_uniq,
-    "SIMS_cumu_HT_uniq": SIMS_cumu_HT_uniq,
-    "cumu_account_uniq": cumu_account_uniq,
+    "hold_time": hold_time,
+    "hold_time_uniq": hold_time_uniq,
+    "cum_time_uniq": cum_time_uniq,
+    "freq_uniq": freq_uniq,
     "trj_id": trj_id,
     }
     
-    with open(outpath, 'wb') as file:
-        pickle.dump(data_to_save, file)
-        
+    np.savez_compressed(outpath, **data_to_save)
+
+    print("[Comp_time] Done!")
+    
+    # Record the end time
+    end_time = time.time()
+    
+    # Print the time elapsed
+    print(f"[Comp_time] Elapsed Time: {(end_time - start_time):.3f} seconds")

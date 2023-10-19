@@ -25,10 +25,10 @@ class Config:
 
 
 # make data loader
-def dataloader(SIMS_scar_uniq, SIMS_G_uniq, config):
-    data_tup = (torch.Tensor(SIMS_scar_uniq),
-                torch.Tensor(SIMS_G_uniq),
-                torch.arange(len(SIMS_scar_uniq)))
+def dataloader(scar_uniq, energy_uniq, config):
+    data_tup = (torch.Tensor(scar_uniq),
+                torch.Tensor(energy_uniq),
+                torch.arange(len(scar_uniq)))
     data_dataset = torch.utils.data.TensorDataset(*data_tup)
 
     # split the dataset into train and validation
@@ -84,7 +84,7 @@ def early_stop(val_loss, epoch, patience):
 
 
 # validate vida
-def validate(config, model, data_loader, val_loader, P_tot, D_ij, ED_ij, X_j):
+def validate(config, model, data_loader, val_loader, w_ij, d_ij, e_ij, x_j):
     
     # Get the input dimension
     input_dim = data_loader.dataset[0][0].shape[0]
@@ -102,11 +102,11 @@ def validate(config, model, data_loader, val_loader, P_tot, D_ij, ED_ij, X_j):
             x = x.to(config.device)
             y = y.to(config.device)
             
-            # forward X_j
+            # forward x_j
             model.eval()
             with torch.no_grad():
-                batchXj_id = X_j[idx]
-                neighbor_input = data_loader.dataset.tensors[0][batchXj_id].reshape(-1, input_dim).to(config.device)
+                batch_xj_id = x_j[idx]
+                neighbor_input = data_loader.dataset.tensors[0][batch_xj_id].reshape(-1, input_dim).to(config.device)
                 # _, _, neighbor_embed, _, _ = model(neighbor_input)    # with noise
                 neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
                 neighbor_embed = neighbor_embed.reshape(-1, config.knn, neighbor_embed.shape[-1])
@@ -124,10 +124,10 @@ def validate(config, model, data_loader, val_loader, P_tot, D_ij, ED_ij, X_j):
             p_loss = model.pred_loss(y_pred, y).item()
                 
             # distance loss            
-            t_loss = model.mpt_loss(config.device, z, neighbor_embed, D_ij, P_tot, idx, batchXj_id).item()
+            t_loss = model.mpt_loss(config.device, z, neighbor_embed, d_ij, w_ij, idx, batch_xj_id).item()
             
             # edit distance loss
-            e_loss = model.ged_loss(config.device, z, neighbor_embed, ED_ij, idx).item()
+            e_loss = model.ged_loss(config.device, z, neighbor_embed, e_ij, idx).item()
             
             # scaling the loss
             recon_loss = config.alpha * recon_loss
@@ -169,11 +169,11 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         - data_loader: Pytorch DataLoader for all data
         - train_loader: Pytorch DataLoader for training set
         - val_loader: Pytorch DataLoader for validation set
-        - dist_loader: the tuple of (P_tot, D_ij, ED_ij, X_j)
-            - P_tot: the total probability of each node
-            - D_ij: the shortest path distance between node i and j
-            - ED_ij: the graph edit distance between node i and j
-            - X_j: the index of k nearest neighbours of each node
+        - dist_loader: the tuple of (w_ij, d_ij, e_ij, x_j)
+            - w_ij: the total probability of each node
+            - d_ij: the shortest path distance between node i and j
+            - e_ij: the graph edit distance between node i and j
+            - x_j: the index of k nearest neighbours of each node
         - optimizer: Pytorch optimizer
         - scheduler: Pytorch learning rate scheduler
         - early_stop: early stopping object
@@ -210,12 +210,12 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     early_stop.num_epochs_without_improvement = 0
 
     # convert the dist_loader numpy array to tensor
-    P_tot, D_ij, ED_ij, X_j = dist_loader
+    w_ij, d_ij, e_ij, x_j = dist_loader
     
-    P_tot = torch.from_numpy(P_tot.astype(np.float32))
-    D_ij = torch.from_numpy(D_ij.astype(np.float32))
-    ED_ij = torch.from_numpy(ED_ij.astype(int))
-    X_j = torch.from_numpy(X_j)
+    w_ij = torch.from_numpy(w_ij.astype(np.float32))
+    d_ij = torch.from_numpy(d_ij.astype(np.float32))
+    e_ij = torch.from_numpy(e_ij.astype(int))
+    x_j = torch.from_numpy(x_j)
         
     print('\n ------- Start Training -------')
     for epoch in range(config.n_epochs):
@@ -228,11 +228,11 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             x = x.to(config.device)
             y = y.to(config.device)
             
-            # forward X_j
+            # forward x_j
             model.eval()
             with torch.no_grad():
-                batchXj_id = X_j[idx]
-                neighbor_input = data_loader.dataset.tensors[0][batchXj_id].reshape(-1, input_dim).to(config.device)
+                batch_xj_id = x_j[idx]
+                neighbor_input = data_loader.dataset.tensors[0][batch_xj_id].reshape(-1, input_dim).to(config.device)
                 # _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
                 neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
                 neighbor_embed = neighbor_embed.reshape(-1, config.knn, neighbor_embed.shape[-1])
@@ -254,10 +254,10 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             p_loss = model.pred_loss(y_pred, y)
             
             # distance loss
-            t_loss = model.mpt_loss(config.device, z, neighbor_embed, D_ij, P_tot, idx, batchXj_id)
+            t_loss = model.mpt_loss(config.device, z, neighbor_embed, d_ij, w_ij, idx, batch_xj_id)
 
             # edit distance loss
-            e_loss = model.ged_loss(config.device, z, neighbor_embed, ED_ij, idx)
+            e_loss = model.ged_loss(config.device, z, neighbor_embed, e_ij, idx)
             
             # scaling the loss
             recon_loss = config.alpha * recon_loss
@@ -304,7 +304,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         writer.add_scalar('training loss', training_loss/len(train_loader.dataset), epoch)
                 
         # validation
-        val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, P_tot, D_ij, ED_ij, X_j)
+        val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, w_ij, d_ij, e_ij, x_j)
         writer.add_scalar('validation loss', val_loss, epoch)
         writer.add_scalar('val_recon loss', val_bce, epoch)
         writer.add_scalar('val_kl loss', val_kld, epoch)

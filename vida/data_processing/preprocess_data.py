@@ -1,7 +1,9 @@
-import argparse
 import numpy as np
 import pickle
+import gzip
 import os
+import argparse
+import time
 from utils import concat_hata, concat_gao, get_uniq
 
 
@@ -18,7 +20,7 @@ def main():
     print(f"[Preprocess] Loading data from {inpath}")
     
     # Load the data
-    with open(inpath, 'rb') as file:
+    with gzip.open(inpath, 'rb') as file:
         loaded_data = pickle.load(file)
 
     # Get the data from the pickle file 
@@ -31,14 +33,14 @@ def main():
     if "Hata" in file_name:
         print("[Preprocess] Preprocess Hata data")
         
-        SIMS_type_uniq = loaded_data["trajs_types"]
-        SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G, SIMS_T = concat_hata(states, times, energies)
+        type_uniq = loaded_data["trajs_types"]
+        dp, dp_og, pair, energy, trans_time = concat_hata(states, times, energies)
         
     elif "Gao" in file_name:
         print("[Preprocess] Preprocess Gao data")
         
         pairs = loaded_data["trajs_pairs"]
-        SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G, SIMS_T = concat_gao(states, times, energies, pairs)
+        dp, dp_og, pair, energy, trans_time = concat_gao(states, times, energies, pairs)
     
     else:
         print("Wrong file name")
@@ -47,31 +49,41 @@ def main():
     # get the unique structures and their corresponding indices
     print("[Preprocess] Get the unique structures and their corresponding indices")
 
-    SIMS_dp_uniq, SIMS_dp_og_uniq, SIMS_pair_uniq, SIMS_G_uniq, indices_S, coord_id_S = get_uniq(SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G)
+    dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, pair, energy)
     
     # save read data
     print(f"[Preprocess] Saving preprocessed data to {outpath}")
     
     data_to_save = {
-    "SIMS_dp_uniq": SIMS_dp_uniq,
-    "SIMS_dp_og_uniq": SIMS_dp_og_uniq,
-    "SIMS_pair_uniq": SIMS_pair_uniq,
-    "SIMS_G_uniq": SIMS_G_uniq,
-    "indices_S": indices_S,
-    "coord_id_S": coord_id_S,
-    "SIMS_T": SIMS_T,
+    "dp_uniq": dp_uniq,
+    "dp_og_uniq": dp_og_uniq,
+    "pair_uniq": pair_uniq,
+    "energy_uniq": energy_uniq,
+    "indices_uniq": indices_uniq,
+    "indices_all": indices_all,
+    "trans_time": trans_time,
     }
     
     if "Hata" in file_name:
-        data_to_save["SIMS_type_uniq"] = SIMS_type_uniq
-    
-    # Save the data to the file using pickle
-    with open(outpath, 'wb') as file:
-        pickle.dump(data_to_save, file)
-        
+        data_to_save["type_uniq"] = type_uniq
+
+
+    # save the data to npz file
+    np.savez_compressed(outpath, **data_to_save)
+
+
     print("[Preprocess] Done!")
         
 
 if __name__ == '__main__':
+    # Record the start time
+    start_time = time.time()
+    
     main()
+    
+    # Record the end time
+    end_time = time.time()
+    
+    # Print the elapsed time
+    print(f"[Preprocess] Elapsed Time: {(end_time - start_time):.3f} seconds")
     

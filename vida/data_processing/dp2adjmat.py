@@ -1,8 +1,8 @@
 import numpy as np
 import networkx as nx
-import pickle
-
 import argparse
+import time
+
 
 
 # convert dot-parenthesis notation to adjacency matrix
@@ -127,6 +127,8 @@ def sim_adj(dps):
 
 
 if __name__ == '__main__':
+    # Record the start time
+    start_time = time.time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--inpath', required=True, help='preprocessed data file')
@@ -138,26 +140,32 @@ if __name__ == '__main__':
     outpath = args.outpath
     
     # Load the data
-    print(f"[dp2adj] Loading preprocessed SIMS_dp_uniq from {inpath}")
+    print(f"[dp2adj] Loading preprocessed dp_uniq from {inpath}")
     
-    with open(inpath, 'rb') as file:
-        loaded_data = pickle.load(file)
+
+    loaded_data = np.load(inpath)
     
-    SIMS_dp_uniq = loaded_data["SIMS_dp_uniq"]
+    dp_uniq = loaded_data["dp_uniq"]
     
     # convert dot-parenthesis notation to adjacency matrix
     print("[dp2adj] Converting dot-parenthesis notation to adjacency matrix")
     
-    SIMS_adj_uniq = sim_adj(SIMS_dp_uniq)
+    adj_uniq = sim_adj(dp_uniq)
     
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")
  
     data_to_save = {
-    "SIMS_adj_uniq": SIMS_adj_uniq,
+    "adj_uniq": adj_uniq,
     }
     
-    with open(outpath, 'wb') as file:
-        pickle.dump(data_to_save, file) 
-        
+    np.savez_compressed(outpath, **data_to_save)
+    
+    
     print("[dp2adj] Done!")
+    
+    # Record the end time
+    end_time = time.time()
+    
+    # Print the time elapsed
+    print(f"[dp2adj] Time elapsed: {(end_time - start_time):.3f} seconds")

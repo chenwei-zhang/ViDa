@@ -1,10 +1,14 @@
+import numpy as np
 import pickle
 import argparse
+import time
 from misc import Config, dataloader
-
+import gzip
 
 
 if __name__ == '__main__': 
+    # Record the start time
+    start_time = time.time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--predata', required=True, help='preprocessed data file')
@@ -22,47 +26,44 @@ if __name__ == '__main__':
     outpath = args.outpath
         
     # Load the data
-    print(f"[dataloader] Loading preprocessed data from {predata}")
+    print(f"[Dataloader] Loading preprocessed data from {predata}")
     
-    with open(predata, 'rb') as file:
-        loaded_data = pickle.load(file)
+    loaded_data = np.load(predata)
     
-    SIMS_G_uniq = loaded_data["SIMS_G_uniq"]
-    
-    
-    print(f"[dataloader] Loading scatter transform data from {scatter}")
-    
-    with open(scatter, 'rb') as file:
-        loaded_data = pickle.load(file)
-    
-    SIMS_scar_uniq = loaded_data["SIMS_scar_uniq"]
+    energy_uniq = loaded_data["energy_uniq"]
     
     
-    print(f"[dataloader] Loading distance data from {dist}")
+    print(f"[Dataloader] Loading scatter transform data from {scatter}")
     
-    with open(dist, 'rb') as file:
-        loaded_data = pickle.load(file)
+    loaded_data = np.load(scatter)
+    
+    scar_uniq = loaded_data["scar_uniq"]
+    
+    
+    print(f"[Dataloader] Loading distance data from {dist}")
         
-    X_j = loaded_data["X_j"]
-    D_ij = loaded_data["D_ij"]
-    ED_ij = loaded_data["ED_ij"]
-    P_tot = loaded_data["P_tot"]
+    loaded_data = np.load(dist)
+        
+    x_j = loaded_data["x_j"]
+    d_ij = loaded_data["d_ij"]
+    e_ij = loaded_data["e_ij"]
+    w_ij = loaded_data["w_ij"]
 
     
-    print(f"[dataloader] Loading config data from {fconfig}")
+    print(f"[Dataloader] Loading config data from {fconfig}")
     
     config = Config(fconfig)    
     
     
     # make the dataloader
-    print(f"[dataloader] Making dataloader")
+    print(f"[Dataloader] Making dataloader")
     
-    data_loader, train_loader, val_loader = dataloader(SIMS_scar_uniq, SIMS_G_uniq, config)
-    dist_loader = (P_tot, D_ij, ED_ij, X_j)
+    data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, config)
+    dist_loader = (w_ij, d_ij, e_ij, x_j)
     
     
-    # save the dataloader
-    print(f"[dataloader] Saving dataloader to {outpath}")
+    # save the dataloader in gzip format
+    print(f"[Dataloader] Saving dataloader to {outpath}")
     
     data_to_save = {
     "data_loader": data_loader,
@@ -71,8 +72,15 @@ if __name__ == '__main__':
     "dist_loader": dist_loader,
     }
     
-    with open(outpath, 'wb') as file:
+    
+    with gzip.open(outpath, 'wb') as file:
         pickle.dump(data_to_save, file)
+
+        
+    print("[Dataloader] Done!")
     
+    # Record the end time
+    end_time = time.time()
     
-    print("[dataloader] Done!")
+    # Print the time elapsed
+    print(f"[Dataloader] Elapsed Time: {(end_time - start_time):.3f} seconds")

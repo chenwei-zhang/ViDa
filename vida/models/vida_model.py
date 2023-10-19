@@ -168,7 +168,7 @@ class VIDA(nn.Module):
         return F.mse_loss(y_pred.flatten(), y.flatten())
     
     # minimum passage time loss
-    def mpt_loss(self, device, zi, zj, D_ij, P_tot, idx, batchXj_id):
+    def mpt_loss(self, device, zi, zj, d_ij, w_ij, idx, batch_xj_id):
         '''
         Compute the distance loss between embeddings 
         and the minimum expected holding time
@@ -177,23 +177,23 @@ class VIDA(nn.Module):
             - device: the device (cpu or cuda or mps) to run the model
             - zi: the embedding of the node i
             - zj: the embedding of the nodes j's
-            - D_ij: the post-processing distance between nodes i and j's
-            - P_tot: the total probability of the nodes i and j's
+            - d_ij: the post-processing distance between nodes i and j's
+            - w_ij: the total probability of the nodes i and j's
             - idx: the index of the node i
-            - batchXj_id: the index of the nodes j's
+            - batch_xj_id: the index of the nodes j's
         
         Returns:
         - loss: PyTorch Tensor containing (scalar) the mpt loss for the embedding distance
         '''
         zi = zi.reshape(-1,1,zi.shape[-1])
         l2_zizj = torch.sqrt(torch.sum((zi-zj)**2, dim=-1))
-        dist_diff = (l2_zizj - (D_ij[idx]).to(device))**2
-        wij = (P_tot[idx].reshape(-1,1) * P_tot[batchXj_id]).to(device)
-        mpt_loss = torch.sum(dist_diff * wij)
+        dist_diff = (l2_zizj - (d_ij[idx]).to(device))**2
+        weight = (w_ij[idx].reshape(-1,1) * w_ij[batch_xj_id]).to(device)
+        mpt_loss = torch.sum(dist_diff * weight)
         return mpt_loss
     
     # graph edit distance loss
-    def ged_loss(self, device, zi, zj, ED_ij, idx):
+    def ged_loss(self, device, zi, zj, e_ij, idx):
         '''
         Compute the edit distance loss between embeddings 
         
@@ -201,15 +201,15 @@ class VIDA(nn.Module):
             - device: the device (cpu or cuda or mps) to run the model
             - zi: the embedding of the node i
             - zj: the embedding of the nodes j's
-            - ED_ij: the post-processing distance between nodes i and j's
+            - e_ij: the post-processing distance between nodes i and j's
             - idx: the index of the node i
-            - batchXj_id: the index of the nodes j's
+            - batch_xj_id: the index of the nodes j's
         
         Returns:
         - loss: PyTorch Tensor containing (scalar) the ged loss for the embedding distance
         '''
         zi = zi.reshape(-1,1,zi.shape[-1])
         l2_zizj = torch.sqrt(torch.sum((zi-zj)**2, dim=-1))
-        dist_diff = (l2_zizj - (ED_ij[idx]).to(device))**2
+        dist_diff = (l2_zizj - (e_ij[idx]).to(device))**2
         ged_loss = torch.sum(dist_diff)
         return ged_loss

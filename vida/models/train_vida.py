@@ -1,6 +1,7 @@
 import torch
 import pickle
 import argparse
+import gzip
 from misc import Config, train
 from vida_model import VIDA, Encoder, Decoder, Regressor
 
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     # Load the data
     print(f"[Train] Loading dataloader from {data}")
     
-    with open(data, 'rb') as file:
+    with gzip.open(data, 'rb') as file:
         loaded_data = pickle.load(file)
     
     data_loader = loaded_data["data_loader"]

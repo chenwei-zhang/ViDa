@@ -1,5 +1,8 @@
+import numpy as np
 import torch
 import pickle
+import gzip
+import time
 import argparse
 from misc import Config
 from vida_model import VIDA, Encoder, Decoder, Regressor
@@ -10,7 +13,9 @@ import phate
 
 
 if __name__ == '__main__':
-
+    # Record the start time
+    start_time = time.time()
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', required=True, help='load dataloader')
     parser.add_argument('--model', required=True, help='tranined model.pt file')
@@ -27,7 +32,7 @@ if __name__ == '__main__':
     # Load the data
     print(f"[Embed] Loading dataloader from {data}")
     
-    with open(data, 'rb') as file:
+    with gzip.open(data, 'rb') as file:
         loaded_data = pickle.load(file)
     
     data_loader = loaded_data["data_loader"]
@@ -55,7 +60,8 @@ if __name__ == '__main__':
     vida.to(config.device).eval()
     
     embeddings = vida.get_embeddings(data_loader.dataset.tensors[0].to(config.device))
-    
+    # _,_,embeddings,_,_ = vida(data_loader.dataset.tensors[0].to(config.device))
+        
     # Put the embeddings to cpu and convert to numpy array
     with torch.no_grad():
         embeddings = embeddings.to('cpu').numpy()
@@ -92,8 +98,15 @@ if __name__ == '__main__':
     "phate_coords": phate_coords
     }
     
-    with open(outpath, 'wb') as file:
-        pickle.dump(data_to_save, file)
+    np.savez_compressed(outpath, **data_to_save)
         
-    print(f"[Embed] Embedding DONE!")    
+    print(f"[Embed] Embedding DONE!") 
+    
+    
+    # Record the end time
+    end_time = time.time()
+    
+    # Print the elapsed time
+    print(f"[Embed] Elapsed Time: {(end_time - start_time):.3f} seconds")
+    
         

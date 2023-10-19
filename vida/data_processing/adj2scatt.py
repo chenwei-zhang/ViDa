@@ -1,13 +1,14 @@
 import sys
 sys.path.append('/Users/chenwei/Desktop/Github/ViDa') 
-
 import numpy as np
-import pickle
 import argparse
-from vida.scatter.scatter_transform import *
+import time
+from vida.scatter_transform.scatter_transform import transform_dataset, get_normalized_moments
 
 
 if __name__ == '__main__':
+    # Record the start time
+    start_time = time.time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--inpath', required=True, help='preprocessed data file')
@@ -19,27 +20,33 @@ if __name__ == '__main__':
     outpath = args.outpath
         
     # Load the data
-    print(f"[adj2scatt] Loading preprocessed SIMS_adj_uniq from {inpath}")
+    print(f"[adj2scatt] Loading preprocessed adj_uniq from {inpath}")
     
-    with open(inpath, 'rb') as file:
-        loaded_data = pickle.load(file)
+    loaded_data = np.load(inpath)
     
-    SIMS_adj_uniq = loaded_data["SIMS_adj_uniq"]
+    adj_uniq = loaded_data["adj_uniq"]
     
     # # Multiple trajectories
     print("[adj2scatt] Converting adjacency matrix to scattering coefficients")
     
-    scat_coeff_array_S = transform_dataset(SIMS_adj_uniq)
-    SIMS_scar_uniq = get_normalized_moments(scat_coeff_array_S).squeeze()
+    scat_coeff_array = transform_dataset(adj_uniq)
+    scar_uniq = get_normalized_moments(scat_coeff_array).squeeze()
     
     print(f"[adj2scatt] Saving scattering coefficients to {outpath}")
     
     data_to_save = {
-    "SIMS_scar_uniq": SIMS_scar_uniq,
+    "scar_uniq": scar_uniq,
     }
     
-    with open(outpath, 'wb') as file:
-        pickle.dump(data_to_save, file)
+    np.savez_compressed(outpath, **data_to_save)
     
     print("[adj2scatt] Done!")
+    
+    # Record the end time
+    end_time = time.time()
+    
+    # Print the time elapsed    
+    print(f"[adj2scatt] Elapsed Time: {(end_time - start_time):.3f} seconds")
+    
+    
     

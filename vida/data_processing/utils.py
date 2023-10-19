@@ -16,7 +16,7 @@ def read_1trj(f):
         [list]: dot-parenthesis notation, time floats, energy floats, paired or not
             eg. ['...............', 0.0, -12.0, 1]
     """
-    S_dp = []; S_time = []; S_energy = []; S_pair = []
+    dp_list = []; time_list = []; energy_list = []; pair_list = []
     
     for s in f:
         ss = s.split(" ")
@@ -25,26 +25,26 @@ def read_1trj(f):
         s_energy = float(ss[3].split("=")[1].split("kcal")[0]) # energy
         s_pair = int(ss[-1]) # paired or not
         
-        S_dp.append(s_dp)
-        S_time.append(s_time)
-        S_energy.append(s_energy)
-        S_pair.append(s_pair)
+        dp_list.append(s_dp)
+        time_list.append(s_time)
+        energy_list.append(s_energy)
+        pair_list.append(s_pair)
         
-    return [S_dp,S_time,S_energy,S_pair]
+    return [dp_list,time_list,energy_list,pair_list]
 
 
 # load multiple trajectories from multiple files
-def read_Gao(fpath,rxn,num_files=100):
+def read_gao(fpath,rxn,num_files=100):
     trajs_states, trajs_times, trajs_energies, trajs_pairs = [],[],[],[]
     
     for i in range(num_files):
-        STR_name = f"{fpath}/{rxn}/{rxn}-{i}.txt"
-        f = open(STR_name, 'r') 
-        TRJ = read_1trj(f)
-        trajs_states.append(TRJ[0])
-        trajs_times.append(TRJ[1])
-        trajs_energies.append(TRJ[2])
-        trajs_pairs.append(TRJ[3])
+        sim_name = f"{fpath}/{rxn}/{rxn}-{i}.txt"
+        f = open(sim_name, 'r') 
+        trj = read_1trj(f)
+        trajs_states.append(trj[0])
+        trajs_times.append(trj[1])
+        trajs_energies.append(trj[2])
+        trajs_pairs.append(trj[3])
     
     trajs_states = np.array(trajs_states, dtype=object)
     trajs_times = np.array(trajs_times, dtype=object)
@@ -82,78 +82,78 @@ def process_hata(dp_og):
 # cooncatanate all sturcutres for Gao dataset: 
 def concat_gao(states, times, energies, pairs):
     
-    SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G, SIMS_T = [],[],[],[],[]
+    dp, dp_og, pair, energy, trans_time = [],[],[],[],[]
     
     for i in range(len(states)):
         sims_dp = process_gao(states[i])
         
-        SIMS_dp.append(sims_dp)
-        SIMS_dp_og.append(states[i])
-        SIMS_T.append(times[i])
-        SIMS_G.append(energies[i])
-        SIMS_pair.append(pairs[i])
+        dp.append(sims_dp)
+        dp_og.append(states[i])
+        trans_time.append(times[i])
+        energy.append(energies[i])
+        pair.append(pairs[i])
     
-    SIMS_dp = np.concatenate(SIMS_dp)
-    SIMS_dp_og = np.concatenate(SIMS_dp_og)
-    SIMS_pair = np.concatenate(SIMS_pair)
-    SIMS_G = np.concatenate(SIMS_G)
-    SIMS_T = np.concatenate(SIMS_T)
+    dp = np.concatenate(dp)
+    dp_og = np.concatenate(dp_og)
+    pair = np.concatenate(pair)
+    energy = np.concatenate(energy)
+    trans_time = np.concatenate(trans_time)
         
-    return SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G, SIMS_T
+    return dp, dp_og, pair, energy, trans_time
 
 
 # cooncatanate all sturcutres for Hata dataset:: 
 def concat_hata(states, times, energies):
     
-    SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G, SIMS_T = [],[],[],[],[]
+    dp, dp_og, pair, energy, trans_time = [],[],[],[],[]
     
     for i in range(len(states)):
         sims_dp, sims_pair = process_hata(states[i])
 
-        SIMS_dp.append(sims_dp)
-        SIMS_dp_og.append(states[i])
-        SIMS_pair.append(sims_pair)
-        SIMS_G.append(energies[i])
-        SIMS_T.append(times[i])
+        dp.append(sims_dp)
+        dp_og.append(states[i])
+        pair.append(sims_pair)
+        energy.append(energies[i])
+        trans_time.append(times[i])
     
-    SIMS_dp = np.concatenate(SIMS_dp)
-    SIMS_dp_og = np.concatenate(SIMS_dp_og)
-    SIMS_pair = np.concatenate(SIMS_pair)
-    SIMS_G = np.concatenate(SIMS_G)
-    SIMS_T = np.concatenate(SIMS_T)
+    dp = np.concatenate(dp)
+    dp_og = np.concatenate(dp_og)
+    pair = np.concatenate(pair)
+    energy = np.concatenate(energy)
+    trans_time = np.concatenate(trans_time)
         
-    return SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G, SIMS_T
+    return dp, dp_og, pair, energy, trans_time
 
 
 # get the unique structures and their corresponding indices
-def get_uniq(SIMS_dp, SIMS_dp_og, SIMS_pair, SIMS_G):
+def get_uniq(dp, dp_og, pair, energy):
     
-    indices_S = np.unique(SIMS_dp,return_index=True)[1]
+    indices_uniq = np.unique(dp,return_index=True)[1]
     
-    SIMS_dp_uniq = SIMS_dp[indices_S]
-    SIMS_dp_og_uniq = SIMS_dp_og[indices_S]
-    SIMS_pair_uniq = SIMS_pair[indices_S]
-    SIMS_G_uniq = SIMS_G[indices_S]
+    dp_uniq = dp[indices_uniq]
+    dp_og_uniq = dp_og[indices_uniq]
+    pair_uniq = pair[indices_uniq]
+    energy_uniq = energy[indices_uniq]
         
     # find index to recover to all data from unique data
-    coord_id_S = np.empty(len(SIMS_dp))
-    for i in range(len(SIMS_dp_uniq)):
-        temp = SIMS_dp == SIMS_dp_uniq[i]
+    indices_all = np.empty(len(dp))
+    for i in range(len(dp_uniq)):
+        temp = dp == dp_uniq[i]
         indx = np.argwhere(temp==True)
-        coord_id_S[indx] = i
-    coord_id_S = coord_id_S.astype(int)
+        indices_all[indx] = i
+    indices_all = indices_all.astype(int)
 
-    return SIMS_dp_uniq, SIMS_dp_og_uniq, SIMS_pair_uniq, SIMS_G_uniq, indices_S, coord_id_S
+    return dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, indices_uniq, indices_all
 
 
 # label the structural types
-def label_struc(trajs_types, SIMS_dp_og_uniq):
+def label_struc(trajs_types, dp_og_uniq):
     
-    SIMS_type_uniq = []
+    type_uniq = []
     
-    for i in range(len(SIMS_dp_og_uniq)):
-        SIMS_type_uniq.append(trajs_types[SIMS_dp_og_uniq[i]])
-    SIMS_type_uniq = np.array(SIMS_type_uniq)
+    for i in range(len(dp_og_uniq)):
+        type_uniq.append(trajs_types[dp_og_uniq[i]])
+    type_uniq = np.array(type_uniq)
     
-    return SIMS_type_uniq
+    return type_uniq
     

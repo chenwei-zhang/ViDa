@@ -1,7 +1,9 @@
 import argparse
 import numpy as np
 import pickle
-from utils import read_Gao
+import gzip
+from utils import read_gao
+import time
 
 def main():
     parser = argparse.ArgumentParser(description='Load Data')
@@ -18,7 +20,7 @@ def main():
     # Load data
     print(f"[Read] Loading data from {inpath}")
     
-    trajs_states, trajs_times, trajs_energies, trajs_pairs = read_Gao(inpath, rxn)
+    trajs_states, trajs_times, trajs_energies, trajs_pairs = read_gao(inpath, rxn)
 
     # save read data
     print(f"[Read] Saving preprocessed data to {outpath}")
@@ -31,12 +33,21 @@ def main():
     }
     
     # Save the data to the file using pickle
-    with open(outpath, 'wb') as file:
+    with gzip.open(outpath, 'wb') as file:
         pickle.dump(data_to_save, file)
     
     print("[Read] Done!")
         
         
 if __name__ == '__main__':
+    # Record the start time
+    start_time = time.time()
+    
     main()
+    
+    # Record the end time
+    end_time = time.time()
+    
+    # Print the time elapsed
+    print(f"[Read] Elapsed Time: {(end_time - start_time):.3f} seconds")
     
