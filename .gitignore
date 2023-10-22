@@ -20,14 +20,14 @@
 *.html
 *.json
 # *.pkl
-latex
 output_files
-model_config
 temp
 !data/*json
 !data/post_data/Gao-P4T4/*npz
 !data/post_data/Hata-39/*npz
-
+code/model_config
+# code/julia_scripts
+# code/data
 
 lightning_logs
 # Byte-compiled / optimized / DLL files
