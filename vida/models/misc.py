@@ -233,8 +233,8 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             with torch.no_grad():
                 batch_xj_id = x_j[idx]
                 neighbor_input = data_loader.dataset.tensors[0][batch_xj_id].reshape(-1, input_dim).to(config.device)
-                # _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
-                neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
+                _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
+                # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
                 neighbor_embed = neighbor_embed.reshape(-1, config.knn, neighbor_embed.shape[-1])
                 
             # ------------------------------------------

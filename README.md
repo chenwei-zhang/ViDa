@@ -60,6 +60,7 @@ scikit-learn==1.3.1
 networkx==3.1
 phate==1.0.11
 tensorboard==2.14
+pandas == 1.3.5
 ```
 
 ## Installation
@@ -183,8 +184,9 @@ data
     $ python embed_vida.py --data /path/to/dataloader --model /path/to/trained_model --fconfig /path/to/model_config_file --outpath /path/to/output
     (eg. $ python embed_vida.py --data ../../temp/dataloader_Gao-P4T4.pkl.gz --model ../../temp/model_config/23-1017-1729/model.pt --fconfig ../../temp/model_config/23-1017-1729/config.json --outpath ../../temp/model_config/23-1017-1729/embed_Gao-P4T4.npz)
 
-
 ### Interactive visualization
+    $ python interact_plot.py --predata /path/to/preprocess_data --timedata /path/to/timedata  --embeddata /path/to/embeddata --outpath /path/to/output
+    (eg. $ python interact_plot.py --predata ../../temp/preprocess_Gao-P4T4.npz --timedata ../../temp/time_Gao-P4T4.npz --embeddata ../../temp/embed_Gao-P4T4.npz --outpath ../../temp)
 
 
 ## Visualization results

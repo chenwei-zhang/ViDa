@@ -72,9 +72,9 @@ if __name__ == '__main__':
     # Do PCA (n_components=2)
     print(f"[Embed] Do PCA")
     
-    pca_coords = PCA(n_components=2).fit_transform(embeddings)
+    pca_coords_uniq = PCA(n_components=2).fit_transform(embeddings)
     
-    print(f"[Embed] PCA maximum: {pca_coords.max()}, minimum: {pca_coords.min()}, mean: {pca_coords.mean()}, std: {pca_coords.std()}")
+    print(f"[Embed] PCA maximum: {pca_coords_uniq.max()}, minimum: {pca_coords_uniq.min()}, mean: {pca_coords_uniq.mean()}, std: {pca_coords_uniq.std()}")
     
     
     # Do PHATE (n_components=2)
@@ -84,9 +84,9 @@ if __name__ == '__main__':
     data_embed = scaler.fit_transform(embeddings)
     
     phate_operator = phate.PHATE(n_jobs=-2)
-    phate_coords = phate_operator.fit_transform(data_embed)
+    phate_coords_uniq = phate_operator.fit_transform(data_embed)
     
-    print(f"[Embed] PHATE maximum: {phate_coords.max()}, minimum: {phate_coords.min()}, mean: {phate_coords.mean()}, std: {phate_coords.std()}")
+    print(f"[Embed] PHATE maximum: {phate_coords_uniq.max()}, minimum: {phate_coords_uniq.min()}, mean: {phate_coords_uniq.mean()}, std: {phate_coords_uniq.std()}")
     
     
     # Save the embedding data
@@ -94,8 +94,8 @@ if __name__ == '__main__':
     
     data_to_save = {
     "embeddings": embeddings,
-    "pca_coords": pca_coords,
-    "phate_coords": phate_coords
+    "pca_coords_uniq": pca_coords_uniq,
+    "phate_coords_uniq": phate_coords_uniq
     }
     
     np.savez_compressed(outpath, **data_to_save)
