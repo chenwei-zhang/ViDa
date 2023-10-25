@@ -41,11 +41,11 @@ The framework of ViDa is shown below.
 Python 3 : 
 https://www.python.org/downloads/  
 
-PyTorch 2.0 : 
-For Mac: MPS acceleration is available on MacOS 12.3+
-$ conda install pytorch::pytorch torchvision torchaudio -c pytorch 
-For Linux / Windows:
-$ conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+PyTorch 2.1.0 : 
+For Mac / Linux:
+$ pip install torch torchvision torchaudio 
+For Windows:
+$ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
 ## Dependencies
@@ -54,13 +54,12 @@ numpy==1.24.3
 torch==2.1.0
 plotly==5.17.0
 matplotlib==3.5.1
-PyYAML==6.0
 tqdm==4.60.0
 scikit-learn==1.3.1
 networkx==3.1
 phate==1.0.11
 tensorboard==2.14
-pandas == 1.3.5
+pandas==1.3.5
 ```
 
 ## Installation
@@ -68,10 +67,11 @@ pandas == 1.3.5
 # clone project   
 git clone https://github.com/chenwei-zhang/ViDa
 
-# install vida   
+# install vida (recommond install in a virtual environment) 
+conda activate <myenv>
 cd ViDa
+conda update pip -y
 pip install -e .   
-pip install -r requirements.txt
 ```   
 **To install the Multistrand simulator, please follow [Multistrand officila tutorial](https://github.com/DNA-and-Natural-Algorithms-Group/multistrand).**
 
@@ -186,7 +186,7 @@ data
 
 ### Interactive visualization
     $ python interact_plot.py --predata /path/to/preprocess_data --timedata /path/to/timedata  --embeddata /path/to/embeddata --outpath /path/to/output
-    (eg. $ python interact_plot.py --predata ../../temp/preprocess_Gao-P4T4.npz --timedata ../../temp/time_Gao-P4T4.npz --embeddata ../../temp/embed_Gao-P4T4.npz --outpath ../../temp)
+    (eg. $ python interact_plot.py --predata ../../temp/preprocess_Gao-P4T4.npz --timedata ../../temp/time_Gao-P4T4.npz --embeddata ../../temp/embed_Gao-P4T4.npz --outpath ../../temp/plot_Gao-P4T4.html)
 
 
 ## Visualization results
