@@ -84,7 +84,7 @@ def early_stop(val_loss, epoch, patience):
 
 
 # validate vida
-def validate(config, model, data_loader, val_loader, w_ij, d_ij, e_ij, x_j):
+def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_j):
     
     # Get the input dimension
     input_dim = data_loader.dataset[0][0].shape[0]
@@ -107,8 +107,8 @@ def validate(config, model, data_loader, val_loader, w_ij, d_ij, e_ij, x_j):
             with torch.no_grad():
                 batch_xj_id = x_j[idx]
                 neighbor_input = data_loader.dataset.tensors[0][batch_xj_id].reshape(-1, input_dim).to(config.device)
-                # _, _, neighbor_embed, _, _ = model(neighbor_input)    # with noise
-                neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
+                _, _, neighbor_embed, _, _ = model(neighbor_input)    # with noise
+                # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
                 neighbor_embed = neighbor_embed.reshape(-1, config.knn, neighbor_embed.shape[-1])
                 
             # embedding
@@ -124,7 +124,7 @@ def validate(config, model, data_loader, val_loader, w_ij, d_ij, e_ij, x_j):
             p_loss = model.pred_loss(y_pred, y).item()
                 
             # distance loss            
-            t_loss = model.mpt_loss(config.device, z, neighbor_embed, d_ij, w_ij, idx, batch_xj_id).item()
+            t_loss = model.mpt_loss(config.device, z, neighbor_embed, d_ij, p_i, idx, batch_xj_id).item()
             
             # edit distance loss
             e_loss = model.ged_loss(config.device, z, neighbor_embed, e_ij, idx).item()
@@ -169,8 +169,8 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         - data_loader: Pytorch DataLoader for all data
         - train_loader: Pytorch DataLoader for training set
         - val_loader: Pytorch DataLoader for validation set
-        - dist_loader: the tuple of (w_ij, d_ij, e_ij, x_j)
-            - w_ij: the total probability of each node
+        - dist_loader: the tuple of (p_i, d_ij, e_ij, x_j)
+            - p_i: the total probability of each node
             - d_ij: the shortest path distance between node i and j
             - e_ij: the graph edit distance between node i and j
             - x_j: the index of k nearest neighbours of each node
@@ -210,9 +210,9 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     early_stop.num_epochs_without_improvement = 0
 
     # convert the dist_loader numpy array to tensor
-    w_ij, d_ij, e_ij, x_j = dist_loader
+    p_i, d_ij, e_ij, x_j = dist_loader
     
-    w_ij = torch.from_numpy(w_ij.astype(np.float32))
+    p_i = torch.from_numpy(p_i.astype(np.float32))
     d_ij = torch.from_numpy(d_ij.astype(np.float32))
     e_ij = torch.from_numpy(e_ij.astype(int))
     x_j = torch.from_numpy(x_j)
@@ -254,7 +254,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             p_loss = model.pred_loss(y_pred, y)
             
             # distance loss
-            t_loss = model.mpt_loss(config.device, z, neighbor_embed, d_ij, w_ij, idx, batch_xj_id)
+            t_loss = model.mpt_loss(config.device, z, neighbor_embed, d_ij, p_i, idx, batch_xj_id)
 
             # edit distance loss
             e_loss = model.ged_loss(config.device, z, neighbor_embed, e_ij, idx)
@@ -304,7 +304,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         writer.add_scalar('training loss', training_loss/len(train_loader.dataset), epoch)
                 
         # validation
-        val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, w_ij, d_ij, e_ij, x_j)
+        val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_j)
         writer.add_scalar('validation loss', val_loss, epoch)
         writer.add_scalar('val_recon loss', val_bce, epoch)
         writer.add_scalar('val_kl loss', val_kld, epoch)

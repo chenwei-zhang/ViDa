@@ -26,8 +26,8 @@ temp
 !data/post_data/Gao-P4T4/*npz
 !data/post_data/Hata-39/*npz
 code/model_config
-# code/julia_scripts
-# code/data
+code/data
+code/vida
 
 lightning_logs
 # Byte-compiled / optimized / DLL files

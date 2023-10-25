@@ -47,7 +47,7 @@ if __name__ == '__main__':
     x_j = loaded_data["x_j"]
     d_ij = loaded_data["d_ij"]
     e_ij = loaded_data["e_ij"]
-    w_ij = loaded_data["w_ij"]
+    p_i = loaded_data["p_i"]
 
     
     print(f"[Dataloader] Loading config data from {fconfig}")
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     print(f"[Dataloader] Making dataloader")
     
     data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, config)
-    dist_loader = (w_ij, d_ij, e_ij, x_j)
+    dist_loader = (p_i, d_ij, e_ij, x_j)
     
     
     # save the dataloader in gzip format

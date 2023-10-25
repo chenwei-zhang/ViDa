@@ -168,7 +168,7 @@ class VIDA(nn.Module):
         return F.mse_loss(y_pred.flatten(), y.flatten())
     
     # minimum passage time loss
-    def mpt_loss(self, device, zi, zj, d_ij, w_ij, idx, batch_xj_id):
+    def mpt_loss(self, device, zi, zj, d_ij, p_i, idx, batch_xj_id):
         '''
         Compute the distance loss between embeddings 
         and the minimum expected holding time
@@ -178,7 +178,7 @@ class VIDA(nn.Module):
             - zi: the embedding of the node i
             - zj: the embedding of the nodes j's
             - d_ij: the post-processing distance between nodes i and j's
-            - w_ij: the total probability of the nodes i and j's
+            - p_i: the total probability of the nodes i and j's
             - idx: the index of the node i
             - batch_xj_id: the index of the nodes j's
         
@@ -188,7 +188,7 @@ class VIDA(nn.Module):
         zi = zi.reshape(-1,1,zi.shape[-1])
         l2_zizj = torch.sqrt(torch.sum((zi-zj)**2, dim=-1))
         dist_diff = (l2_zizj - (d_ij[idx]).to(device))**2
-        weight = (w_ij[idx].reshape(-1,1) * w_ij[batch_xj_id]).to(device)
+        weight = (p_i[idx].reshape(-1,1) * p_i[batch_xj_id]).to(device)
         mpt_loss = torch.sum(dist_diff * weight)
         return mpt_loss
     

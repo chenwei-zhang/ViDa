@@ -219,7 +219,7 @@ def plot_gao(df,dfall,vis):
                 ),
                 marker=dict(
                     sizemode='diameter',
-                    size=4,
+                    size=2,
                     color=dfall["Energy"][i],
                     colorscale="Plasma",
                     colorbar=dict(

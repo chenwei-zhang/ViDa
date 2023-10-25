@@ -59,8 +59,8 @@ if __name__ == '__main__':
     
     vida.to(config.device).eval()
     
-    embeddings = vida.get_embeddings(data_loader.dataset.tensors[0].to(config.device))
-    # _,_,embeddings,_,_ = vida(data_loader.dataset.tensors[0].to(config.device))
+    # embeddings = vida.get_embeddings(data_loader.dataset.tensors[0].to(config.device))
+    _,_,embeddings,_,_ = vida(data_loader.dataset.tensors[0].to(config.device))
         
     # Put the embeddings to cpu and convert to numpy array
     with torch.no_grad():
