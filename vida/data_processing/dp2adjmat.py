@@ -2,8 +2,12 @@ import numpy as np
 import networkx as nx
 import argparse
 import time
+import re
+from itertools import permutations
 
 
+############### Two-Strand Structure ###############
+####################################################
 
 # convert dot-parenthesis notation to adjacency matrix
 def dot2adj(db_str,hairpin=False,helix=True):
@@ -124,6 +128,136 @@ def sim_adj(dps):
     adj_mtr = np.array(adj_mtr) # get adjacency matrix
 
     return adj_mtr
+
+
+
+############### Three-Strand Structure ###############
+####################################################
+   
+# assign unique identifier to each base
+def assign_base_names(sequence):
+    split_sequence = re.split(r'\s|\+', sequence)
+    base_names = []
+
+    for strand_index, strand in enumerate(split_sequence):
+        strand_names = []
+        
+        for base_index, base_type in enumerate(strand):
+            strand_names.append(f'{chr(ord("a") + strand_index)}{base_index + 1}')
+            
+        base_names.append(strand_names)
+    
+    return base_names
+
+
+# find strand permutation that matches the sequence 
+# then get the corresponding name list
+def concat_disorder(trajs_seq, ref_name_list, strand_list):
+    alter_name_list = []
+    div_idx_list = []
+    
+    for i in range(len(trajs_seq)):
+        sequence_list = re.split(r'\s|\+', trajs_seq[i][0]) 
+        sequence = ''.join(sequence_list)
+        found_match = False
+        for permuted_strand in permutations(strand_list):
+            combined_sequence = ''.join(permuted_strand)
+            if combined_sequence == sequence:
+                curr_name_list = [ref_name_list[strand_list.index(strand)] for strand in permuted_strand]
+                alter_name_list.append(curr_name_list)                
+                found_match = True
+                break
+        
+        if not found_match:
+            print('Error: sequence not found')
+            
+        div_idx_list.append(trajs_seq[i][1])
+            
+    return np.array(alter_name_list,dtype=object), np.array(div_idx_list)
+
+
+
+# convert dot-parenthesis notation to adjacency matrix for three-strand
+def dp2adj_3strand(ref_name, alter_name, alter_name_arr, dp_structure):
+    # construct backbone edges
+    def build_consecutive_edges(input_list):
+        edges = [(input_list[i], input_list[i+1]) for i in range(len(input_list)-1)]
+        
+        return edges
+
+
+    # build backbone edges
+    backbones = []
+    
+    for base_names_strand in alter_name_arr:
+        backbone = build_consecutive_edges(base_names_strand)
+        backbones.extend(backbone)
+    
+    
+    # build base pair edges
+    stack = []  # Initialize stack to keep track of opening brackets
+    base_pairs = []  # Initialize list to store pairs    
+    
+    for name, char in zip(alter_name, dp_structure):
+        
+        if char == '(':
+            stack.append(name)  # Push index of opening bracket onto stack
+        elif char == ')':
+            if stack:
+                opening_index = stack.pop()  # Pop top index from stack
+                base_pairs.append((opening_index, name))  # Create a pair
+            else:
+                print("Error: Mismatched brackets")
+                return None
+    
+    if stack:
+        print("Error: Mismatched brackets")
+        return None
+    
+    
+    # collect all edges
+    all_pairs = backbones + base_pairs
+ 
+    # assign nodes and edges
+    nodes = ref_name 
+    edges = all_pairs 
+
+    # Initialize adjacency matrix with zeros
+    adjacency_matrix = np.zeros((len(nodes), len(nodes)), dtype=int)
+
+    # Populate the adjacency matrix based on edges
+    for edge in edges:
+        i = nodes.index(edge[0])
+        j = nodes.index(edge[1])
+        adjacency_matrix[i, j] = 1
+        adjacency_matrix[j, i] = 1
+
+    
+    return adjacency_matrix
+
+
+
+def sim_adj_3strand(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list):
+    
+    adj_mtr = []
+    
+    for dp in dp_arr:
+        alter_name_arr, div_idx_arr = concat_disorder(trajs_seqs[0],ref_name_list, strand_list)
+                
+        for i in range(len(div_idx_arr)):
+            if i+1 == len(div_idx_arr):
+                dp_part = dp[div_idx_arr[i]:]
+            else:
+                dp_part = dp[div_idx_arr[i]:div_idx_arr[i+1]]
+            
+            for dp_structure in dp_part:
+                alter_name = np.concatenate(alter_name_arr[i])
+                
+                adj_mtr.append(dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp_structure))
+        
+    return np.array(adj_mtr)
+
+
 
 
 if __name__ == '__main__':
