@@ -48,7 +48,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(vida.parameters(), lr=config.learning_rate)
     
     # Define scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=config.lr_patience, verbose=True)
     
     print (f"[Train] Start training VIDA model")
     
