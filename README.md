@@ -164,8 +164,8 @@ data
 ### Compute MPF and GED distances
     $ cd vida/compute_distance
 
-    $ python comp_mpt-ged.py --inpath /path/to/preprocess_data --holdtime /path/to/timedata --adjmat /path/to/adj_mat --outpath /path/to/output
-    (eg. $ python comp_mpt-ged.py --inpath ../../temp/preprocess_Gao-P4T4.npz --holdtime ../../temp/time_Gao-P4T4.npz --adjmat ../../temp/adjmat_Gao-P4T4.npz --outpath ../../temp/mpt-ged_Gao-P4T4.npz)
+    $ python comp_dist.py --inpath /path/to/preprocess_data --holdtime /path/to/timedata --adjmat /path/to/adj_mat --outpath /path/to/output
+    (eg. $ python comp_dist.py --inpath ../../temp/preprocess_Gao-P4T4.npz --holdtime ../../temp/time_Gao-P4T4.npz --adjmat ../../temp/adjmat_Gao-P4T4.npz --outpath ../../temp/mpt-ged_Gao-P4T4.npz)
 
 ### Create dataloader
     $ cd vida/models
