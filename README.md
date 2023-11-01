@@ -164,7 +164,7 @@ data
 ### Compute MPF and GED distances
     $ cd vida/compute_distance
 
-    $ python comp_mpt-ged.py --inpath /path/to/preprocess_data --holdtime /path/to/timedata --adjmat /path/to/adj_mat --outpath /path/to/output
+    $ python comp_mpt_ged.py --inpath /path/to/preprocess_data --holdtime /path/to/timedata --adjmat /path/to/adj_mat --outpath /path/to/output
     (eg. $ python comp_mpt-ged.py --inpath ../../temp/preprocess_Gao-P4T4.npz --holdtime ../../temp/time_Gao-P4T4.npz --adjmat ../../temp/adjmat_Gao-P4T4.npz --outpath ../../temp/mpt-ged_Gao-P4T4.npz)
 
 ### Create dataloader
@@ -186,7 +186,7 @@ data
 
 ### Interactive visualization
     $ python interact_plot.py --predata /path/to/preprocess_data --timedata /path/to/timedata  --embeddata /path/to/embeddata --outpath /path/to/output
-    (eg. $ python interact_plot.py --predata ../../temp/preprocess_Gao-P4T4.npz --timedata ../../temp/time_Gao-P4T4.npz --embeddata ../../temp/embed_Gao-P4T4.npz --outpath ../../temp)
+    (eg. $ python interact_plot.py --predata ../../temp/preprocess_Gao-P4T4.npz --timedata ../../temp/time_Gao-P4T4.npz --embeddata ../../temp/embed_Gao-P4T4.npz --outpath ../../temp/plot_Gao-P4T4.html)
 
 
 ## Visualization results
