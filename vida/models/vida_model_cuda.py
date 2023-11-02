@@ -168,7 +168,7 @@ class VIDA(nn.Module):
         return F.mse_loss(y_pred.flatten(), y.flatten())
     
     # minimum passage time loss
-    def mpt_loss(self, device, zi, zj, d_ij, p_i, idx, batch_xdj_id):
+    def mpt_loss(self, zi, zj, d_ij, p_i, idx, batch_xdj_id):
         '''
         Compute the distance loss between embeddings 
         and the minimum expected holding time
@@ -184,16 +184,16 @@ class VIDA(nn.Module):
         
         Returns:
         - loss: PyTorch Tensor containing (scalar) the mpt loss for the embedding distance
-        '''
+        '''        
         zi = zi.reshape(-1,1,zi.shape[-1])
         l2_zizj = torch.sqrt(torch.sum((zi-zj)**2, dim=-1))
-        dist_diff = (l2_zizj - (d_ij[idx]).to(device))**2
-        weight = (p_i[idx].reshape(-1,1) * p_i[batch_xdj_id]).to(device)
+        dist_diff = (l2_zizj - (d_ij[idx]))**2
+        weight = (p_i[idx].reshape(-1,1) * p_i[batch_xdj_id])
         mpt_loss = torch.sum(dist_diff * weight)
         return mpt_loss
     
     # graph edit distance loss
-    def ged_loss(self, device, zi, zj, e_ij, idx):
+    def ged_loss(self, zi, zj, e_ij, idx):
         '''
         Compute the edit distance loss between embeddings 
         
@@ -207,9 +207,9 @@ class VIDA(nn.Module):
         
         Returns:
         - loss: PyTorch Tensor containing (scalar) the ged loss for the embedding distance
-        '''
+        '''        
         zi = zi.reshape(-1,1,zi.shape[-1])
         l2_zizj = torch.sqrt(torch.sum((zi-zj)**2, dim=-1))
-        dist_diff = (l2_zizj - (e_ij[idx]).to(device))**2
+        dist_diff = (l2_zizj - (e_ij[idx]))**2
         ged_loss = torch.sum(dist_diff)
         return ged_loss

@@ -44,7 +44,8 @@ if __name__ == '__main__':
         
     loaded_data = np.load(dist)
         
-    x_j = loaded_data["x_j"]
+    x_dj = loaded_data["x_dj"]
+    x_ej = loaded_data["x_ej"]
     d_ij = loaded_data["d_ij"]
     e_ij = loaded_data["e_ij"]
     p_i = loaded_data["p_i"]
@@ -59,7 +60,14 @@ if __name__ == '__main__':
     print(f"[Dataloader] Making dataloader")
     
     data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, config)
-    dist_loader = (p_i, d_ij, e_ij, x_j)
+
+    dist_loader = {
+        'p_i': p_i,
+        'd_ij': d_ij,
+        'e_ij': e_ij,
+        'x_dj': x_dj,
+        'x_ej': x_ej
+        }
     
     
     # save the dataloader in gzip format

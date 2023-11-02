@@ -101,6 +101,7 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
             # Configure input
             x = x.to(config.device)
             y = y.to(config.device)
+            idx = idx.to(config.device)
             
             knn_mpt = x_dj.shape[-1]
             knn_ged = x_ej.shape[-1]
@@ -109,7 +110,7 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
             model.eval()
             with torch.no_grad():
                 batch_xj_id = x_j[idx]
-                neighbor_input = data_loader.dataset.tensors[0][batch_xj_id].reshape(-1, input_dim).to(config.device)
+                neighbor_input = data_loader.dataset.tensors[0].to(config.device)[batch_xj_id].reshape(-1, input_dim)
                 _, _, neighbor_embed, _, _ = model(neighbor_input)    # with noise
                 # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
                 neighbor_embed = neighbor_embed.reshape(-1, knn_mpt+knn_ged, neighbor_embed.shape[-1])
@@ -127,10 +128,10 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
             p_loss = model.pred_loss(y_pred, y).item()
                 
             # distance loss            
-            t_loss = model.mpt_loss(config.device, z, neighbor_embed[:,:knn_mpt], d_ij, p_i, idx, x_dj[idx]).item()
+            t_loss = model.mpt_loss(z, neighbor_embed[:,:knn_mpt], d_ij, p_i, idx, x_dj[idx]).item()
             
             # edit distance loss
-            e_loss = model.ged_loss(config.device, z, neighbor_embed[:,-knn_ged:], e_ij, idx).item()
+            e_loss = model.ged_loss(z, neighbor_embed[:,-knn_ged:], e_ij, idx).item()
             
             # scaling the loss
             recon_loss = config.alpha * recon_loss
@@ -224,6 +225,13 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     x_ej = torch.from_numpy(x_ej.astype(int))
     x_j = torch.from_numpy(x_j.astype(int))
     
+    p_i = p_i.to(config.device)
+    d_ij = d_ij.to(config.device)
+    e_ij = e_ij.to(config.device)
+    x_dj = x_dj.to(config.device)
+    x_ej = x_ej.to(config.device)
+    x_j = x_j.to(config.device)
+    
     knn_mpt = x_dj.shape[-1]
     knn_ged = x_ej.shape[-1]
     
@@ -241,12 +249,13 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             # Configure input
             x = x.to(config.device)
             y = y.to(config.device)
+            idx = idx.to(config.device)
             
             # forward x_j
             model.eval()
             with torch.no_grad():
                 batch_xj_id = x_j[idx]
-                neighbor_input = data_loader.dataset.tensors[0][batch_xj_id].reshape(-1, input_dim).to(config.device)
+                neighbor_input = data_loader.dataset.tensors[0].to(config.device)[batch_xj_id].reshape(-1, input_dim)
                 _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
                 # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
                 neighbor_embed = neighbor_embed.reshape(-1, knn_mpt+knn_ged, neighbor_embed.shape[-1])
@@ -268,10 +277,10 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             p_loss = model.pred_loss(y_pred, y)
             
             # distance loss
-            t_loss = model.mpt_loss(config.device, z, neighbor_embed[:,:knn_mpt], d_ij, p_i, idx, x_dj[idx])
+            t_loss = model.mpt_loss(z, neighbor_embed[:,:knn_mpt], d_ij, p_i, idx, x_dj[idx])
 
             # edit distance loss
-            e_loss = model.ged_loss(config.device, z, neighbor_embed[:,-knn_ged:], e_ij, idx)
+            e_loss = model.ged_loss(z, neighbor_embed[:,-knn_ged:], e_ij, idx)
             
             # scaling the loss
             recon_loss = config.alpha * recon_loss
