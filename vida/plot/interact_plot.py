@@ -86,21 +86,18 @@ if __name__ == '__main__':
     
     
     # Make the plot
-    print(f"[Plot] Making plot")
-    
-    vis_list = ["PCA", "PHATE"]
+    print(f"[Plot] Making plot")    
         
-    for vis in vis_list:
+    if "Hata" in predata:
+        fig = plot_hata(df,dfsucc,dffail,vis='PHATE')
+        savename = outpath
         
-        if "Hata" in predata:
-            fig = plot_hata(df,dfsucc,dffail,vis)
-            savename = f'{outpath}/Hata_{vis}.html'
+    elif "Gao" in predata:
+        fig = plot_gao(df,dfall,vis='PHATE')
+        savename = outpath
             
-        elif "Gao" in predata:
-            fig = plot_gao(df,dfall,vis)
-            savename = f'{outpath}/Gao_{vis}.html'
-    
     fig.write_html(savename)
+
         
     print(f"[Plot] Done!")
     

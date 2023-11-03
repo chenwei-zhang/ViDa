@@ -3,7 +3,7 @@ sys.path.append('/Users/chenwei/Desktop/Github/ViDa')
 import numpy as np
 import argparse
 import time
-from vida.scatter_transform.scatter_transform import transform_dataset, get_normalized_moments
+from scatter_transform import transform_dataset, get_normalized_moments
 
 
 if __name__ == '__main__':
