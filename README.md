@@ -60,6 +60,7 @@ networkx==3.1
 phate==1.0.11
 tensorboard==2.14
 pandas==1.3.5
+annoy==1.17.3
 ```
 
 ## Installation
@@ -154,12 +155,12 @@ data
     (eg. $ python  comp_time.py --inpath ../../temp/preprocess_Gao-P4T4.npz --outpath ../../temp/time_Gao-P4T4.npz)
 
 ### Convert dot-parenthesis to adjacency matrix
-    $ python dp2adjmat.py --inpath /path/to/preprocess_data --output /path/to/output
-    (eg. $ python dp2adjmat.py --inpath ../../temp/preprocess_Gao-P4T4.npz --outpath ../../temp/adjmat_Gao-P4T4.npz)
+    $ python convert_adj.py --inpath /path/to/preprocess_data --output /path/to/output
+    (eg. $ python convert_adj.py --inpath ../../temp/preprocess_Gao-P4T4.npz --outpath ../../temp/adjmat_Gao-P4T4.npz)
 
 ### Convert adjacency matrix to scattering coefficients
-    $ python adj2scatt.py --inpath /path/to/adj_mat --output /path/to/output
-    (eg. $ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.npz --outpath ../../temp/scatt_Gao-P4T4.npz)
+    $ python adj2scatt.py --inpath /path/to/adj_mat --num_strand <integer> --output /path/to/output
+    (eg. $ python adj2scatt.py --inpath ../../temp/adjmat_Gao-P4T4.npz --num_strand 2 --outpath ../../temp/scatt_Gao-P4T4.npz)
 
 ### Compute MPF and GED distances
     $ cd vida/compute_distance
