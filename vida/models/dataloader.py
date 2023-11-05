@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # make the dataloader
     print(f"[Dataloader] Making dataloader")
     
-    data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, config)
+    data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, config, ratio=0.95)
 
     dist_loader = {
         'p_i': p_i,

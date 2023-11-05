@@ -25,7 +25,7 @@ class Config:
 
 
 # make data loader
-def dataloader(scar_uniq, energy_uniq, config):
+def dataloader(scar_uniq, energy_uniq, config, ratio=0.7):
     data_tup = (torch.Tensor(scar_uniq),
                 torch.Tensor(energy_uniq),
                 torch.arange(len(scar_uniq)))
@@ -33,7 +33,7 @@ def dataloader(scar_uniq, energy_uniq, config):
 
     # split the dataset into train and validation
     data_size = len(data_dataset)
-    train_size = int(0.7 * data_size)
+    train_size = int(ratio * data_size)
     val_size = data_size - train_size
 
     train_data, val_data = torch.utils.data.random_split(data_dataset, [train_size, val_size], 
@@ -82,9 +82,43 @@ def early_stop(val_loss, epoch, patience):
             return False
         
 
+#  Get mpt,ged loss embedding neighbors for training loss
+def embed_neighbors(neigh_mode, device, model, data_loader, input_dim, batch_xj_id, batch_xdj_id, batch_xej_id, knn_mpt, knn_ged):
+
+    if neigh_mode == 'unique':
+        ## embed the unique neighbors ##
+        batch_uniq_id = torch.unique(batch_xj_id.flatten())
+        neighbor_input = data_loader.dataset.tensors[0][batch_uniq_id].reshape(-1, input_dim).to(device)
+        _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
+        # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
+        '''make a dictionary for mpt and ged neighbors search 
+            [Note: put to cpu due to mps incompatible with cuda] 
+        '''              
+        my_dict = {key.item(): val for key, val in zip(batch_uniq_id, neighbor_embed.to('cpu'))}
+        # mpt embedding
+        neighbor_mpt = [torch.unsqueeze(my_dict[key], 1) for key in batch_xdj_id.flatten().numpy()]
+        neighbor_mpt = torch.cat(neighbor_mpt, dim=0).reshape(-1, knn_mpt, neighbor_embed.shape[-1]).to(device)
+        # ged embedding
+        neighbor_ged = [torch.unsqueeze(my_dict[key], 1) for key in batch_xej_id.flatten().numpy()]
+        neighbor_ged = torch.cat(neighbor_ged, dim=0).view(-1, knn_ged, neighbor_embed.shape[-1]).to(device)
+    
+    elif neigh_mode == 'repeat':
+        ## embed all repeated neighbors ##
+        # mpt embedding
+        neighbor_input_mpt = data_loader.dataset.tensors[0][batch_xdj_id].reshape(-1, input_dim).to(device)
+        _, _, neighbor_mpt, _, _ = model(neighbor_input_mpt)
+        neighbor_mpt = neighbor_mpt.reshape(-1, knn_mpt, neighbor_mpt.shape[-1])
+        # ged embedding
+        neighbor_input_ged = data_loader.dataset.tensors[0][batch_xej_id].reshape(-1, input_dim).to(device)
+        _, _, neighbor_ged, _, _ = model(neighbor_input_ged)
+        neighbor_ged = neighbor_ged.reshape(-1, knn_ged, neighbor_ged.shape[-1])
+                               
+    return neighbor_mpt, neighbor_ged
+
+
 
 # validate vida
-def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej, x_j):
+def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej, x_j, neigh_mode):
     
     # Get the input dimension
     input_dim = data_loader.dataset[0][0].shape[0]
@@ -112,23 +146,9 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
                 batch_xdj_id = x_dj[idx]
                 batch_xej_id = x_ej[idx]
                 
-                batch_uniq_id = torch.unique(batch_xj_id.flatten())
+                neighbor_mpt, neighbor_ged = embed_neighbors(neigh_mode, config.device, model, data_loader, input_dim, batch_xj_id, batch_xdj_id, batch_xej_id, knn_mpt, knn_ged)
                 
-                neighbor_input = data_loader.dataset.tensors[0][batch_uniq_id].reshape(-1, input_dim).to(config.device)
-                
-                _, _, neighbor_embed, _, _ = model(neighbor_input)    # with noise
-                # # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
-                
-                my_dict = {key.item(): val for key, val in zip(batch_uniq_id, neighbor_embed.to('cpu'))}
-                
-                # mpt embedding
-                neighbor_mpt = [torch.unsqueeze(my_dict[key], 1) for key in batch_xdj_id.flatten().numpy()]
-                neighbor_mpt = torch.cat(neighbor_mpt, dim=0).view(-1, knn_mpt, neighbor_embed.shape[-1]).to(config.device)
-                # ged embedding
-                neighbor_ged = [torch.unsqueeze(my_dict[key], 1) for key in batch_xej_id.flatten().numpy()]
-                neighbor_ged = torch.cat(neighbor_ged, dim=0).view(-1, knn_ged, neighbor_embed.shape[-1]).to(config.device)
-        
-                
+            
             # embedding
             x_recon, y_pred, z, mu, logvar = model(x)
             
@@ -167,15 +187,17 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
     print('Validation Loss: {:.4f}'.format(val_loss/len(val_loader.dataset)))
     
     # Clear the cache
+    gc.collect()
+    # Clear the cache
     torch.cuda.empty_cache()
     # torch.mps.empty_cache()
     
     return val_loss/len(val_loader.dataset), val_bce/len(val_loader.dataset), val_kld/len(val_loader.dataset), val_pred/len(val_loader.dataset), val_mpt/len(val_loader.dataset), val_ged/len(val_loader.dataset)
-            
-
+      
+ 
        
 # train vida     
-def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, early_stop=early_stop):
+def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='unique'):
     
     '''
     Train VIDA!
@@ -195,6 +217,8 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             - x_ej: the index of k nearest neighbours of each node based on ged
         - optimizer: Pytorch optimizer
         - scheduler: Pytorch learning rate scheduler
+        - outpath: output directory
+        - neigh_mode: the mode of computing the mpt and ged embedding neighbors
         - early_stop: early stopping object
     '''
     
@@ -244,6 +268,8 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     
     config.update({'knn_mpt': knn_mpt})
     config.update({'knn_ged': knn_ged})
+    config.update({'split_ratio': round(len(train_loader.dataset.indices) / data_loader.dataset.tensors[0].shape[0], 2)})
+    config.update({'neigh_mode': neigh_mode})
     
         
     print('\n ------- Start Training -------')
@@ -257,32 +283,17 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             x = x.to(config.device)
             y = y.to(config.device)
             
-            # forward x_j
+            # ------------------------------------------
+            #  Get mpt,ged loss embedding neighbors
+            # ------------------------------------------
             model.eval()
             with torch.no_grad():
+                batch_xj_id = x_j[idx]
                 batch_xdj_id = x_dj[idx]
                 batch_xej_id = x_ej[idx]
-                batch_xj_id = x_j[idx]
                 
-                batch_uniq_id = torch.unique(batch_xj_id.flatten())
-                
-                neighbor_input = data_loader.dataset.tensors[0][batch_uniq_id].reshape(-1, input_dim).to(config.device)
-               
-                _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
-                # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
-                
-                # make a dictionary for mpt and ged neighbors search 
-                # [Note: put to cpu due to mps incompatible with cuda]               
-                my_dict = {key.item(): val for key, val in zip(batch_uniq_id, neighbor_embed.to('cpu'))}
-                                
-                # mpt embedding
-                neighbor_mpt = [torch.unsqueeze(my_dict[key], 1) for key in batch_xdj_id.flatten().numpy()]
-                neighbor_mpt = torch.cat(neighbor_mpt, dim=0).reshape(-1, knn_mpt, neighbor_embed.shape[-1]).to(config.device)
-                # ged embedding
-                neighbor_ged = [torch.unsqueeze(my_dict[key], 1) for key in batch_xej_id.flatten().numpy()]
-                neighbor_ged = torch.cat(neighbor_ged, dim=0).view(-1, knn_ged, neighbor_embed.shape[-1]).to(config.device)
-                
-                
+                neighbor_mpt, neighbor_ged = embed_neighbors(neigh_mode, config.device, model, data_loader, input_dim, batch_xj_id, batch_xdj_id, batch_xej_id, knn_mpt, knn_ged)
+                    
             # ------------------------------------------
             #  Train VIDA
             # ------------------------------------------
@@ -292,7 +303,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             # get the reconstructed nodes, predicted energy, and the embeddings
             x_recon, y_pred, z, mu, logvar = model(x)
         
-            ## compute the total loss
+            ## compute the total loss ##
             # vae loss
             recon_loss, kl_loss = model.vae_loss(x_recon, x, mu, logvar)
             
@@ -349,9 +360,10 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         print ('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss/len(train_loader.dataset)))
         writer.add_scalar('training loss', training_loss/len(train_loader.dataset), epoch)
                 
-        # validation
-        # val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej, x_j)
-        val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej, x_j)
+        # ------------------------------------------
+        #  Validate VIDA
+        # ------------------------------------------
+        val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged = validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej, x_j, neigh_mode)
         
         writer.add_scalar('validation loss', val_loss, epoch)
         writer.add_scalar('val_recon loss', val_bce, epoch)
@@ -372,16 +384,9 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         epoch_time = end_time - start_time
         print (f'Epoch {epoch} train+val time: {epoch_time:.2f} seconds \n')
         
-        # save the model checkpoint every 5 epochs
+        # save the model checkpoint every 10 epochs
         if (epoch+1) % 10 == 0:
-            # checkpoint = {
-            #     'epoch': epoch,
-            #     'model_state_dict': model.state_dict(),
-            #     'optimizer_state_dict': optimizer.state_dict(),
-            #     }
-            # Save the checkpoint
-            torch.save(model.state_dict(), f'{log_dir}/checkpoint_epoch_{epoch}.pt')
-                        
+            torch.save(model.state_dict(), f'{log_dir}/checkpoint_epoch_{epoch}.pt')           
         
         # Check if validation loss has not improved for `patience` epochs
         if early_stop(val_loss, epoch, config.patience):
@@ -389,7 +394,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         
         # Clear the cache
         gc.collect()
-        # torch.mps.empty_cache()
+        # torch.mps.empty_cache()  ## not available yet
         torch.cuda.empty_cache()
        
     config.update({'Training finished at epoch': epoch})
