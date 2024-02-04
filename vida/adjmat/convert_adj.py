@@ -3,7 +3,7 @@ import argparse
 import time
 import pickle
 import gzip
-from dp2adj import sim_adj, sim_adj_3strand
+from dp2adj import sim_adj, sim_adj_3strand_uniq
 
 
 if __name__ == '__main__':
@@ -57,10 +57,8 @@ if __name__ == '__main__':
         dp_arr = loaded_data["dp_arr"]
         indices_uniq = loaded_data["indices_uniq"]
         
-        adj = sim_adj_3strand(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list)
-        adj_uniq = adj[indices_uniq]  
-        
-          
+        adj_uniq = sim_adj_3strand_uniq(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list, indices_uniq)    
+                            
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")
  
@@ -69,7 +67,6 @@ if __name__ == '__main__':
     }
     
     np.savez_compressed(outpath, **data_to_save)
-    
     
     print("[dp2adj] Done!")
     

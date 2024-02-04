@@ -216,7 +216,7 @@ def read_machinek(fpath,rxn,part_strand,num_files=100):
 # cooncatanate all sturcutres for tut06 dataset: 
 def concat_machinek(states, times, energies):
     # convert concantenate two individual structures to one structure 
-    def process_tut06(dp_og):
+    def process_machinek(dp_og):
         dp = copy.deepcopy(dp_og)
         dp_pair = []
         for i in range(len(dp)):
@@ -234,7 +234,7 @@ def concat_machinek(states, times, energies):
     
     
     for i in range(len(states)):
-        sims_dp, sims_pair = process_tut06(states[i])
+        sims_dp, sims_pair = process_machinek(states[i])
 
         dp.append(sims_dp)
         dp_og.append(states[i])
