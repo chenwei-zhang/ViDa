@@ -28,6 +28,8 @@ temp
 code/model_config
 code/data
 code/vida
+data/post_data/
+code_ver1
 
 lightning_logs
 # Byte-compiled / optimized / DLL files
