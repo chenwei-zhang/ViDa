@@ -4,7 +4,7 @@ import gzip
 import os
 import argparse
 import time
-from utils import concat_hata, concat_gao, get_uniq
+from utils import concat_hata, concat_gao, concat_machinek, get_uniq
 
 
 def main():
@@ -42,9 +42,14 @@ def main():
         pairs = loaded_data["trajs_pairs"]
         dp, dp_og, pair, energy, trans_time = concat_gao(states, times, energies, pairs)
     
+    elif "Machinek" in file_name:
+        print("[Preprocess] Preprocess Machinek data")
+        
+        dp, dp_og, pair, energy, trans_time = concat_machinek(states, times, energies)
+
     else:
         print("Wrong file name")
-        return
+
 
     # get the unique structures and their corresponding indices
     print("[Preprocess] Get the unique structures and their corresponding indices")
@@ -66,8 +71,10 @@ def main():
     
     if "Hata" in file_name:
         data_to_save["type_uniq"] = type_uniq
-
-
+        
+    if "Machinek" in file_name:
+        data_to_save["dp_arr"] = dp
+        
     # save the data to npz file
     np.savez_compressed(outpath, **data_to_save)
 

@@ -133,22 +133,6 @@ def sim_adj(dps):
 
 ############### Three-Strand Structure ###############
 ####################################################
-   
-# assign unique identifier to each base
-def assign_base_names(sequence):
-    split_sequence = re.split(r'\s|\+', sequence)
-    base_names = []
-
-    for strand_index, strand in enumerate(split_sequence):
-        strand_names = []
-        
-        for base_index, base_type in enumerate(strand):
-            strand_names.append(f'{chr(ord("a") + strand_index)}{base_index + 1}')
-            
-        base_names.append(strand_names)
-    
-    return base_names
-
 
 # find strand permutation that matches the sequence 
 # then get the corresponding name list

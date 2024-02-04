@@ -167,26 +167,32 @@ def label_struc(trajs_types, dp_og_uniq):
 def readout_3strand(lines, part_strand):
     
     seq_line = []; dp_list = []; time_list = []; energy_list = []
-    pattern = r'[-+]?\d*\.\d+|\d+'
+    pattern = r'(.*?)\s+t=(\d*\.\d+) seconds, dG=([+-]?\d*\.\d+) kcal/mol'
     
     for i in range(len(lines)):
         if part_strand in lines[i]:
             seq_line.append((lines[i], i-len(seq_line)))
             
         else:
-            ss = lines[i].split(" t")
-            dp_list.append(ss[0])
+            # ss = lines[i].split(" t")
+            # dp_list.append(ss[0])
             
-            matches = re.findall(pattern, ss[1])
-            numbers = [float(match) if '.' in match else int(match) for match in matches]
+            # matches = re.findall(pattern, ss[1])
+            # numbers = [float(match) if '.' in match else int(match) for match in matches]
 
-            time_list.append(float(numbers[0]))
-            energy_list.append(float(numbers[1]))
+            # time_list.append(float(numbers[0]))
+            # energy_list.append(float(numbers[1]))
+            
+            match = re.search(pattern, lines[i])
+            if match:
+                dp_list.append(match.group(1))
+                time_list.append(float(match.group(2)))
+                energy_list.append(float(match.group(3)))
             
     return (seq_line, dp_list, time_list, energy_list)
         
         
-def read_tut06(fpath,rxn,part_strand,num_files=2):
+def read_machinek(fpath,rxn,part_strand,num_files=100):
     trajs_seqs, trajs_states, trajs_times, trajs_energies = [],[],[],[]
     
     for i in range(num_files):
@@ -208,7 +214,7 @@ def read_tut06(fpath,rxn,part_strand,num_files=2):
         
 
 # cooncatanate all sturcutres for tut06 dataset: 
-def concat_tut06(states, times, energies):
+def concat_machinek(states, times, energies):
     # convert concantenate two individual structures to one structure 
     def process_tut06(dp_og):
         dp = copy.deepcopy(dp_og)
@@ -245,3 +251,17 @@ def concat_tut06(states, times, energies):
     return dp_arr, dp_og, pair, energy, trans_time
     
  
+# assign unique identifier to each base
+def assign_base_names(sequence):
+    split_sequence = re.split(r'\s|\+', sequence)
+    base_names = []
+
+    for strand_index, strand in enumerate(split_sequence):
+        strand_names = []
+        
+        for base_index, base_type in enumerate(strand):
+            strand_names.append(f'{chr(ord("a") + strand_index)}{base_index + 1}')
+            
+        base_names.append(strand_names)
+    
+    return base_names
