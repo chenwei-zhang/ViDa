@@ -45,7 +45,8 @@ def main():
     elif "Machinek" in file_name:
         print("[Preprocess] Preprocess Machinek data")
         
-        dp, dp_og, pair, energy, trans_time = concat_machinek(states, times, energies)
+        dp_arr, dp_og, pair, energy, trans_time = concat_machinek(states, times, energies)
+        dp = dp_arr
 
     else:
         print("Wrong file name")
@@ -73,7 +74,8 @@ def main():
         data_to_save["type_uniq"] = type_uniq
         
     if "Machinek" in file_name:
-        data_to_save["dp_arr"] = dp
+        data_to_save["dp_arr"] = dp_arr
+        data_to_save["dp_og"] = dp_og
         
     # save the data to npz file
     np.savez_compressed(outpath, **data_to_save)

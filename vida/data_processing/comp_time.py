@@ -3,7 +3,7 @@ import argparse
 import time
 
 
-def sim_ht(trans_time):
+def sim_ht(trans_time, Machineck=False):
     """calculate holding time for each trajectory
     """
     hold_time = np.array([])
@@ -17,8 +17,12 @@ def sim_ht(trans_time):
             temp_t = trans_time[idx[i]:]
             hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
     
-    # get each individual trajectory's index
-    trj_id = np.where(hold_time==0)[0]
+    if Machineck:
+        temp = np.append(idx, len(trans_time))
+        trj_id = (temp-1)[1:]
+    else: 
+        # get each individual trajectory's index
+        trj_id = np.where(hold_time==0)[0]
 
     return hold_time, trj_id
 
@@ -80,7 +84,8 @@ if __name__ == '__main__':
     # calculate holding time for each trajectory
     print("[Comp_time] Calculating holding time for each trajectory")
 
-    hold_time, trj_id = sim_ht(trans_time)
+    # TODO
+    hold_time, trj_id = sim_ht(trans_time, Machineck=True)
     
     # calculate the average (unique) holding time
     print("[Comp_time] Calculating the average holding time for each unique state")

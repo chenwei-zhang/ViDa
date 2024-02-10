@@ -20,7 +20,7 @@ def main():
 
     if rxn == "Machinek-PRF":
         ref_strands = 'CCCTCCACATTCAACCTCAAACTCACC+TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA+GGTGAGTTTGAGGTTGAATGTGGA'
-        strand_a = 'CCCTCCACATTCAACCTCAAACTCACC'  # target_perf_seq
+        strand_a = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate_perf_seq
         strand_b = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent_perf_seq
         strand_c = 'GGTGAGTTTGAGGTTGAATGTGGA'  # invader_perf_seq
         
@@ -32,7 +32,7 @@ def main():
     # Load data
     print(f"[Read] Loading data from {inpath}")
     
-    trajs_seqs, trajs_states, trajs_times, trajs_energies = read_machinek(inpath, rxn, strand_a)
+    trajs_seqs, trajs_states, trajs_times, trajs_energies = read_machinek(inpath, rxn, strand_a, num_files=223)
 
     # save read data
     print(f"[Read] Saving preprocessed data to {outpath}")

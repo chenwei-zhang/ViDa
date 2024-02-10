@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import argparse
-from plot_funcs import sort_gao, sort_hata, plot_gao, plot_hata
+from plot_funcs import sort_gao, sort_hata, plot_gao, plot_hata, plot_machineck
 
 if __name__ == '__main__': 
     # Record the start time
@@ -84,6 +84,10 @@ if __name__ == '__main__':
     elif "Gao" in predata:
         df, dfall = sort_gao(plt_args)
     
+    # TODO
+    elif "Machinek" in predata:
+        df, dfall = sort_gao(plt_args)
+    
     
     # Make the plot
     print(f"[Plot] Making plot")    
@@ -95,7 +99,12 @@ if __name__ == '__main__':
     elif "Gao" in predata:
         fig = plot_gao(df,dfall,vis='PHATE')
         savename = outpath
-            
+    
+    # TODO
+    elif "Machinek" in predata:
+        fig = plot_machineck(df,dfall,vis='PCA')
+        savename = outpath  
+  
     fig.write_html(savename)
 
         
