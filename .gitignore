@@ -28,8 +28,12 @@ temp
 code/model_config
 code/data
 code/vida
-data/post_data/
+data/post_data
 code_ver1
+data/post_data/Machinek-PRF
+*gz
+
+
 
 lightning_logs
 # Byte-compiled / optimized / DLL files

@@ -32,7 +32,7 @@ def main():
     # Load data
     print(f"[Read] Loading data from {inpath}")
     
-    trajs_seqs, trajs_states, trajs_times, trajs_energies = read_machinek(inpath, rxn, strand_a, num_files=223)
+    trajs_seqs, trajs_states, trajs_times, trajs_energies = read_machinek(inpath, rxn, strand_a, num_files=224)
 
     # save read data
     print(f"[Read] Saving preprocessed data to {outpath}")

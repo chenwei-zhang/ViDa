@@ -6,7 +6,7 @@
     "learning_rate": 0.0001,
 
     "comment 2": "The following paramters can be changed.",
-    "dataset": "P4T4",
+    "dataset": "Machinek-PRF",
     "device": "mps",
     "batch_size": 256,
     "n_epochs": 100,

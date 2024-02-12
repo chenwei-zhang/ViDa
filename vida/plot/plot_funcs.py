@@ -428,7 +428,9 @@ def plot_machineck(df,dfall,vis):
     )
 
     # layout trajectory on top of energy landscape
-    for i in range(len(dfall)):
+    # for i in range(len(dfall)):
+    for i in range(3):
+    
         Step = []
         if len(dfall["DP"][i]) < 2000:
             Step = np.arange(len(dfall["DP"][i]))
