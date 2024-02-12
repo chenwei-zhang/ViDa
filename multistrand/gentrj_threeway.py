@@ -20,7 +20,9 @@ def print_trajectory(o):
         tubestruct = ' '.join(structs)      # give the dot-paren secondary structure for the whole test tube
         dG=0
         for state in states: dG += state[5]
-        print('%s t=%11.9f seconds, dG=%6.2f kcal/mol' % (tubestruct,time, dG))
+        # print('%s t=%11.9f seconds, dG=%6.2f kcal/mol' % (tubestruct,time, dG))
+        print(f'{tubestruct} t={time} seconds, dG={dG} kcal/mol')
+        
 
         # Needlessly verify that the reported trajectory energies are the Tube_Energy values
         dGv=0
@@ -94,7 +96,9 @@ def create_setup():
 
 if __name__ == '__main__':
     
-    for i in range(100):
+    for i in range(355,400):
+    # for i in range(5):
+        
             
         o = create_setup()
         s = SimSystem(o)
@@ -102,11 +106,13 @@ if __name__ == '__main__':
 
         stdoutOrigin=sys.stdout         
         
-        sys.stdout = open(f"./raw_data/Machinek-PRF/Machinek-PRF-{i}.txt", "w")
+        sys.stdout = open(f"./raw_data/Machinek-PRF-og/Machinek-PRF-{i}.txt", "w")
+        # sys.stdout = open(f"./raw_data/temp-{i}.txt", "w")
+        
         print_trajectory(o)
         sys.stdout.flush()  # Flush the output here
         sys.stdout.close()
         sys.stdout=stdoutOrigin
         
-        print(f"Simulation {i} complete; Trajecory length: {len(o.full_trajectory)}")
+        print(f"Simulation {i} complete; Trajectory length: {len(o.full_trajectory)}")
         sys.stdout.flush()  # Flush the output here as well
