@@ -50,17 +50,23 @@ if __name__ == '__main__':
     
     # Initialize ViDa 
     vida = VIDA(encoder, decoder, regressor)
-    # Load the trained parameters
-    vida.load_state_dict(torch.load(model))
     
+    # Load the trained parameters
+    # vida.load_state_dict(torch.load(model))
+    vida.load_state_dict(torch.load(model,map_location=torch.device('cpu')))
+
     
     # Do the embedding
     print(f"[Embed] Embedding data")
     
-    vida.to(config.device).eval()
+    # vida.to(config.device).eval()
+    vida.to('cpu').eval()
     
-    # embeddings = vida.get_embeddings(data_loader.dataset.tensors[0].to(config.device))
-    _,_,embeddings,_,_ = vida(data_loader.dataset.tensors[0].to(config.device))
+    
+    ## embeddings = vida.get_embeddings(data_loader.dataset.tensors[0].to(config.device))
+    _,_,embeddings,_,_ = vida(data_loader.dataset.tensors[0].to('cpu'))
+    # _,_,embeddings,_,_ = vida(data_loader.dataset.tensors[0].to(config.device))
+    
         
     # Put the embeddings to cpu and convert to numpy array
     with torch.no_grad():

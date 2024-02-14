@@ -95,18 +95,19 @@ if __name__ == '__main__':
     if "Hata" in predata:
         fig = plot_hata(df,dfsucc,dffail,vis='PHATE')
         savename = outpath
+        fig.write_html(savename)
         
     elif "Gao" in predata:
         fig = plot_gao(df,dfall,vis='PHATE')
         savename = outpath
+        fig.write_html(savename)
     
     # TODO
     elif "Machinek" in predata:
-        fig = plot_machineck(df,dfall,vis='PCA')
-        savename = outpath  
-  
-    fig.write_html(savename)
-
+        for vis in ["PCA","PHATE"]:
+            fig = plot_machineck(df,dfall,vis=vis)
+            savename = outpath+"_"+vis+".html"
+            fig.write_html(savename)
         
     print(f"[Plot] Done!")
     

@@ -264,6 +264,13 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     x_ej = torch.from_numpy(x_ej.astype(int))
     x_j = torch.from_numpy(x_j.astype(int))
     
+    p_i = p_i.to(config.device)
+    d_ij = d_ij.to(config.device)
+    e_ij = e_ij.to(config.device)
+    x_dj = x_dj.to(config.device)
+    x_ej = x_ej.to(config.device)
+    x_j = x_j.to(config.device)
+    
     knn_mpt = x_dj.shape[-1]
     knn_ged = x_ej.shape[-1]
     
