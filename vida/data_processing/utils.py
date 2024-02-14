@@ -167,32 +167,27 @@ def label_struc(trajs_types, dp_og_uniq):
 def readout_3strand(lines, part_strand):
     
     seq_line = []; dp_list = []; time_list = []; energy_list = []
-    pattern = r'(.*?)\s+t=(\d*\.\d+) seconds, dG=([+-]?\d*\.\d+) kcal/mol'
     
-    for i in range(len(lines)):
-        if part_strand in lines[i]:
-            seq_line.append((lines[i], i-len(seq_line)))
-            
-        else:
-            # ss = lines[i].split(" t")
-            # dp_list.append(ss[0])
-            
-            # matches = re.findall(pattern, ss[1])
-            # numbers = [float(match) if '.' in match else int(match) for match in matches]
+    pattern = re.compile(r'^(.*?)\s+t=([\d.e+-]+) seconds, dG=([-\d.e+]+) kcal/mol')
 
-            # time_list.append(float(numbers[0]))
-            # energy_list.append(float(numbers[1]))
-            
-            match = re.search(pattern, lines[i])
-            if match:
-                dp_list.append(match.group(1))
-                time_list.append(float(match.group(2)))
-                energy_list.append(float(match.group(3)))
-            
+    for i in range(len(lines)): #TODO
+        if part_strand in lines[i]:
+            sequence = lines[i]
+        
+        match = re.search(pattern, lines[i])
+        if match:
+            seq_line.append(sequence)        
+            dp_list.append(match.group(1))
+            time_list.append(float(match.group(2)))
+            energy_list.append(float(match.group(3)))
+        
+        # else:
+        #     print(f'No match found: {i}')
+             
     return (seq_line, dp_list, time_list, energy_list)
         
         
-def read_machinek(fpath,rxn,part_strand,num_files=100):
+def read_machinek(fpath,rxn,part_strand,num_files):
     trajs_seqs, trajs_states, trajs_times, trajs_energies = [],[],[],[]
     
     for i in range(num_files):
@@ -213,7 +208,7 @@ def read_machinek(fpath,rxn,part_strand,num_files=100):
     return trajs_seqs, trajs_states, trajs_times, trajs_energies
         
 
-# cooncatanate all sturcutres for tut06 dataset: 
+# cooncatanate all sturcutres for machinek dataset: 
 def concat_machinek(states, times, energies):
     # convert concantenate two individual structures to one structure 
     def process_machinek(dp_og):

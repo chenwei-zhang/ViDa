@@ -57,13 +57,14 @@ if __name__ == '__main__':
         dp_arr = loaded_data["dp_arr"]
         indices_uniq = loaded_data["indices_uniq"]
         
-        adj_uniq = sim_adj_3strand_uniq(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list, indices_uniq)    
+        adj_uniq, seqlabel_uniq = sim_adj_3strand_uniq(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list, indices_uniq)    
                             
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")
  
     data_to_save = {
     "adj_uniq": adj_uniq,
+    "seqlabel_uniq": seqlabel_uniq if num_strand == 3 else None,
     }
     
     np.savez_compressed(outpath, **data_to_save)

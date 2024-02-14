@@ -138,10 +138,9 @@ def sim_adj(dps):
 # then get the corresponding name list
 def concat_disorder(trajs_seq, ref_name_list, strand_list):
     alter_name_list = []
-    div_idx_list = []
     
     for i in range(len(trajs_seq)):
-        sequence_list = re.split(r'\s|\+', trajs_seq[i][0]) 
+        sequence_list = re.split(r'\s|\+', trajs_seq[i]) 
         sequence = ''.join(sequence_list)
         found_match = False
         for permuted_strand in permutations(strand_list):
@@ -155,9 +154,8 @@ def concat_disorder(trajs_seq, ref_name_list, strand_list):
         if not found_match:
             print('Error: sequence not found')
             
-        div_idx_list.append(trajs_seq[i][1])
             
-    return np.array(alter_name_list,dtype=object), np.array(div_idx_list)
+    return np.array(alter_name_list,dtype=object)
 
 
 
@@ -222,27 +220,26 @@ def dp2adj_3strand(ref_name, alter_name, alter_name_arr, dp_structure):
 
 def sim_adj_3strand_uniq(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list, indices_uniq):
     
-    adj_uniq = np.zeros((len(indices_uniq), len(ref_name), len(ref_name)))
+    adj_uniq = np.zeros((len(indices_uniq), len(ref_name), len(ref_name)), dtype=int)
+    seqlabel_uniq = np.full(len(indices_uniq), fill_value="", dtype=object)
     counter = 0
-    
-    for dp in dp_arr:
-        alter_name_arr, div_idx_arr = concat_disorder(trajs_seqs[0],ref_name_list, strand_list)
-                
-        for i in range(len(div_idx_arr)):
-            if i+1 == len(div_idx_arr):
-                dp_part = dp[div_idx_arr[i]:]
-            else:
-                dp_part = dp[div_idx_arr[i]:div_idx_arr[i+1]]
+
+    for trjID, dp_structures in enumerate(dp_arr):
+        alter_name_arr = concat_disorder(trajs_seqs[trjID],ref_name_list, strand_list)
             
-            for dp_structure in dp_part:
-                if counter in indices_uniq:
-                    position = np.where(indices_uniq == counter)[0][0]
-                    alter_name = np.concatenate(alter_name_arr[i])
-                    adjmtrx = dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp_structure)
-                    adj_uniq[position] = adjmtrx
-                counter += 1
+        for i, dp in enumerate(dp_structures):
+            if counter in indices_uniq:
+                position = np.where(indices_uniq == counter)[0][0]
+                alter_name = np.concatenate(alter_name_arr[i])
+                adjmtrx = dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp)
+                adj_uniq[position] = adjmtrx
                 
-    return adj_uniq
+                seqlabel = trajs_seqs[trjID][i]
+                seqlabel_uniq[position] = seqlabel                
+                
+            counter += 1
+                
+    return adj_uniq, seqlabel_uniq
 
 
     
@@ -250,59 +247,12 @@ def sim_adj_3strand(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list):
     
     adj_mtr = []
     
-    for dp in dp_arr:
-        alter_name_arr, div_idx_arr = concat_disorder(trajs_seqs[0],ref_name_list, strand_list)
+    for trjID, dp_structures in enumerate(dp_arr):
+        alter_name_arr = concat_disorder(trajs_seqs[trjID],ref_name_list, strand_list)
                 
-        for i in range(len(div_idx_arr)):
-            if i+1 == len(div_idx_arr):
-                dp_part = dp[div_idx_arr[i]:]
-            else:
-                dp_part = dp[div_idx_arr[i]:div_idx_arr[i+1]]
-            
-            for dp_structure in dp_part:
-                alter_name = np.concatenate(alter_name_arr[i])
+        for i, dp in enumerate(dp_structures):
+            alter_name = np.concatenate(alter_name_arr[i])
 
-                adj_mtr.append(dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp_structure))
-        
+            adj_mtr.append(dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp))
+    
     return np.array(adj_mtr)
-
-
-
-# def sim_adj_3strand(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list):
-#     adj_mtr = []  # A list to hold sublists (chunks) of adjacency matrices
-    
-#     chunk_size = 100  # Define the size of each chunk. Adjust this based on your memory capacity and requirements.
-#     current_chunk = []  # Initialize the current chunk
-    
-#     for dp in dp_arr:
-#         alter_name_arr, div_idx_arr = concat_disorder(trajs_seqs[0], ref_name_list, strand_list)
-                
-#         for i in range(len(div_idx_arr)):
-#             if i+1 == len(div_idx_arr):
-#                 dp_part = dp[div_idx_arr[i]:]
-#             else:
-#                 dp_part = dp[div_idx_arr[i]:div_idx_arr[i+1]]
-            
-#             for dp_structure in dp_part:
-#                 alter_name = np.concatenate(alter_name_arr[i])
-#                 adj_matrix = dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp_structure)
-#                 current_chunk.append(adj_matrix)
-                
-#                 # When the current chunk reaches the specified size, add it to the list of chunks and start a new one
-#                 if len(current_chunk) >= chunk_size:
-#                     # adj_mtr.extend(current_chunk)
-#                     adj_mtr.append(np.array(current_chunk))
-                    
-#                     current_chunk = []  # Reset the current chunk for new data
-    
-#     # Add any remaining items in the current chunk to the chunks list
-#     if current_chunk:
-#         # adj_mtr.extend(current_chunk)
-#         adj_mtr.append(np.array(current_chunk))
-    
-#     adj_mtr = np.array(adj_mtr,dtype=object)
-#     combined_array = np.concatenate(adj_mtr, axis=0)
-    
-#     # return np.array(adj_mtr) 
-#     return combined_array
-
