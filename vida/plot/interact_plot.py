@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import argparse
-from plot_funcs import sort_gao, sort_hata, plot_gao, plot_hata, plot_machineck
+from plot_funcs import sort_gao, sort_hata, sort_machinek, plot_gao, plot_hata, plot_machineck
 
 if __name__ == '__main__': 
     # Record the start time
@@ -10,6 +10,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--predata', required=True, help='preprocessed data file')
     parser.add_argument('--timedata', required=True, help='time data file')
+    parser.add_argument('--seqdata', required=True, help='sequence data file')
     parser.add_argument('--embeddata', required=True, help='embedded data file')
     parser.add_argument('--outpath', required=True, help='output plot in html format')
     
@@ -18,6 +19,7 @@ if __name__ == '__main__':
     predata = args.predata
     timedata = args.timedata
     embeddata = args.embeddata
+    seqdata = args.seqdata
     outpath = args.outpath
     
     
@@ -56,6 +58,11 @@ if __name__ == '__main__':
     freq = freq_uniq[indices_all]
     
     
+    print(f"[Plot] Loading sequence data from {seqdata}")
+    loaded_data = np.load(seqdata, allow_pickle=True)
+    seqlabel_uniq = loaded_data["seqlabel_uniq"]
+    
+    
     print(f"[Plot] Loading embedded data from {embeddata}")
     
     loaded_data = np.load(embeddata)
@@ -68,13 +75,17 @@ if __name__ == '__main__':
     
     plt_args = (trj_id, dp_og, trans_time, hold_time, energy, pair, cum_time, freq, 
                 pca_coords, phate_coords, 
-                dp_og_uniq, hold_time_uniq, energy_uniq, pair_uniq, cum_time_uniq, freq_uniq, 
+                dp_og_uniq, hold_time_uniq, energy_uniq, pair_uniq, cum_time_uniq, freq_uniq,
                 pca_coords_uniq, phate_coords_uniq)
     
     if "Hata" in predata:
         plt_args = plt_args + (type_uniq, type)
         
-        
+    if "Machinek" in predata:
+        # plt_args = plt_args + (seqlabel_uniq)
+        plt_args = (*plt_args, seqlabel_uniq)
+    
+    
     # Sort trajectories by their hold time
     print(f"[Plot] Sorting trajectories by their hold time")
     
@@ -86,7 +97,7 @@ if __name__ == '__main__':
     
     # TODO
     elif "Machinek" in predata:
-        df, dfall = sort_gao(plt_args)
+        df, dfall = sort_machinek(plt_args)
     
     
     # Make the plot

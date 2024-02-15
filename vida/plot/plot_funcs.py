@@ -3,6 +3,21 @@ import pandas as pd
 import plotly.graph_objects as go
 
 
+# Function to replace multiple long strings with their short notations
+def replace_strings(s):
+    
+    # For Machinek-PRF
+    invader = "GGTGAGTTTGAGGTTGAATGTGGA"
+    incumbent = "TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA"
+    substrate = "CCCTCCACATTCAACCTCAAACTCACC"
+    
+    s = s.replace(invader, "Invader")
+    s = s.replace(incumbent, "Incumbent")
+    s = s.replace(substrate, "Substrate")
+    
+    return s
+
+
 
 def sort_gao(plt_args):
     # Load the data
@@ -46,7 +61,7 @@ def sort_gao(plt_args):
     
     return df, dfall
     
-
+#TODO
 def sort_hata(plt_args):
     # Load the data
     trj_id, dp_og, trans_time, hold_time, energy, pair, pca_coords, phate_coords, energy_uniq, pair_uniq, dp_og_uniq, hold_time_uniq, pca_coords_uniq, phate_coords_uniq = plt_args
@@ -59,10 +74,56 @@ def sort_hata(plt_args):
     # Use zip to unpack the sub-arrays into separate variables if needed
     sub_dp_og, sub_trans_time, sub_hold_time, sub_energy, sub_pair, sub_pca_coords, sub_phate_coords = sub_arrays
     
+
+
+def sort_machinek(plt_args):
+    # Load the data
+    trj_id, dp_og, trans_time, hold_time, energy, pair, cum_time, freq, \
+        pca_coords, phate_coords, \
+        dp_og_uniq, hold_time_uniq, energy_uniq, pair_uniq, cum_time_uniq, freq_uniq, \
+        pca_coords_uniq, phate_coords_uniq, \
+        seqlabel_uniq = plt_args
     
-# TODO
-def plot_hata():
-    pass
+    vectorized_replace = np.vectorize(replace_strings)
+    seqlabel_uniq_short = vectorized_replace(seqlabel_uniq)
+
+    # List of arrays to split
+    arrays_to_split = [dp_og, trans_time, hold_time, energy, pair, cum_time, freq, pca_coords, phate_coords]
+    # Get each trajectory using a single loop
+    subtrj_id = (trj_id+1)[:-1]
+    sub_arrays = [np.split(arr, subtrj_id) for arr in arrays_to_split]
+    # Use zip to unpack the sub-arrays into separate variables if needed
+    sub_dp_og, sub_trans_time, sub_hold_time, sub_energy, sub_pair, sub_cum_time, sub_freq, \
+        sub_pca_coords, sub_phate_coords = sub_arrays
+    # Sort the trajectories by reaction time
+    sorted_indices = np.argsort([sub_array[-1] for sub_array in sub_trans_time])[::-1]
+    # Use list comprehension and zip to sort all arrays simultaneously
+    sorted_arrays = [np.array(arr,dtype=object)[sorted_indices] for arr in sub_arrays] 
+    # Unpack the sorted arrays into separate variables
+    sorted_sub_dp_og, sorted_sub_trans_time, sorted_sub_hold_time, sorted_sub_energy, sorted_sub_pair, \
+        sorted_sub_cum_time, sorted_sub_freq, sorted_sub_pca_coords, sorted_sub_phate_coords = sorted_arrays
+        
+    # make dataframe for plotting   
+    df = pd.DataFrame(data={
+                "Energy": energy_uniq, "Pair": pair_uniq, "DP": dp_og_uniq, "HT": hold_time_uniq,
+                "CumT": cum_time_uniq, "Freq": freq_uniq, "SeqLabel": seqlabel_uniq_short,
+                "PCA 1": pca_coords_uniq[:,0], "PCA 2": pca_coords_uniq[:,1],
+                "PHATE 1": phate_coords_uniq[:,0], "PHATE 2": phate_coords_uniq[:,1]
+                }
+                )
+
+    dfall = pd.DataFrame(data={
+            "Energy": sorted_sub_energy, "Pair": sorted_sub_pair, "DP": sorted_sub_dp_og, "HT": sorted_sub_hold_time, 
+            "TransT": sorted_sub_trans_time, "CumT": sorted_sub_cum_time, "Freq": sorted_sub_freq,
+            "PCA": sorted_sub_pca_coords, "PHATE": sorted_sub_phate_coords,
+            "IDX": sorted_indices
+            }
+            )
+    
+    return df, dfall
+
+
+
 
 
 
@@ -294,6 +355,11 @@ def plot_gao(df,dfall,vis):
     return fig
 
 
+    
+# TODO
+def plot_hata():
+    pass
+
 
 
 def plot_machineck(df,dfall,vis):
@@ -322,11 +388,16 @@ def plot_machineck(df,dfall,vis):
                 line=dict(width=0),
             ),
             text=df['DP'],
+            customdata=np.stack((
+                    df['SeqLabel'],
+                    df['HT'],
+                    ),axis=-1),
             hovertemplate=
-                "DP notation: <br> <b>%{text}</b><br>" +
+                "<b>%{customdata[0]}</b><br>" +
+                "<b>%{text}</b><br><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
-                "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
-                "Expected holding time:  %{marker.size:.3e} s<br>",
+                "Energy:  %{marker.color:.3f} kcal/mol<br>"+
+                "Expected holding time:  %{customdata[1]:.3e} s<br>",
             name="Energy landscape",
             # visible='legendonly',
         )
@@ -340,7 +411,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["CumT"],
-                sizeref=5e-8,
+                sizeref=5e-7,
                 color=df["Energy"],
                 colorscale="Plasma",
                 showscale=False,
@@ -350,11 +421,13 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                 df["Energy"],
                 df["Freq"],
+                df['SeqLabel'],
                 ),axis=-1),
             hovertemplate=
-                "DP notation: <br> <b>%{text}</b><br>" +
+                "<b>%{customdata[2]}</b><br>" +
+                "<b>%{text}</b><br><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
-                "Energy:  %{customdata[0]:.3f} kcal/mol<br><br>"+
+                "Energy:  %{customdata[0]:.3f} kcal/mol<br>"+
                 "Cumulative time:  %{marker.size:.3e} s<br>"+
                 "Frequency:  %{customdata[1]:d} <br>",
             name="Cumu_time landscape",
@@ -380,17 +453,64 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                 df["Energy"],
                 df["CumT"],
+                df['SeqLabel'],
                 ),axis=-1),
             hovertemplate=
-                "DP notation: <br> <b>%{text}</b><br>" +
+                "<b>%{customdata[2]}</b><br>" +
+                "<b>%{text}</b><br><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
-                "Energy:  %{customdata[0]:.3f} kcal/mol<br><br>"+
+                "Energy:  %{customdata[0]:.3f} kcal/mol<br>"+
                 "Cumulative time:  %{customdata[1]:.3e} s<br>"+
                 "Frequency:  %{marker.size:d} <br>",
             name="Frequency landscape",
             visible='legendonly',
         )
     )
+    
+    
+    # plot strand-level background
+    color_mapping = {
+        "Incumbent Invader+Substrate": "red",
+        "Incumbent Substrate+Invader": "red",
+        
+        "Incumbent+Substrate Invader": "blue",
+        "Invader Incumbent+Substrate": "blue",
+        "Invader Substrate+Incumbent": "blue",
+        "Substrate+Incumbent Invader": "blue",
+            
+        "Incumbent+Substrate+Invader": "grey",
+        "Invader+Substrate+Incumbent": "grey",
+        "Invader+Incumbent+Substrate": "grey",
+        "Substrate+Incumbent+Invader": "grey",
+    }
+    fig.add_trace(go.Scattergl(
+            x=df["{} 1".format(vis)], 
+            y=df["{} 2".format(vis)],
+            mode='markers',
+            marker=dict(
+                sizemode='diameter',
+                size=5,
+                color=[color_mapping[type_val] for type_val in df["SeqLabel"]],
+                showscale=False,
+            ),
+            text=df['DP'],
+            customdata=np.stack((df["CumT"],
+                                 df["Energy"],
+                                 df["Freq"],
+                                 df['SeqLabel'],
+                                     ),axis=-1),
+            hovertemplate=
+                "<b>%{customdata[3]}</b><br>" +
+                "<b>%{text}</b><br><br>" +
+                "X: %{x}   " + "   Y: %{y} <br>"+
+                "Energy:  %{customdata[1]:.3f} kcal/mol<br>"+
+                "Cumulative time:  %{customdata[0]:.3e} s<br>"+
+                "Frequency:  %{customdata[2]:d} <br>",
+            name="Strand-level",
+            visible='legendonly',
+        )
+    )
+
     
     # plot bounded/unbounded background
     fig.add_trace(go.Scattergl(
@@ -399,7 +519,7 @@ def plot_machineck(df,dfall,vis):
             mode='markers',
             marker=dict(
                 sizemode='diameter',
-                size=4,
+                size=5,
                 color=df["Pair"],
                 showscale=False,
                 colorbar=dict(
@@ -415,9 +535,11 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((df["CumT"],
                                  df["Energy"],
                                  df["Freq"],
+                                 df['SeqLabel'],
                                      ),axis=-1),
             hovertemplate=
-                "DP notation: <br> <b>%{text}</b><br>" +
+                "<b>%{customdata[3]}</b><br>" +
+                "<b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
                 "Energy:  %{customdata[1]:.3f} kcal/mol<br>"+
                 "Cumulative time:  %{customdata[0]:.3e} s<br>"+
@@ -429,7 +551,7 @@ def plot_machineck(df,dfall,vis):
 
     # layout trajectory on top of energy landscape
     # for i in range(len(dfall)):
-    for i in range(3):
+    for i in [0,2,4,221,222,223]:
     
         Step = []
         if len(dfall["DP"][i]) < 2000:
