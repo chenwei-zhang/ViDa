@@ -54,7 +54,7 @@ if __name__ == '__main__':
     
     # Train VIDA
     ## neigh_mode='unique' or 'repeat'
-    train(fconfig, vida, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='unique')
+    train(fconfig, vida, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='repeat')
     
     
     print (f"[Train] Saving VIDA model to {outpath}")
