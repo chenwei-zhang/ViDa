@@ -10,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description='Load Data')
     parser.add_argument('--inpath', required=True, help='Path to input data file')
     parser.add_argument('--rxn', required=True, help='Reaction name')
+    parser.add_argument('--num-files', required=True, type=int, help='Number of files')
     parser.add_argument('--outpath', required=True, help='output file path')
     
     args = parser.parse_args()
@@ -17,6 +18,7 @@ def main():
     inpath = args.inpath
     rxn = args.rxn
     outpath = args.outpath
+    num_files = args.num_files
 
     if rxn == "Machinek-PRF":
         ref_strands = 'CCCTCCACATTCAACCTCAAACTCACC+TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA+GGTGAGTTTGAGGTTGAATGTGGA'
@@ -32,7 +34,7 @@ def main():
     # Load data
     print(f"[Read] Loading data from {inpath}")
     
-    trajs_seqs, trajs_states, trajs_times, trajs_energies = read_machinek(inpath, rxn, strand_a, num_files=224)
+    trajs_seqs, trajs_states, trajs_times, trajs_energies = read_machinek(inpath, rxn, strand_a, num_files=num_files)
 
     # save read data
     print(f"[Read] Saving preprocessed data to {outpath}")

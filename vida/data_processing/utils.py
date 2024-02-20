@@ -191,7 +191,7 @@ def read_machinek(fpath,rxn,part_strand,num_files):
     trajs_seqs, trajs_states, trajs_times, trajs_energies = [],[],[],[]
     
     for i in range(num_files):
-        sim_name = f"{fpath}/{rxn}/{rxn}-{i}.txt"
+        sim_name = f"{fpath}/{rxn}-{i}.txt"
         f = open(sim_name, 'r')
         lines = f.read().splitlines()
         trj = readout_3strand(lines, part_strand)
