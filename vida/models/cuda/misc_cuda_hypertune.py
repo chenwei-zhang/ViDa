@@ -63,10 +63,17 @@ def early_stop(val_loss, epoch, patience):
     Returns:
         bool: True if validation loss has not improved for the last `patience` epochs, False otherwise
     """
+
+    # # Initialize static variables
+    # if not hasattr(early_stop, 'best_loss'):
+    #     early_stop.best_loss = float('inf')
+    #     early_stop.num_epochs_without_improvement = 0
+    #     early_stop.nan_counter = 0  # Counter for consecutive NaN losses
+
     if epoch == 0:
         # First epoch, don't stop yet
         return False
-    
+
     if np.isnan(val_loss):
         # Increment NaN counter and check if it has reached 2
         early_stop.nan_counter += 1
@@ -77,12 +84,12 @@ def early_stop(val_loss, epoch, patience):
 
     # Reset NaN counter if loss is not NaN
     early_stop.nan_counter = 0
-    
+
     # Check if validation loss has not improved for `patience` epochs
     if val_loss >= early_stop.best_loss:
         early_stop.num_epochs_without_improvement += 1
         if early_stop.num_epochs_without_improvement >= patience:
-            print("Stopping early")
+            print("[Early Stop] Stopping early due to lack of improvement", flush=True)
             return True
         else:
             return False
@@ -91,7 +98,7 @@ def early_stop(val_loss, epoch, patience):
         early_stop.best_loss = val_loss
         early_stop.num_epochs_without_improvement = 0
         return False
-    
+        
 
 #  Get mpt,ged loss embedding neighbors for training loss
 def embed_neighbors(neigh_mode, device, model, data_loader, input_dim, batch_xj_id, batch_xdj_id, batch_xej_id, knn_mpt, knn_ged):
@@ -99,28 +106,28 @@ def embed_neighbors(neigh_mode, device, model, data_loader, input_dim, batch_xj_
     if neigh_mode == 'unique':
         ## embed the unique neighbors ##
         batch_uniq_id = torch.unique(batch_xj_id.flatten())
-        neighbor_input = data_loader.dataset.tensors[0][batch_uniq_id].reshape(-1, input_dim).to(device)
+        neighbor_input = data_loader.dataset.tensors[0].to(device)[batch_uniq_id].reshape(-1, input_dim)
         _, _, neighbor_embed, _, _ = model(neighbor_input)     # with noise
         # neighbor_embed = model.get_embeddings(neighbor_input)    # without noise
         '''make a dictionary for mpt and ged neighbors search 
             [Note: put to cpu due to mps incompatible with cuda] 
         '''              
-        my_dict = {key.item(): val for key, val in zip(batch_uniq_id, neighbor_embed.to('cpu'))}
+        my_dict = {key.item(): val for key, val in zip(batch_uniq_id, neighbor_embed)}
         # mpt embedding
         neighbor_mpt = [torch.unsqueeze(my_dict[key], 1) for key in batch_xdj_id.flatten().numpy()]
-        neighbor_mpt = torch.cat(neighbor_mpt, dim=0).reshape(-1, knn_mpt, neighbor_embed.shape[-1]).to(device)
+        neighbor_mpt = torch.cat(neighbor_mpt, dim=0).reshape(-1, knn_mpt, neighbor_embed.shape[-1])
         # ged embedding
         neighbor_ged = [torch.unsqueeze(my_dict[key], 1) for key in batch_xej_id.flatten().numpy()]
-        neighbor_ged = torch.cat(neighbor_ged, dim=0).view(-1, knn_ged, neighbor_embed.shape[-1]).to(device)
+        neighbor_ged = torch.cat(neighbor_ged, dim=0).view(-1, knn_ged, neighbor_embed.shape[-1])
     
     elif neigh_mode == 'repeat':
         ## embed all repeated neighbors ##
         # mpt embedding
-        neighbor_input_mpt = data_loader.dataset.tensors[0][batch_xdj_id].reshape(-1, input_dim).to(device)
+        neighbor_input_mpt = data_loader.dataset.tensors[0].to(device)[batch_xdj_id].reshape(-1, input_dim)
         _, _, neighbor_mpt, _, _ = model(neighbor_input_mpt)
         neighbor_mpt = neighbor_mpt.reshape(-1, knn_mpt, neighbor_mpt.shape[-1])
         # ged embedding
-        neighbor_input_ged = data_loader.dataset.tensors[0][batch_xej_id].reshape(-1, input_dim).to(device)
+        neighbor_input_ged = data_loader.dataset.tensors[0].to(device)[batch_xej_id].reshape(-1, input_dim)
         _, _, neighbor_ged, _, _ = model(neighbor_input_ged)
         neighbor_ged = neighbor_ged.reshape(-1, knn_ged, neighbor_ged.shape[-1])
                                
@@ -146,6 +153,7 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
             # Configure input
             x = x.to(config.device)
             y = y.to(config.device)
+            idx = idx.to(config.device)
             
             knn_mpt = x_dj.shape[-1]
             knn_ged = x_ej.shape[-1]
@@ -173,10 +181,10 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
             p_loss = model.pred_loss(y_pred, y).item()
                 
             # distance loss            
-            t_loss = model.mpt_loss(config.device, z, neighbor_mpt, d_ij, p_i, idx, x_dj[idx]).item()
+            t_loss = model.mpt_loss(z, neighbor_mpt, d_ij, p_i, idx, x_dj[idx]).item()
             
             # edit distance loss
-            e_loss = model.ged_loss(config.device, z, neighbor_ged, e_ij, idx).item()
+            e_loss = model.ged_loss(z, neighbor_ged, e_ij, idx).item()
             
             # scaling the loss
             recon_loss = config.alpha * recon_loss
@@ -195,7 +203,7 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
             val_mpt += t_loss
             val_ged += e_loss
                         
-    print('Validation Loss: {:.4f}'.format(val_loss/len(val_loader.dataset)))
+    print('Validation Loss: {:.4f}'.format(val_loss/len(val_loader.dataset)), flush=True)
     
     # Clear the cache
     gc.collect()
@@ -204,8 +212,8 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
     # torch.mps.empty_cache()
     
     return val_loss/len(val_loader.dataset), val_bce/len(val_loader.dataset), val_kld/len(val_loader.dataset), val_pred/len(val_loader.dataset), val_mpt/len(val_loader.dataset), val_ged/len(val_loader.dataset)
-      
- 
+            
+
        
 # train vida     
 def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='unique'):
@@ -274,6 +282,13 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     x_ej = torch.from_numpy(x_ej.astype(int))
     x_j = torch.from_numpy(x_j.astype(int))
     
+    p_i = p_i.to(config.device)
+    d_ij = d_ij.to(config.device)
+    e_ij = e_ij.to(config.device)
+    x_dj = x_dj.to(config.device)
+    x_ej = x_ej.to(config.device)
+    x_j = x_j.to(config.device)
+    
     knn_mpt = x_dj.shape[-1]
     knn_ged = x_ej.shape[-1]
     
@@ -283,7 +298,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     config.update({'neigh_mode': neigh_mode})
     
         
-    print('\n ------- Start Training -------')
+    print('------- Start Training -------', flush=True)
     for epoch in range(config.n_epochs):
         start_time = time.time()
         training_loss = 0
@@ -293,6 +308,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             # Configure input
             x = x.to(config.device)
             y = y.to(config.device)
+            idx = idx.to(config.device)
             
             # ------------------------------------------
             #  Get mpt,ged loss embedding neighbors
@@ -304,7 +320,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
                 batch_xej_id = x_ej[idx]
                 
                 neighbor_mpt, neighbor_ged = embed_neighbors(neigh_mode, config.device, model, data_loader, input_dim, batch_xj_id, batch_xdj_id, batch_xej_id, knn_mpt, knn_ged)
-                    
+                
             # ------------------------------------------
             #  Train VIDA
             # ------------------------------------------
@@ -322,10 +338,10 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             p_loss = model.pred_loss(y_pred, y)
             
             # distance loss
-            t_loss = model.mpt_loss(config.device, z, neighbor_mpt, d_ij, p_i, idx, batch_xdj_id)
+            t_loss = model.mpt_loss(z, neighbor_mpt, d_ij, p_i, idx, batch_xdj_id)
             
             # edit distance loss
-            e_loss = model.ged_loss(config.device, z, neighbor_ged, e_ij, idx)
+            e_loss = model.ged_loss(z, neighbor_ged, e_ij, idx)
             
             # scaling the loss
             recon_loss = config.alpha * recon_loss
@@ -347,11 +363,12 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             # Log Progress
             # ------------------------------------------
             if batch_idx % config.log_interval == 0:
-                print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tTotal Loss: {:.6f}'.format(
-                    epoch, config.n_epochs-1, batch_idx * len(x), len(train_loader.dataset),
-                    100. * batch_idx / len(train_loader),
-                    loss.item()))
-                
+
+                # print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tTotal Loss: {:.6f}'.format(
+                #     epoch, config.n_epochs-1, batch_idx * len(x), len(train_loader.dataset),
+                #     100. * batch_idx / len(train_loader),
+                #     loss.item()), flush=True)
+            
                 writer.add_scalar('train_recon loss',
                                   recon_loss.item(),
                                   epoch * len(train_loader) + batch_idx)
@@ -367,8 +384,8 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
                 writer.add_scalar('train_ged loss',
                                   e_loss.item(),
                                   epoch * len(train_loader) + batch_idx)
-    
-        print ('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss/len(train_loader.dataset)))
+        print ('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss/len(train_loader.dataset)), flush=True)
+        
         writer.add_scalar('training loss', training_loss/len(train_loader.dataset), epoch)
                 
         # ------------------------------------------
@@ -390,10 +407,10 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         # update the learning rate
         scheduler.step(val_loss)
         
-        # timing
-        end_time = time.time()
-        epoch_time = end_time - start_time
-        print (f'Epoch {epoch} train+val time: {epoch_time:.2f} seconds \n')
+        # # timing
+        # end_time = time.time()
+        # epoch_time = end_time - start_time
+        # print (f'Epoch {epoch} train+val time: {epoch_time:.2f} seconds \n', flush=True)
         
         # save the model checkpoint every 10 epochs
         if (epoch+1) % 10 == 0:
@@ -411,7 +428,9 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     config.update({'Training finished at epoch': epoch})
     
     writer.close()
-    print('\n ------- Finished Training -------')
+    print('------- Finished Training -------\n', flush=True)
     
     # save the model
     torch.save(model.state_dict(), f'{log_dir}/model.pt')
+
+    return val_loss
