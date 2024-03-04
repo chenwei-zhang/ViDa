@@ -72,6 +72,7 @@ if __name__ == '__main__':
     
     pca_coords = pca_coords_uniq[indices_all]
     phate_coords = phate_coords_uniq[indices_all]
+    seqlabel = seqlabel_uniq[indices_all]
     
     plt_args = (trj_id, dp_og, trans_time, hold_time, energy, pair, cum_time, freq, 
                 pca_coords, phate_coords, 
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         
     if "Machinek" in predata:
         # plt_args = plt_args + (seqlabel_uniq)
-        plt_args = (*plt_args, seqlabel_uniq)
+        plt_args = (*plt_args, seqlabel_uniq, seqlabel)
     
     
     # Sort trajectories by their hold time

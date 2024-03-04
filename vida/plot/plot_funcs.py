@@ -82,26 +82,28 @@ def sort_machinek(plt_args):
         pca_coords, phate_coords, \
         dp_og_uniq, hold_time_uniq, energy_uniq, pair_uniq, cum_time_uniq, freq_uniq, \
         pca_coords_uniq, phate_coords_uniq, \
-        seqlabel_uniq = plt_args
+        seqlabel_uniq, seqlabel \
+        = plt_args
     
     vectorized_replace = np.vectorize(replace_strings)
     seqlabel_uniq_short = vectorized_replace(seqlabel_uniq)
+    seqlabel = vectorized_replace(seqlabel)
 
     # List of arrays to split
-    arrays_to_split = [dp_og, trans_time, hold_time, energy, pair, cum_time, freq, pca_coords, phate_coords]
+    arrays_to_split = [dp_og, trans_time, hold_time, energy, pair, cum_time, freq, pca_coords, phate_coords, seqlabel]
     # Get each trajectory using a single loop
     subtrj_id = (trj_id+1)[:-1]
     sub_arrays = [np.split(arr, subtrj_id) for arr in arrays_to_split]
     # Use zip to unpack the sub-arrays into separate variables if needed
     sub_dp_og, sub_trans_time, sub_hold_time, sub_energy, sub_pair, sub_cum_time, sub_freq, \
-        sub_pca_coords, sub_phate_coords = sub_arrays
+        sub_pca_coords, sub_phate_coords, sub_seqlabel = sub_arrays
     # Sort the trajectories by reaction time
     sorted_indices = np.argsort([sub_array[-1] for sub_array in sub_trans_time])[::-1]
     # Use list comprehension and zip to sort all arrays simultaneously
     sorted_arrays = [np.array(arr,dtype=object)[sorted_indices] for arr in sub_arrays] 
     # Unpack the sorted arrays into separate variables
     sorted_sub_dp_og, sorted_sub_trans_time, sorted_sub_hold_time, sorted_sub_energy, sorted_sub_pair, \
-        sorted_sub_cum_time, sorted_sub_freq, sorted_sub_pca_coords, sorted_sub_phate_coords = sorted_arrays
+        sorted_sub_cum_time, sorted_sub_freq, sorted_sub_pca_coords, sorted_sub_phate_coords, sorted_sub_seqlabel = sorted_arrays
         
     # make dataframe for plotting   
     df = pd.DataFrame(data={
@@ -114,9 +116,9 @@ def sort_machinek(plt_args):
 
     dfall = pd.DataFrame(data={
             "Energy": sorted_sub_energy, "Pair": sorted_sub_pair, "DP": sorted_sub_dp_og, "HT": sorted_sub_hold_time, 
-            "TransT": sorted_sub_trans_time, "CumT": sorted_sub_cum_time, "Freq": sorted_sub_freq,
+            "TransT": sorted_sub_trans_time, "CumT": sorted_sub_cum_time, "Freq": sorted_sub_freq,  "SeqLabel": sorted_sub_seqlabel,
             "PCA": sorted_sub_pca_coords, "PHATE": sorted_sub_phate_coords,
-            "IDX": sorted_indices
+            "IDX": sorted_indices,
             }
             )
     
@@ -411,7 +413,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["CumT"],
-                sizeref=5e-7,
+                sizeref=5e-3,
                 color=df["Energy"],
                 colorscale="Plasma",
                 showscale=False,
@@ -443,7 +445,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["Freq"],
-                sizeref=50,
+                sizeref=2500,
                 color=df["Energy"],
                 colorscale="Plasma",
                 showscale=False,
@@ -550,8 +552,8 @@ def plot_machineck(df,dfall,vis):
     )
 
     # layout trajectory on top of energy landscape
-    # for i in range(len(dfall)):
-    for i in [0,2,4,221,222,223]:
+    for i in range(0, len(dfall), 10):
+    # for i in [0,2,4,221,222,223]:
     
         Step = []
         if len(dfall["DP"][i]) < 2000:
@@ -573,30 +575,69 @@ def plot_machineck(df,dfall,vis):
                     size=2,
                     color=dfall["Energy"][i],
                     colorscale="Plasma",
-                    colorbar=dict(
-                        x=-0.2,
-                        y=0.5,
-                        tickvals=[],
-                        len=1,
-                    ),
+                    # colorbar=dict(
+                    #     x=-0.2,
+                    #     y=0.5,
+                    #     tickvals=[],
+                    #     len=1,
+                    # ),
                 ),
                 text=Step,
                 customdata=np.stack((dfall['Pair'][i],
                                      dfall['TransT'][i],
                                      dfall['DP'][i],
                                      dfall['HT'][i],
+                                     dfall['SeqLabel'][i],
                                      ),axis=-1),
                 hovertemplate=
-                    "Step:  <b>%{text}</b><br><br>"+
-                    "DP notation: <br> <b>%{customdata[2]}</b><br>" +
+                    # "Step:  <b>%{text}</b><br><br>"+
+                    "%{customdata[4]}<br>" +
+                    "<b>%{customdata[2]}</b><br>" +
                     "X: %{x}   " + "   Y: %{y} <br>"+
-                    "Energy:  %{marker.color:.3f} kcal/mol<br><br>"+
-                    "Expected holding time:  %{customdata[3]:.3e} s<br>"+
-                    "Total transition time until current state:  %{customdata[1]:.3e} s<br>",
+                    "Energy:  %{marker.color:.3f} kcal/mol<br>"+
+                    "Expected holding time:  %{customdata[3]:.3e} s<br>",
+                    # "Total transition time until current state:  %{customdata[1]:.3e} s<br>",
                 visible='legendonly',
                 name = "Trace {}".format(dfall["IDX"][i]),
             )
         )
+        
+    # plot the last 5 traces
+    for i in range(len(dfall)-5, len(dfall)):
+        fig.add_trace(
+            go.Scattergl(
+                x=dfall[f"{vis}"][i][:,0],
+                y=dfall[f"{vis}"][i][:,1],
+                mode='lines+markers',
+                line=dict(
+                    color="black",
+                    width=1,
+                ),
+                marker=dict(
+                    sizemode='diameter',
+                    size=2,
+                    color=dfall["Energy"][i],
+                    colorscale="Plasma",
+                ),
+                text=Step,
+                customdata=np.stack((dfall['Pair'][i],
+                                     dfall['TransT'][i],
+                                     dfall['DP'][i],
+                                     dfall['HT'][i],
+                                     dfall['SeqLabel'][i],
+                                     ),axis=-1),
+                hovertemplate=
+                    "%{customdata[4]}<br>" +
+                    "<b>%{customdata[2]}</b><br>" +
+                    "X: %{x}   " + "   Y: %{y} <br>"+
+                    "Energy:  %{marker.color:.3f} kcal/mol<br>"+
+                    "Expected holding time:  %{customdata[3]:.3e} s<br>",
+                visible='legendonly',
+                name = "Trace {}".format(dfall["IDX"][i]),
+            )
+        )
+    
+    
 
     # label initial and final states
     fig.add_trace(

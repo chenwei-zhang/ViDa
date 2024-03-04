@@ -15,7 +15,7 @@
     "alpha": 1,
     "beta": 0.0001,
     "gamma": 0.3,
-    "delta": 0.04,
+    "delta": 0.004,
     "epsilon": 0.0001,
 
     "comment 3": "The following paramters are appended upon training."

@@ -4,8 +4,8 @@ VIDA="/Users/chenwei/Desktop/Github/ViDa"
 DATA='Machinek-PRF-trunc'
 
 ### PLOT ###
-TNAME='24-0219-2349'
-CKPT='checkpoint_epoch_89'
+TNAME='24-0302-1844'
+CKPT='checkpoint_epoch_29'
 # CKPT='model'
 
 
