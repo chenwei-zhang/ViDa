@@ -3,7 +3,7 @@ import argparse
 import time
 import pickle
 import gzip
-from dp2adj import sim_adj, sim_adj_3strand_uniq
+from dp2adj import sim_adj, sim_adj_3strand
 
 
 if __name__ == '__main__':
@@ -14,9 +14,6 @@ if __name__ == '__main__':
     parser.add_argument('--inpath', required=True, help='preprocessed data file')
     parser.add_argument('--outpath', required=True, help='output adjacency matrix')
     parser.add_argument('--num-strand', type=int, default=2, help='number of strands')
-
-    if parser.parse_known_args()[0].num_strand == 3:
-        parser.add_argument('--seq-path', type=str, required=True, help="sequence file path")
         
     args = parser.parse_args()
 
@@ -29,42 +26,32 @@ if __name__ == '__main__':
     print(f"[dp2adj] Loading preprocessed dp_uniq from {inpath}")
     
     
-    
     # convert dot-parenthesis notation to adjacency matrix
     print("[dp2adj] Loading preprocessed")
     print(f"[dp2adj] Number of strands: {num_strand}")
     print(f"[dp2adj] Converting dot-parenthesis notation to adjacency matrix")
     
+    loaded_data = np.load(inpath, allow_pickle=True)
+     
     if num_strand == 2:
-        loaded_data = np.load(inpath, allow_pickle=True)
-        
         dp_uniq = loaded_data["dp_uniq"]
+        
         adj_uniq = sim_adj(dp_uniq)
         
     elif num_strand == 3:
-        # load nessary data for graph construction
-        seq_path = args.seq_path
+        ref_name = loaded_data["ref_name"]
+        ref_name_list = loaded_data["ref_name_list"]
+        strand_list = loaded_data["strand_list"]
+        seq_uniq = loaded_data["seq_uniq"]
+        dp_uniq = loaded_data["dp_uniq"]
         
-        # Load the data
-        with gzip.open(seq_path, 'rb') as file:
-            load_data_seq = pickle.load(file)
-        trajs_seqs = load_data_seq["trajs_seqs"]
-        ref_name = load_data_seq["ref_name"]
-        ref_name_list = load_data_seq["ref_name_list"]
-        strand_list = load_data_seq["strand_list"]
-        
-        loaded_data = np.load(inpath, allow_pickle=True)
-        dp_arr = loaded_data["dp_arr"]
-        indices_uniq = loaded_data["indices_uniq"]
-        
-        adj_uniq, seqlabel_uniq = sim_adj_3strand_uniq(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list, indices_uniq)    
+        adj_uniq = sim_adj_3strand(dp_uniq, seq_uniq, ref_name, ref_name_list, strand_list)    
                             
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")
  
     data_to_save = {
     "adj_uniq": adj_uniq,
-    "seqlabel_uniq": seqlabel_uniq if num_strand == 3 else None,
     }
     
     np.savez_compressed(outpath, **data_to_save)

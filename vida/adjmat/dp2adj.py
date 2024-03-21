@@ -136,31 +136,21 @@ def sim_adj(dps):
 
 # find strand permutation that matches the sequence 
 # then get the corresponding name list
-def concat_disorder(trajs_seq, ref_name_list, strand_list):
-    alter_name_list = []
+def concat_disorder(seq, ref_name_list, strand_list):
+    sequence_list = re.split(r'\s|\+', seq) 
+    sequence = ''.join(sequence_list)
     
-    for i in range(len(trajs_seq)):
-        sequence_list = re.split(r'\s|\+', trajs_seq[i]) 
-        sequence = ''.join(sequence_list)
-        found_match = False
-        for permuted_strand in permutations(strand_list):
-            combined_sequence = ''.join(permuted_strand)
-            if combined_sequence == sequence:
-                curr_name_list = [ref_name_list[strand_list.index(strand)] for strand in permuted_strand]
-                alter_name_list.append(curr_name_list)                
-                found_match = True
-                break
+    for permuted_strand in permutations(strand_list):
+        combined_sequence = ''.join(permuted_strand)
+        if combined_sequence == sequence:
+            alter_name = [ref_name_list[strand_list.tolist().index(strand)] for strand in permuted_strand]
+            break
         
-        if not found_match:
-            print('Error: sequence not found')
-            
-            
-    return np.array(alter_name_list,dtype=object)
-
+    return np.concatenate(alter_name)
 
 
 # convert dot-parenthesis notation to adjacency matrix for three-strand
-def dp2adj_3strand(ref_name, alter_name, alter_name_arr, dp_structure):
+def dp2adj_3strand(ref_name, alter_name, dp_structure):
     # construct backbone edges
     def build_consecutive_edges(input_list):
         edges = [(input_list[i], input_list[i+1]) for i in range(len(input_list)-1)]
@@ -169,11 +159,7 @@ def dp2adj_3strand(ref_name, alter_name, alter_name_arr, dp_structure):
 
 
     # build backbone edges
-    backbones = []
-    
-    for base_names_strand in alter_name_arr:
-        backbone = build_consecutive_edges(base_names_strand)
-        backbones.extend(backbone)
+    backbones = build_consecutive_edges(alter_name)
     
     
     # build base pair edges
@@ -201,7 +187,7 @@ def dp2adj_3strand(ref_name, alter_name, alter_name_arr, dp_structure):
     all_pairs = backbones + base_pairs
  
     # assign nodes and edges
-    nodes = ref_name 
+    nodes = ref_name.tolist() 
     edges = all_pairs 
 
     # Initialize adjacency matrix with zeros
@@ -216,43 +202,15 @@ def dp2adj_3strand(ref_name, alter_name, alter_name_arr, dp_structure):
 
     return adjacency_matrix
 
-
-
-def sim_adj_3strand_uniq(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list, indices_uniq):
     
-    adj_uniq = np.zeros((len(indices_uniq), len(ref_name), len(ref_name)), dtype=int)
-    seqlabel_uniq = np.full(len(indices_uniq), fill_value="", dtype=object)
-    counter = 0
-
-    for trjID, dp_structures in enumerate(dp_arr):
-        alter_name_arr = concat_disorder(trajs_seqs[trjID],ref_name_list, strand_list)
-            
-        for i, dp in enumerate(dp_structures):
-            if counter in indices_uniq:
-                position = np.where(indices_uniq == counter)[0][0]
-                alter_name = np.concatenate(alter_name_arr[i])
-                adjmtrx = dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp)
-                adj_uniq[position] = adjmtrx
-                
-                seqlabel = trajs_seqs[trjID][i]
-                seqlabel_uniq[position] = seqlabel                
-                
-            counter += 1
-                
-    return adj_uniq, seqlabel_uniq
-
-
-    
-def sim_adj_3strand(dp_arr, trajs_seqs, ref_name, ref_name_list, strand_list):
+def sim_adj_3strand(dps, seqs, ref_name, ref_name_list, strand_list):
     
     adj_mtr = []
     
-    for trjID, dp_structures in enumerate(dp_arr):
-        alter_name_arr = concat_disorder(trajs_seqs[trjID],ref_name_list, strand_list)
+    for dp, seq in zip(dps, seqs):
+        alter_name = concat_disorder(seq, ref_name_list, strand_list)
                 
-        for i, dp in enumerate(dp_structures):
-            alter_name = np.concatenate(alter_name_arr[i])
-
-            adj_mtr.append(dp2adj_3strand(ref_name, alter_name, alter_name_arr[i], dp))
+        
+        adj_mtr.append(dp2adj_3strand(ref_name, alter_name, dp))
     
     return np.array(adj_mtr)
