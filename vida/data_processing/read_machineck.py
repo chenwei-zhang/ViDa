@@ -34,7 +34,7 @@ def main():
     # Load data
     print(f"[Read] Loading data from {inpath}")
     
-    trajs_seqs,trajs_states,trajs_times,trajs_energies,trajs_shortnames,trajs_incbinvpair = read_machinek(
+    trajs_seqs,trajs_states,trajs_times,trajs_energies,trajs_shortnames,trajs_incbinvpairs = read_machinek(
                                                                         inpath,
                                                                         rxn, 
                                                                         ref_name_list,
@@ -54,7 +54,7 @@ def main():
     "trajs_times": trajs_times,
     "trajs_energies": trajs_energies,
     "trajs_shortnames": trajs_shortnames,
-    "trajs_incbinvpair": trajs_incbinvpair,
+    "trajs_incbinvpairs": trajs_incbinvpairs,
     "ref_name": ref_name,
     "ref_name_list": ref_name_list,
     "strand_list": strand_list,

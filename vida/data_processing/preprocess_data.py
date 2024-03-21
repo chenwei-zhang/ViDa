@@ -45,8 +45,14 @@ def main():
     elif "Machinek" in file_name:
         print("[Preprocess] Preprocess Machinek data")
         
-        dp_arr, dp_og, pair, energy, trans_time = concat_machinek(states, times, energies)
-        dp = dp_arr
+        seqs = loaded_data["trajs_seqs"]
+        shortnames = loaded_data["trajs_shortnames"]
+        incbinvpairs = loaded_data["trajs_incbinvpairs"]
+        ref_name = loaded_data["ref_name"]
+        ref_name_list = loaded_data["ref_name_list"]
+        strand_list = loaded_data["strand_list"]
+
+        dp, dp_og, pair, energy, trans_time, seq, shortname, incbinvpair = concat_machinek(states, times, energies, seqs, shortnames, incbinvpairs)
 
     else:
         print("Wrong file name")
@@ -55,7 +61,7 @@ def main():
     # get the unique structures and their corresponding indices
     print("[Preprocess] Get the unique structures and their corresponding indices")
 
-    dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, pair, energy)
+    dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, seq_uniq, shortname_uniq, incbinvpair_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, pair, energy, seq, shortname, incbinvpair)
     
     # save read data
     print(f"[Preprocess] Saving preprocessed data to {outpath}")
@@ -74,8 +80,12 @@ def main():
         data_to_save["type_uniq"] = type_uniq
         
     if "Machinek" in file_name:
-        data_to_save["dp_arr"] = dp_arr
-        data_to_save["dp_og"] = dp_og
+        data_to_save["ref_name"] = ref_name
+        data_to_save["ref_name_list"] = ref_name_list
+        data_to_save["strand_list"] = strand_list
+        data_to_save["seq_uniq"] = seq_uniq
+        data_to_save["shortname_uniq"] = shortname_uniq
+        data_to_save["incbinvpair_uniq"] = incbinvpair_uniq 
         
     # save the data to npz file
     np.savez_compressed(outpath, **data_to_save)

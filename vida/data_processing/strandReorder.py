@@ -18,6 +18,7 @@ class ThreeStrandReorder:
         else:
             raise ValueError("Invalid base pair format")
 
+
     @staticmethod
     def hasIncbInvPair(base_pairs):
         has_bc = any('b' in pair and 'c' in pair for pair in base_pairs)
@@ -58,6 +59,7 @@ class ThreeStrandReorder:
             raise ValueError("Mismatched brackets")
 
         return base_pairs
+
 
     def reorderCase1(self, case1, dp, seq, short_seqname, ref_name_list, strand_list):
         """
@@ -336,7 +338,7 @@ class ThreeStrandReorder:
         return dp_new, case5[0], incb_inv_pair
 
 
-    def reorderCase6(self, case6, dp, seq, short_seqname, ref_name_list, strand_list):
+    def reorderCase6(self, case6, dp, short_seqname):
         """
         Reorder:
         'incb inv sub' -> 'incb sub inv' 
@@ -376,6 +378,7 @@ class ThreeStrandReorder:
         
         return dp_new, case6[0], incb_inv_pair
     
+    
     def nameMap(self, sequence, strand_sub, strand_incb, strand_inv):
         def replace_strings(s):
             s = s.replace(strand_inv, "inv")
@@ -386,6 +389,7 @@ class ThreeStrandReorder:
         vectorized_replace = np.vectorize(replace_strings)
 
         return vectorized_replace(np.array([sequence])).tolist()[0]
+    
     
     def dp_reorder(self, dp, seq, ref_name_list, strand_list, strand_sub, strand_incb, strand_inv):
     

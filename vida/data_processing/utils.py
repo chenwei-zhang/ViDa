@@ -128,10 +128,7 @@ def concat_hata(states, times, energies):
 
 
 # get the unique structures and their corresponding indices
-def get_uniq(dp, dp_og, pair, energy):
-    
-    if dp[0].ndim > 0:
-        dp = np.concatenate(dp)
+def get_uniq(dp, dp_og, pair, energy, seq, shortname, incbinvpair):
     
     indices_uniq = np.unique(dp_og,return_index=True)[1]
     
@@ -139,17 +136,22 @@ def get_uniq(dp, dp_og, pair, energy):
     dp_og_uniq = dp_og[indices_uniq]
     pair_uniq = pair[indices_uniq]
     energy_uniq = energy[indices_uniq]
+    seq_uniq = seq[indices_uniq]
+    shortname_uniq = shortname[indices_uniq]
+    incbinvpair_uniq = incbinvpair[indices_uniq]
         
     # find index to recover to all data from unique data
-    indices_all = np.empty(len(dp))
+    indices_all = -np.ones(len(dp))
     for i in range(len(dp_uniq)):
         temp = dp == dp_uniq[i]
         indx = np.argwhere(temp==True)
         indices_all[indx] = i
     indices_all = indices_all.astype(int)
+    
+    if len(np.where(indices_all==-1)[0]) > 0:
+        raise ValueError("Error: indices_all is not correct!")
 
-    return dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, indices_uniq, indices_all
-
+    return dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, seq_uniq, shortname_uniq, incbinvpair_uniq, indices_uniq, indices_all
 
 
 # label the structural types
@@ -228,7 +230,7 @@ def read_machinek(fpath, rxn, ref_name_list, strand_list, strand_sub, strand_inc
         
 
 # cooncatanate all sturcutres for machinek dataset: 
-def concat_machinek(states, times, energies):
+def concat_machinek(states, times, energies, seqs, shortnames, incbinvpairs):
     # convert concantenate two individual structures to one structure 
     def process_machinek(dp_og):
         dp = copy.deepcopy(dp_og)
@@ -244,7 +246,7 @@ def concat_machinek(states, times, energies):
                 
         return np.array(dp), np.array(dp_pair)
 
-    dp, dp_og, pair, energy, trans_time = [],[],[],[],[]
+    dp, dp_og, pair, energy, seq, trans_time, shortname, incbinvpair = [],[],[],[],[],[],[],[]
     
     
     for i in range(len(states)):
@@ -255,14 +257,20 @@ def concat_machinek(states, times, energies):
         pair.append(sims_pair)
         energy.append(energies[i])
         trans_time.append(times[i])
-    
-    dp_arr = np.array(dp, dtype=object)
+        seq.append(seqs[i])
+        shortname.append(shortnames[i])
+        incbinvpair.append(incbinvpairs[i])
+        
+    dp = np.concatenate(dp)
     dp_og = np.concatenate(dp_og)
     pair = np.concatenate(pair)
     energy = np.concatenate(energy)
     trans_time = np.concatenate(trans_time)
+    seq = np.concatenate(seq)
+    shortname = np.concatenate(shortname)
+    incbinvpair = np.concatenate(incbinvpair)
         
-    return dp_arr, dp_og, pair, energy, trans_time
+    return dp, dp_og, pair, energy, trans_time, seq, shortname, incbinvpair
     
  
 # assign unique identifier to each base
