@@ -10,7 +10,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--predata', required=True, help='preprocessed data file')
     parser.add_argument('--timedata', required=True, help='time data file')
-    parser.add_argument('--seqdata', required=True, help='sequence data file')
     parser.add_argument('--embeddata', required=True, help='embedded data file')
     parser.add_argument('--outpath', required=True, help='output plot in html format')
     
@@ -19,7 +18,6 @@ if __name__ == '__main__':
     predata = args.predata
     timedata = args.timedata
     embeddata = args.embeddata
-    seqdata = args.seqdata
     outpath = args.outpath
     
     
@@ -44,6 +42,15 @@ if __name__ == '__main__':
         type = type_uniq[indices_all]
         
     
+    if "Machinek" in predata:
+        seq_uniq = loaded_data["seq_uniq"]
+        shortname_uniq = loaded_data["shortname_uniq"]
+        incbinvpair_uniq = loaded_data["incbinvpair_uniq"]
+        seq = seq_uniq[indices_all]
+        shortname = shortname_uniq[indices_all]
+        incbinvpair = incbinvpair_uniq[indices_all]
+   
+    
     print(f"[Plot] Loading time data from {timedata}")
     
     loaded_data = np.load(timedata)
@@ -51,16 +58,11 @@ if __name__ == '__main__':
     hold_time_uniq = loaded_data["hold_time_uniq"]
     cum_time_uniq = loaded_data["cum_time_uniq"]
     freq_uniq = loaded_data["freq_uniq"]
-    hold_time = hold_time_uniq[indices_all]
     trj_id = loaded_data["trj_id"]
     
+    hold_time = hold_time_uniq[indices_all]
     cum_time = cum_time_uniq[indices_all]
     freq = freq_uniq[indices_all]
-    
-    
-    print(f"[Plot] Loading sequence data from {seqdata}")
-    loaded_data = np.load(seqdata, allow_pickle=True)
-    seqlabel_uniq = loaded_data["seqlabel_uniq"]
     
     
     print(f"[Plot] Loading embedded data from {embeddata}")
@@ -72,7 +74,6 @@ if __name__ == '__main__':
     
     pca_coords = pca_coords_uniq[indices_all]
     phate_coords = phate_coords_uniq[indices_all]
-    seqlabel = seqlabel_uniq[indices_all]
     
     plt_args = (trj_id, dp_og, trans_time, hold_time, energy, pair, cum_time, freq, 
                 pca_coords, phate_coords, 
@@ -80,11 +81,14 @@ if __name__ == '__main__':
                 pca_coords_uniq, phate_coords_uniq)
     
     if "Hata" in predata:
-        plt_args = plt_args + (type_uniq, type)
+        plt_args = (*plt_args, 
+                    type_uniq, type)
         
     if "Machinek" in predata:
         # plt_args = plt_args + (seqlabel_uniq)
-        plt_args = (*plt_args, seqlabel_uniq, seqlabel)
+        plt_args = (*plt_args, 
+                    seq_uniq, shortname_uniq, incbinvpair_uniq,
+                    seq, shortname, incbinvpair)
     
     
     # Sort trajectories by their hold time

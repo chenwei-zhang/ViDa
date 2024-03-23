@@ -82,35 +82,39 @@ def sort_machinek(plt_args):
         pca_coords, phate_coords, \
         dp_og_uniq, hold_time_uniq, energy_uniq, pair_uniq, cum_time_uniq, freq_uniq, \
         pca_coords_uniq, phate_coords_uniq, \
-        seqlabel_uniq, seqlabel \
+        seq_uniq, shortname_uniq, incbinvpair_uniq, \
+        seq, shortname, incbinvpair \
         = plt_args
     
     vectorized_replace = np.vectorize(replace_strings)
-    seqlabel_uniq_short = vectorized_replace(seqlabel_uniq)
-    seqlabel = vectorized_replace(seqlabel)
+    seqlabel_uniq = vectorized_replace(seq_uniq)
+    seqlabel = vectorized_replace(seq)
 
     # List of arrays to split
-    arrays_to_split = [dp_og, trans_time, hold_time, energy, pair, cum_time, freq, pca_coords, phate_coords, seqlabel]
+    arrays_to_split = [dp_og, trans_time, hold_time, energy, pair, cum_time, freq, pca_coords, phate_coords, seqlabel, shortname, incbinvpair]
     # Get each trajectory using a single loop
     subtrj_id = (trj_id+1)[:-1]
     sub_arrays = [np.split(arr, subtrj_id) for arr in arrays_to_split]
     # Use zip to unpack the sub-arrays into separate variables if needed
     sub_dp_og, sub_trans_time, sub_hold_time, sub_energy, sub_pair, sub_cum_time, sub_freq, \
-        sub_pca_coords, sub_phate_coords, sub_seqlabel = sub_arrays
+        sub_pca_coords, sub_phate_coords, sub_seqlabel, sub_shortname, sub_incbinvpair = sub_arrays
     # Sort the trajectories by reaction time
     sorted_indices = np.argsort([sub_array[-1] for sub_array in sub_trans_time])[::-1]
     # Use list comprehension and zip to sort all arrays simultaneously
     sorted_arrays = [np.array(arr,dtype=object)[sorted_indices] for arr in sub_arrays] 
     # Unpack the sorted arrays into separate variables
     sorted_sub_dp_og, sorted_sub_trans_time, sorted_sub_hold_time, sorted_sub_energy, sorted_sub_pair, \
-        sorted_sub_cum_time, sorted_sub_freq, sorted_sub_pca_coords, sorted_sub_phate_coords, sorted_sub_seqlabel = sorted_arrays
+        sorted_sub_cum_time, sorted_sub_freq, sorted_sub_pca_coords, sorted_sub_phate_coords, sorted_sub_seqlabel, \
+            sorted_sub_shortname, sorted_sub_incbinvpair = sorted_arrays
+        
         
     # make dataframe for plotting   
     df = pd.DataFrame(data={
                 "Energy": energy_uniq, "Pair": pair_uniq, "DP": dp_og_uniq, "HT": hold_time_uniq,
-                "CumT": cum_time_uniq, "Freq": freq_uniq, "SeqLabel": seqlabel_uniq_short,
+                "CumT": cum_time_uniq, "Freq": freq_uniq, "SeqLabel": seqlabel_uniq,
                 "PCA 1": pca_coords_uniq[:,0], "PCA 2": pca_coords_uniq[:,1],
-                "PHATE 1": phate_coords_uniq[:,0], "PHATE 2": phate_coords_uniq[:,1]
+                "PHATE 1": phate_coords_uniq[:,0], "PHATE 2": phate_coords_uniq[:,1],
+                "IncbInvPair": incbinvpair_uniq, "ShortName": shortname_uniq,
                 }
                 )
 
@@ -118,6 +122,7 @@ def sort_machinek(plt_args):
             "Energy": sorted_sub_energy, "Pair": sorted_sub_pair, "DP": sorted_sub_dp_og, "HT": sorted_sub_hold_time, 
             "TransT": sorted_sub_trans_time, "CumT": sorted_sub_cum_time, "Freq": sorted_sub_freq,  "SeqLabel": sorted_sub_seqlabel,
             "PCA": sorted_sub_pca_coords, "PHATE": sorted_sub_phate_coords,
+            "IncbInvPair": sorted_sub_incbinvpair, "ShortName": sorted_sub_shortname,
             "IDX": sorted_indices,
             }
             )
@@ -358,7 +363,7 @@ def plot_gao(df,dfall,vis):
 
 
     
-# TODO
+# TODO  ## see jupyter notebook for details ##
 def plot_hata():
     pass
 
@@ -393,13 +398,17 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                     df['SeqLabel'],
                     df['HT'],
+                    df['ShortName'],
+                    df['IncbInvPair'],
                     ),axis=-1),
             hovertemplate=
-                "<b>%{customdata[0]}</b><br>" +
+                # "<b>%{customdata[0]}</b><br>" +
+                "<b>%{customdata[2]}</b><br>" +
                 "<b>%{text}</b><br><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
                 "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                "Expected holding time:  %{customdata[1]:.3e} s<br>",
+                "Expected holding time:  %{customdata[1]:.3e} s<br>"+
+                "IncbInvPair: <b>%{customdata[3]}</b><br>",
             name="Energy landscape",
             # visible='legendonly',
         )
@@ -423,7 +432,7 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                 df["Energy"],
                 df["Freq"],
-                df['SeqLabel'],
+                df['ShortName'],
                 ),axis=-1),
             hovertemplate=
                 "<b>%{customdata[2]}</b><br>" +
@@ -455,7 +464,7 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                 df["Energy"],
                 df["CumT"],
-                df['SeqLabel'],
+                df['ShortName'],
                 ),axis=-1),
             hovertemplate=
                 "<b>%{customdata[2]}</b><br>" +
@@ -471,20 +480,28 @@ def plot_machineck(df,dfall,vis):
     
     
     # plot strand-level background
-    color_mapping = {
-        "Incumbent Invader+Substrate": "red",
-        "Incumbent Substrate+Invader": "red",
+    # color_mapping = {
+    #     "Incumbent Invader+Substrate": "red",
+    #     "Incumbent Substrate+Invader": "red",
         
-        "Incumbent+Substrate Invader": "blue",
-        "Invader Incumbent+Substrate": "blue",
-        "Invader Substrate+Incumbent": "blue",
-        "Substrate+Incumbent Invader": "blue",
+    #     "Incumbent+Substrate Invader": "blue",
+    #     "Invader Incumbent+Substrate": "blue",
+    #     "Invader Substrate+Incumbent": "blue",
+    #     "Substrate+Incumbent Invader": "blue",
             
-        "Incumbent+Substrate+Invader": "grey",
-        "Invader+Substrate+Incumbent": "grey",
-        "Invader+Incumbent+Substrate": "grey",
-        "Substrate+Incumbent+Invader": "grey",
+    #     "Incumbent+Substrate+Invader": "grey",
+    #     "Invader+Substrate+Incumbent": "grey",
+    #     "Invader+Incumbent+Substrate": "grey",
+    #     "Substrate+Incumbent+Invader": "grey",
+    # }
+    
+    color_mapping = {
+        "inv+sub+incb": "grey",
+        "incb+sub+inv": "red",
+        "incb+sub inv": "blue",    
+        "incb sub+inv": "orange",
     }
+    
     fig.add_trace(go.Scattergl(
             x=df["{} 1".format(vis)], 
             y=df["{} 2".format(vis)],
@@ -492,14 +509,14 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=5,
-                color=[color_mapping[type_val] for type_val in df["SeqLabel"]],
+                color=[color_mapping[type_val] for type_val in df["ShortName"]],
                 showscale=False,
             ),
             text=df['DP'],
             customdata=np.stack((df["CumT"],
                                  df["Energy"],
                                  df["Freq"],
-                                 df['SeqLabel'],
+                                 df['ShortName'],
                                      ),axis=-1),
             hovertemplate=
                 "<b>%{customdata[3]}</b><br>" +
@@ -522,7 +539,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=5,
-                color=df["Pair"],
+                color=df["IncbInvPair"],
                 showscale=False,
                 colorbar=dict(
                     title="Free energy (kcal/mol)",  
@@ -537,7 +554,7 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((df["CumT"],
                                  df["Energy"],
                                  df["Freq"],
-                                 df['SeqLabel'],
+                                 df['ShortName'],
                                      ),axis=-1),
             hovertemplate=
                 "<b>%{customdata[3]}</b><br>" +
@@ -546,7 +563,7 @@ def plot_machineck(df,dfall,vis):
                 "Energy:  %{customdata[1]:.3f} kcal/mol<br>"+
                 "Cumulative time:  %{customdata[0]:.3e} s<br>"+
                 "Frequency:  %{customdata[2]:d} <br>",
-            name="Bound/Unbound",
+            name="IncbInvPair",
             visible='legendonly',
         )
     )
@@ -567,14 +584,15 @@ def plot_machineck(df,dfall,vis):
                 y=dfall[f"{vis}"][i][:,1],
                 mode='lines+markers',
                 line=dict(
-                    color="black",
+                    color='rgba(0,0,0,0.6)',
                     width=1,
                 ),
                 marker=dict(
                     sizemode='diameter',
-                    size=2,
-                    color=dfall["Energy"][i],
-                    colorscale="Plasma",
+                    size=4.5,
+                    # color=dfall["Energy"][i],
+                    # colorscale="Plasma",
+                    color=[color_mapping[type_val] for type_val in dfall["ShortName"][i]],
                     # colorbar=dict(
                     #     x=-0.2,
                     #     y=0.5,
@@ -587,7 +605,7 @@ def plot_machineck(df,dfall,vis):
                                      dfall['TransT'][i],
                                      dfall['DP'][i],
                                      dfall['HT'][i],
-                                     dfall['SeqLabel'][i],
+                                     dfall['ShortName'][i],
                                      ),axis=-1),
                 hovertemplate=
                     # "Step:  <b>%{text}</b><br><br>"+
@@ -610,21 +628,22 @@ def plot_machineck(df,dfall,vis):
                 y=dfall[f"{vis}"][i][:,1],
                 mode='lines+markers',
                 line=dict(
-                    color="black",
+                    color='rgba(0,0,0,0.6)',
                     width=1,
                 ),
                 marker=dict(
                     sizemode='diameter',
-                    size=2,
-                    color=dfall["Energy"][i],
-                    colorscale="Plasma",
+                    size=4.5,
+                    # color=dfall["Energy"][i],
+                    # colorscale="Plasma",
+                    color=[color_mapping[type_val] for type_val in dfall["ShortName"][i]],                    
                 ),
                 text=Step,
                 customdata=np.stack((dfall['Pair'][i],
                                      dfall['TransT'][i],
                                      dfall['DP'][i],
                                      dfall['HT'][i],
-                                     dfall['SeqLabel'][i],
+                                     dfall['ShortName'][i],
                                      ),axis=-1),
                 hovertemplate=
                     "%{customdata[4]}<br>" +

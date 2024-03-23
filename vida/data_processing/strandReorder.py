@@ -400,7 +400,7 @@ class ThreeStrandReorder:
         case3 = ['incb+sub inv', 'sub+incb inv', 'inv sub+incb', 'inv incb+sub'] 
         case4 = ['incb sub+inv', 'incb inv+sub', 'inv+sub incb', 'sub+inv incb'] 
         case5 = ['incb+inv sub', 'inv+incb sub', 'sub inv+incb', 'sub incb+inv'] ##
-        case6 = ['incb sub inv', 'incb inv sub', 'sub inv incb' 'sub incb inv' 'inv incb sub' 'inv sub incb']
+        case6 = ['incb sub inv', 'incb inv sub', 'sub inv incb' 'sub incb inv' 'inv incb sub' 'inv sub incb'] ##
         
         if short_seqname in case1:
             dp_new, short_seqname, incb_inv_pair = self.reorderCase1(case1, dp, seq, short_seqname, ref_name_list, strand_list)
