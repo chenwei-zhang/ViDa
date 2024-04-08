@@ -25,7 +25,7 @@ class Config:
 
 
 # make data loader
-def dataloader(scar_uniq, energy_uniq, config, ratio=0.7):
+def dataloader(scar_uniq, energy_uniq, config, ratio):
     data_tup = (torch.Tensor(scar_uniq),
                 torch.Tensor(energy_uniq),
                 torch.arange(len(scar_uniq)))

@@ -92,7 +92,7 @@ if __name__ == '__main__':
     
     
     # Sort trajectories by their hold time
-    print(f"[Plot] Sorting trajectories by their hold time")
+    print(f"[Plot] Sorting trajectories by their reaction time")
     
     if "Hata" in predata:
         df, dfsucc, dffail = sort_hata(plt_args)
@@ -120,7 +120,9 @@ if __name__ == '__main__':
     
     # TODO
     elif "Machinek" in predata:
-        for vis in ["PCA","PHATE"]:
+        # for vis in ["PCA","PHATE"]:
+        for vis in ["PCA"]:
+            
             fig = plot_machineck(df,dfall,vis=vis)
             savename = outpath+"_"+vis+".html"
             fig.write_html(savename)

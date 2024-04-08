@@ -4,7 +4,7 @@ VIDA="/Users/chenwei/Desktop/Github/ViDa"
 DATA='Machinek-PRF-trunc'
 
 
-# # ##
+# ##
 # cd $VIDA/vida/data_processing
 # python read_machineck.py --inpath ../../data/raw_data/Machinek-data/$DATA --rxn Machinek-PRF --num-files 400 --outpath ../../data/post_data/$DATA/Machinek-PRF.pkl.gz
 # python preprocess_data.py --inpath ../../data/post_data/$DATA/Machinek-PRF.pkl.gz --outpath ../../data/post_data/$DATA/preprocess_Machinek-PRF.npz
@@ -13,7 +13,7 @@ DATA='Machinek-PRF-trunc'
 
 # # ##
 # cd $VIDA/vida/adjmat
-# python convert_adj.py --inpath ../../data/post_data/$DATA/preprocess_Machinek-PRF.npz --num-strand 3  --seq-path ../../data/post_data/$DATA/Machinek-PRF.pkl.gz --outpath ../../data/post_data/$DATA/adjmat_Machinek-PRF.npz
+# python convert_adj.py --inpath ../../data/post_data/$DATA/preprocess_Machinek-PRF.npz --num-strand 3 --outpath ../../data/post_data/$DATA/adjmat_Machinek-PRF.npz
 
 
 # # ##
