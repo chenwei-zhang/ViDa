@@ -26,6 +26,13 @@ def main():
         strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent_perf_seq
         strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'  # invader_perf_seq
         
+    if rxn == "Machinek-Mismatch2":
+        ref_strands = 'CCCTCCACATTCAACCTCAAACTCACC+TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA+GGTGAGTTTGAGGTTCAATGTGGA'
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate_perf_seq
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent_perf_seq
+        strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'  # invader_perf_seq
+        
+        
     strand_list = [strand_sub, strand_incb, strand_inv]
     ref_name_list = assign_base_names(ref_strands)
     ref_name = [item for sublist in ref_name_list for item in sublist]
