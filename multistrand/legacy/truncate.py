@@ -12,14 +12,15 @@ def truncate_traj(file_name, output_dir, interval):
     # List to hold the selected lines
     selected_lines = []
     num_newlines = 0
-            
+    
     # Iterate through the lines
     for i, line in enumerate(lines):
         # Check if the line does not contain '(', ')', and '.'
         if '(' not in line and ')' not in line and '.' not in line and line != 'Energy Mismatch\n':
             selected_lines.append(line)
-            selected_lines.append(lines[i+1]) if lines[i+1] != 'Energy Mismatch\n' else None
+            selected_lines.append(lines[i+1])
             num_newlines += 1
+            
             
         # Otherwise, keep lines every [interval] steps
         elif i % interval == 0 and line != 'Energy Mismatch\n':  # Adjust the modulo operation as needed based on which line you want to start with
@@ -46,10 +47,10 @@ def truncate_traj(file_name, output_dir, interval):
 
 
 
-with open('./trajOriginal.out') as f:
+with open('./gentrj.out') as f:
     lines = f.readlines()
     
-output_dir = './raw_data/Machinek-Mismatch2-trunc'
+output_dir = './raw_data/Machinek-PRF'
 
 num_newlines_list = []
 
@@ -63,7 +64,7 @@ for i in range(len(lines)):
         num_traj = int(match2.group(1)) 
         file_id = int(match1.group(1))
 
-        file_name = f'./raw_data/Machinek-Mismatch2-og/Machinek-Mismatch2-{file_id}.txt'
+        file_name = f'./raw_data/Machinek-PRF-og/Machinek-PRF-{file_id}.txt'
         
         if num_traj > 1e6:
             interval = 100
@@ -74,9 +75,9 @@ for i in range(len(lines)):
             num_newlines = truncate_traj(file_name, output_dir, interval)
         
         else:
-            interval = 10
-            num_newlines = truncate_traj(file_name, output_dir, interval)
-            
+            shutil.copy(file_name, f'{output_dir}/Machinek-PRF-{file_id}.txt')
+            num_newlines = num_traj
+        
     else:
         print("No number found in the string.")
         
