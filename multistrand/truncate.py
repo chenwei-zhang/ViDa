@@ -22,7 +22,7 @@ def truncate_traj(file_name, output_dir, interval):
             num_newlines += 1
             
         # Otherwise, keep lines every [interval] steps
-        elif i % interval == 0 and line != 'Energy Mismatch\n':  # Adjust the modulo operation as needed based on which line you want to start with
+        elif i % interval == 0 and line != 'Energy Mismatch\n':
             selected_lines.append(line)
             num_newlines += 1
             
@@ -45,11 +45,10 @@ def truncate_traj(file_name, output_dir, interval):
 
 
 
-
-with open('./trajOriginal.out') as f:
+with open('./trajout14.txt') as f:
     lines = f.readlines()
     
-output_dir = './raw_data/Machinek-Mismatch2-trunc'
+output_dir = './raw_data/Machinek-Mismatch14-trunc'
 
 num_newlines_list = []
 
@@ -60,12 +59,16 @@ for i in range(len(lines)):
 
     # Extracting the number if found
     if match2:
-        num_traj = int(match2.group(1)) 
         file_id = int(match1.group(1))
-
-        file_name = f'./raw_data/Machinek-Mismatch2-og/Machinek-Mismatch2-{file_id}.txt'
+        num_traj = int(match2.group(1)) 
         
-        if num_traj > 1e6:
+        file_name = f'./raw_data/Machinek-Mismatch14-og/Machinek-Mismatch14-{file_id}.txt'
+        
+        if num_traj > 1e7:
+            interval = 500
+            num_newlines = truncate_traj(file_name, output_dir, interval)
+        
+        elif 1e6 < num_traj < 1e7:
             interval = 100
             num_newlines = truncate_traj(file_name, output_dir, interval)
             
