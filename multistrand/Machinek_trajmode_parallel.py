@@ -3,10 +3,12 @@ from multistrand.objects import StopCondition, Complex, Strand
 from multistrand.options import Options, Literals
 from multistrand.system import SimSystem
 from multistrand.concurrent import MergeSim
+import argparse
 
 
 def print_trajectory(o):
     seqstring=''
+
     for i in range(len(o.full_trajectory)): # go through each output microstate of the trajectory
         time = o.full_trajectory_times[i]   # time at which this microstate is entered
         states = o.full_trajectory[i]       # this is a list of the complexes present in this tube microstate
@@ -23,6 +25,7 @@ def print_trajectory(o):
         for state in states: dG += state[5]
         print(f'{tubestruct} t={time} seconds, dG={dG} kcal/mol')
         sys.stdout.flush()  # Flush the output here
+    print(f'Total reaction time: {o.interface.results[0].time} seconds')
 
 
 def machinek2014_trajmode(mismatchSelect,toeholdSelect='7nt'):
@@ -43,7 +46,7 @@ def machinek2014_trajmode(mismatchSelect,toeholdSelect='7nt'):
     
     # determine the incumbent, target and invader sequences
     # FD: copy-pasting supplementary Table 6 directly
-    if mismatchSelect == 0 or mismatchSelect == 2 or mismatchSelect == 12 or mismatchSelect == 14  or mismatchSelect == '14C2T':
+    if mismatchSelect == 0 or mismatchSelect == 2 or mismatchSelect == 12 or mismatchSelect == 14 or mismatchSelect == '14C2T':
         incumbent = "TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA"
         target = "CCCTCCACATTCAACCTCAAACTCACC"
         
@@ -58,10 +61,10 @@ def machinek2014_trajmode(mismatchSelect,toeholdSelect='7nt'):
             
         if mismatchSelect == 14:
             invader = "GGTCAGTTTGAGGTTGA"
-
+            
         if mismatchSelect == '14C2T':
             invader = "GGTTAGTTTGAGGTTGA"
-    
+            
     if mismatchSelect == 3:
         incumbent = "TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTGAT"
         target = "CCCTCCACATATCACCTCAAACTCACC"
@@ -133,13 +136,13 @@ def create_setup(start_state, stop_conditions):
         simulation_mode="Trajectory",
         substrate_type="DNA",
         num_simulations=1, 
-        simulation_time=float('inf'),
-        # simulation_time=1e-2,
+        # simulation_time=float('inf'),
+        simulation_time=2e3,
         dangles="Some", 
         temperature=4, 
         join_concentration = 100e-6, # 100 uM
         gt_enable = False,
-        output_interval = 1, # record every # steps
+        output_interval = 50000, # record every # steps
         verbosity=0,
         start_state = start_state,
         stop_conditions = stop_conditions
@@ -148,31 +151,46 @@ def create_setup(start_state, stop_conditions):
     
     return o
     
- 
+
+def main(idx, mismatchSelect):
+
+    start_state, stop_conditions = machinek2014_trajmode(mismatchSelect=mismatchSelect)
+        
+    o = create_setup(start_state, stop_conditions)
+    sim = SimSystem(o)
+    sim.start()
+
+    print(f"Start Simulation {idx}")
+    sys.stdout.flush()  # Flush the output here
+    
+    if o.interface.results[0].tag == "timeout":
+        fname = f"./raw_data/Machinek-Mismatch{mismatchSelect}-og/Machinek-Mismatch{mismatchSelect}-timeout-{idx}.txt"
+        print(f"Simulation {idx} Timeout; Trajectory length: {len(o.full_trajectory)}")
+        sys.stdout.flush() 
+
+    elif o.interface.results[0].tag == "SUCCESS":
+        fname = f"./raw_data/Machinek-Mismatch{mismatchSelect}-og/Machinek-Mismatch{mismatchSelect}-{idx}.txt"
+        print(f"Simulation {idx} complete; Trajectory length: {len(o.full_trajectory)}")
+        sys.stdout.flush() 
+
+    # write trajs to file
+    stdoutOrigin=sys.stdout         
+    sys.stdout = open(fname, "w")
+    # sys.stdout = open(f"./temp-{i}.txt", "w")
+
+    print_trajectory(o)
+    
+    sys.stdout.flush()
+    sys.stdout.close()
+    sys.stdout=stdoutOrigin
+
+
     
 if __name__ == '__main__':
     
-    for i in range(50):
-        
-        mismatchSelect = 12
-        
-        start_state, stop_conditions = machinek2014_trajmode(mismatchSelect=mismatchSelect)
-            
-        o = create_setup(start_state, stop_conditions)
-        sim = SimSystem(o)
-        sim.start()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('i', type=int, help='An integer for the running multiple cpus')
+    args = parser.parse_args()
 
-        # write trajs to file
-        stdoutOrigin=sys.stdout         
-        sys.stdout = open(f"./raw_data/Machinek-Mismatch{mismatchSelect}-og/Machinek-Mismatch{mismatchSelect}-{i}.txt", "w")
-        # sys.stdout = open(f"./temp-{i}.txt", "w")
-    
-        print_trajectory(o)
-        
-        sys.stdout.flush()  # Flush the output here
-        sys.stdout.close()
-        sys.stdout=stdoutOrigin
-        
-        print(f"Simulation {i} complete; Trajectory length: {len(o.full_trajectory)}")
-        sys.stdout.flush()  # Flush the output here
-
+    mismatchSelect = '14C2T'   # mismatch position
+    main(args.i, mismatchSelect)
