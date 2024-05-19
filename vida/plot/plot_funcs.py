@@ -422,8 +422,8 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["CumT"],
-                sizeref=5e-3,
-                color=df["Energy"],
+                sizeref=5e2,  # PRF: 5e-3,
+                color=df["Energy"], 
                 colorscale="Plasma",
                 showscale=False,
                 line=dict(width=0),
@@ -454,7 +454,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["Freq"],
-                sizeref=2500,
+                sizeref=20000, # PRF: 25000,  mm14: 6500, 
                 color=df["Energy"],
                 colorscale="Plasma",
                 showscale=False,
@@ -569,7 +569,7 @@ def plot_machineck(df,dfall,vis):
     )
 
     # layout trajectory on top of energy landscape
-    for i in range(0, len(dfall), 10):
+    for i in range(0, len(dfall), 30):
     # for i in [0,2,4,221,222,223]:
     
         Step = []
@@ -659,54 +659,57 @@ def plot_machineck(df,dfall,vis):
         )
         
         
-    # plot 5 interesting traces
-    for i in [275, 117, 287, 270, 259]:
-        fig.add_trace(
-            go.Scattergl(
-                x=dfall[f"{vis}"][i][:,0],
-                y=dfall[f"{vis}"][i][:,1],
-                mode='lines+markers',
-                line=dict(
-                    color='rgba(0,0,0,0.6)',
-                    width=1,
-                ),
-                marker=dict(
-                    sizemode='diameter',
-                    size=4.5,
-                    # color=dfall["Energy"][i],
-                    # colorscale="Plasma",
-                    color=[color_mapping[type_val] for type_val in dfall["ShortName"][i]],                    
-                ),
-                text=Step,
-                customdata=np.stack((dfall['Pair'][i],
-                                     dfall['TransT'][i],
-                                     dfall['DP'][i],
-                                     dfall['HT'][i],
-                                     dfall['ShortName'][i],
-                                     dfall['Energy'][i],
-                                     ),axis=-1),
-                hovertemplate=
-                    "%{customdata[4]}<br>" +
-                    "<b>%{customdata[2]}</b><br>" +
-                    "X: %{x}   " + "   Y: %{y} <br>"+
-                    "Energy:  %{customdata[5]:.3f} kcal/mol<br>"+
-                    "Expected holding time:  %{customdata[3]:.3e} s<br>",
-                visible='legendonly',
-                name = "Trace {}".format(i),
-            )
-        )
+    # # plot 5 interesting traces
+    # for i in [275, 117, 287, 270, 259]:
+    #     fig.add_trace(
+    #         go.Scattergl(
+    #             x=dfall[f"{vis}"][i][:,0],
+    #             y=dfall[f"{vis}"][i][:,1],
+    #             mode='lines+markers',
+    #             line=dict(
+    #                 color='rgba(0,0,0,0.6)',
+    #                 width=1,
+    #             ),
+    #             marker=dict(
+    #                 sizemode='diameter',
+    #                 size=4.5,
+    #                 # color=dfall["Energy"][i],
+    #                 # colorscale="Plasma",
+    #                 color=[color_mapping[type_val] for type_val in dfall["ShortName"][i]],                    
+    #             ),
+    #             text=Step,
+    #             customdata=np.stack((dfall['Pair'][i],
+    #                                  dfall['TransT'][i],
+    #                                  dfall['DP'][i],
+    #                                  dfall['HT'][i],
+    #                                  dfall['ShortName'][i],
+    #                                  dfall['Energy'][i],
+    #                                  ),axis=-1),
+    #             hovertemplate=
+    #                 "%{customdata[4]}<br>" +
+    #                 "<b>%{customdata[2]}</b><br>" +
+    #                 "X: %{x}   " + "   Y: %{y} <br>"+
+    #                 "Energy:  %{customdata[5]:.3f} kcal/mol<br>"+
+    #                 "Expected holding time:  %{customdata[3]:.3e} s<br>",
+    #             visible='legendonly',
+    #             name = "Trace {}".format(i),
+    #         )
+    #     )
     
     
 
-    # label initial and final states
+    # label initial  # and final states
     fig.add_trace(
         go.Scattergl(
-            x=[dfall[f"{vis}"][0][0,0],dfall[f"{vis}"][0][-1,0]],
-            y=[dfall[f"{vis}"][0][0,1],dfall[f"{vis}"][0][-1,1]],
+            # x=[dfall[f"{vis}"][0][0,0],dfall[f"{vis}"][0][-1,0]],
+            # y=[dfall[f"{vis}"][0][0,1],dfall[f"{vis}"][0][-1,1]],
+            x=[dfall[f"{vis}"][0][0,0]],
+            y=[dfall[f"{vis}"][0][0,1]],
             mode='markers+text',
             marker_color="lime", 
             marker_size=20,
-            text=["I", "F"],
+            # text=["I", "F"],
+            text=["I"],
             textposition="middle center",
             textfont=dict(
             family="sans serif",

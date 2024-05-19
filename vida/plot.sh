@@ -1,22 +1,23 @@
 #!/bin/bash
 
 VIDA="/Users/chenwei/Desktop/Github/ViDa"
-DATA='Machinek-PRF-trunc'
+NAME='Machinek-Mismatch2'
+
 
 ### PLOT ###
-TNAME='24-0324-0120'
-CKPT='checkpoint_epoch_39'
+TNAME='24-0427-0512'
+CKPT='checkpoint_epoch_29'
 # CKPT='model'
 
 
 echo "Embedding"
 cd $VIDA/vida/models
-if [ -f "../../data/post_data/$DATA/model_config/$TNAME/embed_"$CKPT"_Machinek-PRF.npz" ]; then
+if [ -f "../../data/post_data/$NAME/model_config/$TNAME/embed_"$CKPT"_"$NAME".npz" ]; then
     echo "Embedding already exists, skip embedding"
 else
-    python embed_vida.py --data ../../data/post_data/$DATA/dataloader_Machinek-PRF.pkl.gz --model ../../data/post_data/$DATA/model_config/$TNAME/$CKPT.pt --fconfig ../../data/post_data/$DATA/model_config/$TNAME/config.json --outpath ../../data/post_data/$DATA/model_config/$TNAME/embed_"$CKPT"_Machinek-PRF.npz
+    python embed_vida.py --data ../../data/post_data/$NAME/dataloader_"$NAME".pkl.gz --model ../../data/post_data/$NAME/model_config/$TNAME/$CKPT.pt --fconfig ../../data/post_data/$NAME/model_config/$TNAME/config.json --outpath ../../data/post_data/$NAME/model_config/$TNAME/embed_"$CKPT"_"$NAME".npz
 fi
 
 echo "Plotting"
 cd $VIDA/vida/plot
-python interact_plot.py --predata ../../data/post_data/$DATA/preprocess_Machinek-PRF.npz --timedata ../../data/post_data/$DATA/time_Machinek-PRF.npz --embeddata ../../data/post_data/$DATA/model_config/$TNAME/embed_"$CKPT"_Machinek-PRF.npz --outpath ../../data/post_data/$DATA/model_config/$TNAME/plot_"$CKPT"_Machinek-PRF
+python interact_plot.py --predata ../../data/post_data/$NAME/preprocess_"$NAME".npz --timedata ../../data/post_data/$NAME/time_"$NAME".npz --embeddata ../../data/post_data/$NAME/model_config/$TNAME/embed_"$CKPT"_"$NAME".npz --outpath ../../data/post_data/$NAME/model_config/$TNAME/plot_"$CKPT"_"$NAME"

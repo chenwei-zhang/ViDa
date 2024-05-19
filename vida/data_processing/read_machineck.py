@@ -21,17 +21,32 @@ def main():
     num_files = args.num_files
 
     if rxn == "Machinek-PRF":
-        ref_strands = 'CCCTCCACATTCAACCTCAAACTCACC+TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA+GGTGAGTTTGAGGTTGAATGTGGA'
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate_perf_seq
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent_perf_seq
-        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'  # invader_perf_seq
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate (or target)
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent
+        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'  # invader
         
     if rxn == "Machinek-Mismatch2":
-        ref_strands = 'CCCTCCACATTCAACCTCAAACTCACC+TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA+GGTGAGTTTGAGGTTCAATGTGGA'
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate_perf_seq
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent_perf_seq
-        strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'  # invader_perf_seq
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  
+        strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'  
+    
+    if rxn == "Machinek-Mismatch10":
+        strand_sub = 'CCCTCCACATACCTCAAATCACTCACC'
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTGATTTGAGGT'
+        strand_inv = 'GGTGAGTCATTTGAGGTATGTGGA'
         
+    if rxn == "Machinek-Mismatch14":
+        strand_sub =  'CCCTCCACATTCAACCTCAAACTCACC'
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
+        strand_inv = 'GGTCAGTTTGAGGTTGAATGTGGA'
+        
+    if rxn == "Machinek-Mismatch14C2T":
+        strand_sub =  'CCCTCCACATTCAACCTCAAACTCACC'
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
+        strand_inv = 'GGTTAGTTTGAGGTTGAATGTGGA'
+        
+        
+    ref_strands = strand_sub + '+' + strand_incb + '+' + strand_inv
         
     strand_list = [strand_sub, strand_incb, strand_inv]
     ref_name_list = assign_base_names(ref_strands)
