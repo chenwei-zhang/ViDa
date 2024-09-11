@@ -44,7 +44,17 @@ def main():
         strand_sub =  'CCCTCCACATTCAACCTCAAACTCACC'
         strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
         strand_inv = 'GGTTAGTTTGAGGTTGAATGTGGA'
-        
+    
+    if rxn == "Machinek-Mismatch2C2A":
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
+        strand_inv = 'GGTGAGTTTGAGGTTAAATGTGGA'  
+    
+    if rxn == "Machinek-Mismatch2C2T":
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
+        strand_inv = 'GGTGAGTTTGAGGTTTAATGTGGA'  
+                
         
     ref_strands = strand_sub + '+' + strand_incb + '+' + strand_inv
         

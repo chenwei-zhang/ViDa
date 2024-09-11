@@ -46,7 +46,8 @@ def machinek2014_trajmode(mismatchSelect,toeholdSelect='7nt'):
     
     # determine the incumbent, target and invader sequences
     # FD: copy-pasting supplementary Table 6 directly
-    if mismatchSelect == 0 or mismatchSelect == 2 or mismatchSelect == 12 or mismatchSelect == 14 or mismatchSelect == '14C2T':
+    if mismatchSelect == 0 or mismatchSelect == 2 or mismatchSelect == 12 or mismatchSelect == 14 \
+    or mismatchSelect == '14C2T' or mismatchSelect == '2C2A' or mismatchSelect == '2C2T':
         incumbent = "TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA"
         target = "CCCTCCACATTCAACCTCAAACTCACC"
         
@@ -64,6 +65,12 @@ def machinek2014_trajmode(mismatchSelect,toeholdSelect='7nt'):
             
         if mismatchSelect == '14C2T':
             invader = "GGTTAGTTTGAGGTTGA"
+            
+        if mismatchSelect == '2C2A':
+            invader = "GGTGAGTTTGAGGTTAA"
+                    
+        if mismatchSelect == '2C2T':
+            invader = "GGTGAGTTTGAGGTTTA"
             
     if mismatchSelect == 3:
         incumbent = "TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTGAT"
@@ -192,5 +199,5 @@ if __name__ == '__main__':
     parser.add_argument('i', type=int, help='An integer for the running multiple cpus')
     args = parser.parse_args()
 
-    mismatchSelect = '14C2T'   # mismatch position
+    mismatchSelect = '2C2T'   # mismatch position
     main(args.i, mismatchSelect)
