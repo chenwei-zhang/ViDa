@@ -1,12 +1,14 @@
 #!/bin/bash
 
 VIDA="/Users/chenwei/Desktop/Github/ViDa"
+# NAME='Machinek-PRF'
 NAME='Machinek-Mismatch2'
 
 
+
 ### PLOT ###
-TNAME='24-0427-0512'
-CKPT='checkpoint_epoch_29'
+TNAME='24-0701-1546'  # 24-0324-0120
+CKPT='checkpoint_epoch_59'
 # CKPT='model'
 
 
