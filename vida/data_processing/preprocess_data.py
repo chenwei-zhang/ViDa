@@ -28,40 +28,35 @@ def main():
     times = loaded_data["trajs_times"]
     energies = loaded_data["trajs_energies"]
     
-    file_name = os.path.basename(inpath)
+    file_name = os.path.basename(inpath).lower()
     
-    if "Hata" in file_name:
+    if "hata" in file_name:
         print("[Preprocess] Preprocess Hata data")
         
         type_uniq = loaded_data["trajs_types"]
         dp, dp_og, pair, energy, trans_time = concat_hata(states, times, energies)
         
-    elif "Gao" in file_name:
+    elif "gao" in file_name:
         print("[Preprocess] Preprocess Gao data")
         
         pairs = loaded_data["trajs_pairs"]
         dp, dp_og, pair, energy, trans_time = concat_gao(states, times, energies, pairs)
-    
-    elif "Machinek" in file_name:
-        print("[Preprocess] Preprocess Machinek data")
-        
-        seqs = loaded_data["trajs_seqs"]
-        shortnames = loaded_data["trajs_shortnames"]
-        incbinvpairs = loaded_data["trajs_incbinvpairs"]
-        ref_name = loaded_data["ref_name"]
-        ref_name_list = loaded_data["ref_name_list"]
-        strand_list = loaded_data["strand_list"]
-
-        dp, dp_og, pair, energy, trans_time, seq, shortname, incbinvpair = concat_machinek(states, times, energies, seqs, shortnames, incbinvpairs)
 
     else:
-        print("Wrong file name")
+        print("[Preprocess] Preprocess Machinek data")
+
+        ref_name = loaded_data["ref_name"]
+        dp, dp_og, energy, trans_time = concat_machinek(states, times, energies)
+        pair = None
+        
+    # else:
+    #     print("Wrong file name")
 
 
     # get the unique structures and their corresponding indices
     print("[Preprocess] Get the unique structures and their corresponding indices")
-
-    dp_uniq, dp_og_uniq, pair_uniq, energy_uniq, seq_uniq, shortname_uniq, incbinvpair_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, pair, energy, seq, shortname, incbinvpair)
+    
+    dp_uniq, dp_og_uniq, energy_uniq, pair_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, energy, pair)
     
     # save read data
     print(f"[Preprocess] Saving preprocessed data to {outpath}")
@@ -69,27 +64,24 @@ def main():
     data_to_save = {
     "dp_uniq": dp_uniq,
     "dp_og_uniq": dp_og_uniq,
-    "pair_uniq": pair_uniq,
     "energy_uniq": energy_uniq,
     "indices_uniq": indices_uniq,
     "indices_all": indices_all,
     "trans_time": trans_time,
     }
     
-    if "Hata" in file_name:
+    if "hata" in file_name:
         data_to_save["type_uniq"] = type_uniq
+        data_to_save["pair_uniq"] = pair_uniq
         
-    if "Machinek" in file_name:
+    elif "gao" in file_name:
+        data_to_save["pair_uniq"] = pair_uniq
+    
+    else:
         data_to_save["ref_name"] = ref_name
-        data_to_save["ref_name_list"] = ref_name_list
-        data_to_save["strand_list"] = strand_list
-        data_to_save["seq_uniq"] = seq_uniq
-        data_to_save["shortname_uniq"] = shortname_uniq
-        data_to_save["incbinvpair_uniq"] = incbinvpair_uniq 
-        
+
     # save the data to npz file
     np.savez_compressed(outpath, **data_to_save)
-
 
     print("[Preprocess] Done!")
         

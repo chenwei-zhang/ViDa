@@ -1,15 +1,16 @@
 import numpy as np
 import argparse
 import time
+import tqdm
 
 
-def sim_ht(trans_time, Machineck=False):
+def sim_ht(trans_time):
     """calculate holding time for each trajectory
     """
     hold_time = np.array([])
     idx = np.where(trans_time==0)[0]
     
-    for i in range(len(idx)):
+    for i in tqdm.tqdm(range(len(idx))):
         if i < len(idx)-1:
             temp_t = trans_time[idx[i]:idx[i+1]]
             hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
@@ -17,12 +18,9 @@ def sim_ht(trans_time, Machineck=False):
             temp_t = trans_time[idx[i]:]
             hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
     
-    if Machineck:
-        temp = np.append(idx, len(trans_time))
-        trj_id = (temp-1)[1:]
-    else: 
-        # get each individual trajectory's index
-        trj_id = np.where(hold_time==0)[0]
+    # get each individual trajectory's index
+    temp = np.append(idx, len(trans_time))
+    trj_id = (temp-1)[1:]
 
     return hold_time, trj_id
 
@@ -84,8 +82,8 @@ if __name__ == '__main__':
     # calculate holding time for each trajectory
     print("[Comp_time] Calculating holding time for each trajectory")
 
-    # TODO
-    hold_time, trj_id = sim_ht(trans_time, Machineck=True)
+    # get the holding time for each trajectory
+    hold_time, trj_id = sim_ht(trans_time)
     
     # calculate the average (unique) holding time
     print("[Comp_time] Calculating the average holding time for each unique state")

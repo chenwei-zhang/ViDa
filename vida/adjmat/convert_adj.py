@@ -13,7 +13,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--inpath', required=True, help='preprocessed data file')
     parser.add_argument('--outpath', required=True, help='output adjacency matrix')
-    parser.add_argument('--num-strand', type=int, default=2, help='number of strands')
+    parser.add_argument('--num_strand', type=int, default=2, help='number of strands')
         
     args = parser.parse_args()
 
@@ -40,18 +40,15 @@ if __name__ == '__main__':
         
     elif num_strand == 3:
         ref_name = loaded_data["ref_name"]
-        ref_name_list = loaded_data["ref_name_list"]
-        strand_list = loaded_data["strand_list"]
-        seq_uniq = loaded_data["seq_uniq"]
         dp_uniq = loaded_data["dp_uniq"]
         
-        adj_uniq = sim_adj_3strand(dp_uniq, seq_uniq, ref_name, ref_name_list, strand_list)    
+        adj_uniq = sim_adj_3strand(dp_uniq, ref_name)    
                             
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")
  
     data_to_save = {
-    "adj_uniq": adj_uniq,
+        "adj_uniq": adj_uniq,
     }
     
     np.savez_compressed(outpath, **data_to_save)

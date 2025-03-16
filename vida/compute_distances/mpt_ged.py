@@ -3,7 +3,7 @@ import networkx as nx
 import copy
 import heapq
 from annoy import AnnoyIndex
-
+import tqdm
 
 # Build the edges
 def get_all_edges(indices_all, trj_id):
@@ -68,7 +68,7 @@ def dijkstra_n_shortest_paths(graph, source, n_neigh=100):
 def calculate_mpt(G,n_neigh=100):
     x_dj, d_ij = [], []
     
-    for  i in range(len(G.nodes)):
+    for  i in tqdm.tqdm(range(len(G.nodes))):
         # calculate the shortest path from node i to its 100 nearest neighbors including itself
         shortest_path_i = dijkstra_n_shortest_paths(G, i)
         x_dj.append(shortest_path_i[:,1].astype(int))
@@ -97,14 +97,14 @@ def calculate_ged(adj_uniq,n_neigh=100):
     annoy_index = AnnoyIndex(num_features, 'manhattan')
 
     # Add vectors to the index
-    for i, matrix in enumerate(adj_uniq):
+    for i, matrix in tqdm.tqdm(enumerate(adj_uniq)):
         vector = matrix.flatten()
         annoy_index.add_item(i, vector)
 
     # Build the index
     annoy_index.build(10)  # may need to tune this parameter
 
-    for i in range(num_graphs):
+    for i in tqdm.tqdm(range(num_graphs)):
         indices, distances = annoy_index.get_nns_by_item(i, n_neigh, include_distances=True)
         e_ij.append(distances)
         x_ej.append(indices)
@@ -117,7 +117,7 @@ def calculate_prob(indices_all, trj_id, hold_time_uniq):
     split_id = trj_id + 1  # index for split to each trajectory
     p_i = np.zeros(len(hold_time_uniq))
 
-    for i in range(len(split_id)):
+    for i in tqdm.tqdm(range(len(split_id))):
         if i == 0:
             trj = set(indices_all[0:split_id[i]])
         else:

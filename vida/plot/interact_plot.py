@@ -27,28 +27,31 @@ if __name__ == '__main__':
     loaded_data = np.load(predata)
     
     energy_uniq = loaded_data["energy_uniq"]
-    pair_uniq = loaded_data["pair_uniq"]
     dp_og_uniq = loaded_data["dp_og_uniq"]
     trans_time = loaded_data["trans_time"]
     indices_uniq = loaded_data["indices_uniq"]
     indices_all = loaded_data["indices_all"]
-    
     energy  = energy_uniq[indices_all]
     dp_og = dp_og_uniq[indices_all]
-    pair = pair_uniq[indices_all]
     
+    if "Gao" in predata:
+        pair_uniq = loaded_data["pair_uniq"]
+        pair = pair_uniq[indices_all]
+        
     if "Hata" in predata:
+        pair_uniq = loaded_data["pair_uniq"]
+        pair = pair_uniq[indices_all]
         type_uniq = loaded_data["type_uniq"]
         type = type_uniq[indices_all]
         
     
-    if "Machinek" in predata:
-        seq_uniq = loaded_data["seq_uniq"]
-        shortname_uniq = loaded_data["shortname_uniq"]
-        incbinvpair_uniq = loaded_data["incbinvpair_uniq"]
-        seq = seq_uniq[indices_all]
-        shortname = shortname_uniq[indices_all]
-        incbinvpair = incbinvpair_uniq[indices_all]
+    # if "Machinek" in predata:
+        # seq_uniq = loaded_data["seq_uniq"]
+        # shortname_uniq = loaded_data["shortname_uniq"]
+        # incbinvpair_uniq = loaded_data["incbinvpair_uniq"]
+        # seq = seq_uniq[indices_all]
+        # shortname = shortname_uniq[indices_all]
+        # incbinvpair = incbinvpair_uniq[indices_all]
    
     
     print(f"[Plot] Loading time data from {timedata}")
@@ -75,20 +78,25 @@ if __name__ == '__main__':
     pca_coords = pca_coords_uniq[indices_all]
     phate_coords = phate_coords_uniq[indices_all]
     
-    plt_args = (trj_id, dp_og, trans_time, hold_time, energy, pair, cum_time, freq, 
+    plt_args = (trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, 
                 pca_coords, phate_coords, 
-                dp_og_uniq, hold_time_uniq, energy_uniq, pair_uniq, cum_time_uniq, freq_uniq,
+                dp_og_uniq, hold_time_uniq, energy_uniq, cum_time_uniq, freq_uniq,
                 pca_coords_uniq, phate_coords_uniq)
     
+    if "Gao" in predata:
+        plt_args = (*plt_args, 
+                    pair_uniq, pair)
+        
     if "Hata" in predata:
         plt_args = (*plt_args, 
+                    pair_uniq, pair,
                     type_uniq, type)
         
-    if "Machinek" in predata:
-        # plt_args = plt_args + (seqlabel_uniq)
-        plt_args = (*plt_args, 
-                    seq_uniq, shortname_uniq, incbinvpair_uniq,
-                    seq, shortname, incbinvpair)
+    # if "Machinek" in predata:
+    #     # plt_args = plt_args + (seqlabel_uniq)
+    #     plt_args = (*plt_args, 
+    #                 seq_uniq, shortname_uniq, incbinvpair_uniq,
+    #                 seq, shortname, incbinvpair)
     
     
     # Sort trajectories by their hold time
@@ -101,7 +109,7 @@ if __name__ == '__main__':
         df, dfall = sort_gao(plt_args)
     
     # TODO
-    elif "Machinek" in predata:
+    else:
         df, dfall = sort_machinek(plt_args)
     
     
@@ -119,13 +127,13 @@ if __name__ == '__main__':
         fig.write_html(savename)
     
     # TODO
-    elif "Machinek" in predata:
-        # for vis in ["PCA","PHATE"]:
-        for vis in ["PCA"]:
-            
+    else:
+        for vis in ["PCA","PHATE"]:
+        # for vis in ["PCA"]:
             fig = plot_machineck(df,dfall,vis=vis)
             savename = outpath+"_"+vis+".html"
             fig.write_html(savename)
+            print(f"[Plot] Plot saved to {savename}")
         
     print(f"[Plot] Done!")
     

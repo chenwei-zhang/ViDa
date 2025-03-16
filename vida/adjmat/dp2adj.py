@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 import re
 from itertools import permutations
-
+import tqdm
 
 
 ############### Two-Strand Structure ###############
@@ -150,7 +150,7 @@ def concat_disorder(seq, ref_name_list, strand_list):
 
 
 # convert dot-parenthesis notation to adjacency matrix for three-strand
-def dp2adj_3strand(ref_name, alter_name, dp_structure):
+def dp2adj_3strand(ref_name, dp_structure):
     # construct backbone edges
     def build_consecutive_edges(input_list):
         edges = [(input_list[i], input_list[i+1]) for i in range(len(input_list)-1)]
@@ -159,14 +159,14 @@ def dp2adj_3strand(ref_name, alter_name, dp_structure):
 
 
     # build backbone edges
-    backbones = build_consecutive_edges(alter_name)
+    backbones = build_consecutive_edges(ref_name)
     
     
     # build base pair edges
     stack = []  # Initialize stack to keep track of opening brackets
     base_pairs = []  # Initialize list to store pairs    
     
-    for name, char in zip(alter_name, dp_structure):
+    for name, char in zip(ref_name, dp_structure):
         
         if char == '(':
             stack.append(name)  # Push index of opening bracket onto stack
@@ -203,14 +203,10 @@ def dp2adj_3strand(ref_name, alter_name, dp_structure):
     return adjacency_matrix
 
     
-def sim_adj_3strand(dps, seqs, ref_name, ref_name_list, strand_list):
-    
+def sim_adj_3strand(dps, ref_name):
     adj_mtr = []
     
-    for dp, seq in zip(dps, seqs):
-        alter_name = concat_disorder(seq, ref_name_list, strand_list)
-                
-        
-        adj_mtr.append(dp2adj_3strand(ref_name, alter_name, dp))
+    for dp in tqdm.tqdm(dps):                
+        adj_mtr.append(dp2adj_3strand(ref_name, dp))
     
     return np.array(adj_mtr)

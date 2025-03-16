@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import pickle
@@ -10,7 +11,7 @@ def main():
     parser = argparse.ArgumentParser(description='Load Data')
     parser.add_argument('--inpath', required=True, help='Path to input data file')
     parser.add_argument('--rxn', required=True, help='Reaction name')
-    parser.add_argument('--num-files', required=True, type=int, help='Number of files')
+    parser.add_argument('--num_traj', required=True, type=int, help='Number of files')
     parser.add_argument('--outpath', required=True, help='output file path')
     
     args = parser.parse_args()
@@ -18,7 +19,7 @@ def main():
     inpath = args.inpath
     rxn = args.rxn
     outpath = args.outpath
-    num_files = args.num_files
+    num_traj = args.num_traj
 
     if rxn == "Machinek-PRF":
         strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate (or target)
@@ -54,42 +55,37 @@ def main():
         strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
         strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
         strand_inv = 'GGTGAGTTTGAGGTTTAATGTGGA'  
-                
         
-    ref_strands = strand_sub + '+' + strand_incb + '+' + strand_inv
+    if rxn == "perfect_toehold8":  # incumbent(16) + invader(24) + substrate(26)
+        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
+        strand_incb = 'GGTGAGTTTGAGGTTG'
+        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
+        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
         
-    strand_list = [strand_sub, strand_incb, strand_inv]
     ref_name_list = assign_base_names(ref_strands)
     ref_name = [item for sublist in ref_name_list for item in sublist]
     
-    
     # Load data
     print(f"[Read] Loading data from {inpath}")
+        
+    trajs_states,trajs_times,trajs_energies = read_machinek(
+                                                    inpath,
+                                                    rxn, 
+                                                    num_traj
+                                                    )
     
-    trajs_seqs,trajs_states,trajs_times,trajs_energies,trajs_shortnames,trajs_incbinvpairs = read_machinek(
-                                                                        inpath,
-                                                                        rxn, 
-                                                                        ref_name_list,
-                                                                        strand_list,
-                                                                        strand_sub, 
-                                                                        strand_incb, 
-                                                                        strand_inv, 
-                                                                        num_files=num_files
-                                                                        )
-
     # save read data
     print(f"[Read] Saving preprocessed data to {outpath}")
-
+    
+    outpath_dir = os.path.dirname(outpath)
+    print(outpath_dir)
+    os.makedirs(outpath_dir, exist_ok=True)
+    
     data_to_save = {
-    "trajs_seqs": trajs_seqs,
     "trajs_states": trajs_states,
     "trajs_times": trajs_times,
     "trajs_energies": trajs_energies,
-    "trajs_shortnames": trajs_shortnames,
-    "trajs_incbinvpairs": trajs_incbinvpairs,
     "ref_name": ref_name,
-    "ref_name_list": ref_name_list,
-    "strand_list": strand_list,
     }
     
     # Save the data to the file using pickle
