@@ -32,7 +32,7 @@ def mean_holdingtime(hold_time, indices_uniq, indices_all):
     """
     hold_time_uniq = np.empty(len(indices_uniq))
     
-    for i in range(len(indices_uniq)):
+    for i in tqdm.tqdm(range(len(indices_uniq))):
         ht_temp = np.where(i==indices_all)[0]
         hold_time_uniq[i] = sum(hold_time[ht_temp])/len(ht_temp)
 
@@ -47,7 +47,7 @@ def cumu_holdingtime(hold_time, indices_uniq, indices_all):
     cum_time_uniq = np.empty(len(indices_uniq))
     freq_uniq = np.zeros(len(indices_uniq),dtype=np.int64)
     
-    for i in range(len(indices_uniq)):
+    for i in tqdm.tqdm(range(len(indices_uniq))):
         ht_temp = np.where(i==indices_all)[0]
         cum_time_uniq[i] = sum(hold_time[ht_temp])
         freq_uniq[i] = len(ht_temp)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # calculate the cumulative (unique) holding time
     print("[Comp_time] Calculating the cumulative holding time for each unique state")
 
-    cum_time_uniq,freq_uniq = cumu_holdingtime(hold_time, indices_uniq, indices_all)
+    cum_time_uniq, freq_uniq = cumu_holdingtime(hold_time, indices_uniq, indices_all)
 
     # save time data
     print(f"[Comp_time] Saving time data to {outpath}")

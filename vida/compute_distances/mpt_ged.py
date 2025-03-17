@@ -1,6 +1,5 @@
 import numpy as np
 import networkx as nx
-import copy
 import heapq
 from annoy import AnnoyIndex
 import tqdm
@@ -8,25 +7,40 @@ import tqdm
 # Build the edges
 def get_all_edges(indices_all, trj_id):
     all_nodes = indices_all
-    all_edges_temp = []
-
-    for previous, current in zip(all_nodes, all_nodes[1:]):
-        all_edges_temp.append((previous, current))
-
-    indices_to_delete = trj_id[:-1]
-    # Sort the indices in reverse order so that deleting elements won't affect subsequent indices
-    indices_to_delete = sorted(indices_to_delete, reverse=True)
-
-    all_edges = copy.deepcopy(all_edges_temp)
-    for index in indices_to_delete:
-        del all_edges[index]
-
+    all_edges = []
+    
+    # Create a boolean mask to track which edges to keep
+    keep_edge = [True] * (len(all_nodes) - 1)
+    
+    # Mark edges to delete
+    for idx in trj_id[:-1]:
+        keep_edge[idx] = False
+    
+    # Remove the deleted edges
+    for i, (previous, current) in enumerate(zip(all_nodes, all_nodes[1:])):
+        if keep_edge[i]:
+            all_edges.append((previous, current))
+    
     return all_edges
 
 
 # construct weighted directed graph
 def build_wdg(all_edges, hold_time_uniq):
     DG = nx.DiGraph()
+    
+    # Explicitly add all nodes
+    all_nodes = set()
+    for edge in all_edges:
+        all_nodes.add(int(edge[0]))
+        all_nodes.add(int(edge[1]))
+    
+    # Add missing nodes
+    max_node = max(all_nodes)
+    for node_id in range(max_node + 1):
+        if node_id not in all_nodes:
+            DG.add_node(node_id)
+    
+    # Add edges
     for i in range(len(all_edges)):
         weight = hold_time_uniq[all_edges[i][0]]
         DG.add_edge(int(all_edges[i][0]), int(all_edges[i][1]), weight=float(weight))
