@@ -62,6 +62,20 @@ def main():
         strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
         ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
         
+    if rxn == "distal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
+        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
+        strand_incb = 'GGTCAGTTTGAGGTTG'
+        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
+        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
+    
+    if rxn == "perfect_toehold7": # incumbent(16) + invader(23) + substrate(26)
+        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
+        strand_incb = 'GGTCAGTTTGAGGTTG'
+        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGA'
+        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
+    
+    
+    
     ref_name_list = assign_base_names(ref_strands)
     ref_name = [item for sublist in ref_name_list for item in sublist]
     

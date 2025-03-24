@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import argparse
-from plot_funcs import sort_gao, sort_hata, sort_machinek, plot_gao, plot_hata, plot_machineck
+from plot_funcs import sort_gao, sort_hata, sort_machinek, plot_gao, plot_hata, plot_machineck, plot_machineck_png
 
 if __name__ == '__main__': 
     # Record the start time
@@ -91,14 +91,7 @@ if __name__ == '__main__':
         plt_args = (*plt_args, 
                     pair_uniq, pair,
                     type_uniq, type)
-        
-    # if "Machinek" in predata:
-    #     # plt_args = plt_args + (seqlabel_uniq)
-    #     plt_args = (*plt_args, 
-    #                 seq_uniq, shortname_uniq, incbinvpair_uniq,
-    #                 seq, shortname, incbinvpair)
-    
-    
+
     # Sort trajectories by their hold time
     print(f"[Plot] Sorting trajectories by their reaction time")
     
@@ -130,6 +123,8 @@ if __name__ == '__main__':
     else:
         for vis in ["PCA","PHATE"]:
         # for vis in ["PCA"]:
+            plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
+            
             fig = plot_machineck(df,dfall,vis=vis)
             savename = outpath+"_"+vis+".html"
             fig.write_html(savename)

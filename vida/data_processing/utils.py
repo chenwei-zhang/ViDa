@@ -223,9 +223,12 @@ def read_machinek(inpath, rxn, num_traj):
     def _read_trajectory_h5(fpath, sim_no): 
         import h5py as h5
         with h5.File(fpath, "r") as f:
-            times = f[str(sim_no)]["times"][:]
-            energies = f[str(sim_no)]["energies"][:]
-            structs = [s.decode() for s in f[str(sim_no)]["structs"]]            
+            # times = f[str(sim_no)]["times"][:]
+            # energies = f[str(sim_no)]["energies"][:]
+            # structs = [s.decode() for s in f[str(sim_no)]["structs"]]  
+            times = f[str(sim_no)]["times"][:-1]
+            energies = f[str(sim_no)]["energies"][:-1]
+            structs = [s.decode() for s in f[str(sim_no)]["structs"]][:-1]          
             ids = [s.decode() for s in f[str(sim_no)]["ordered_ids"]]
         return times, energies, structs, ids
     
