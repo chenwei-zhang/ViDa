@@ -62,6 +62,18 @@ def main():
         strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
         ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
         
+    if rxn == "proximal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
+        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
+        strand_incb = 'GGTGAGTTTGAGGTTG'
+        strand_inv = 'GGTGAGTTTGAGGTTCATGTGGAG'
+        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
+        
+    if rxn == "central_toehold8":  # incumbent(16) + invader(24) + substrate(26)
+        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
+        strand_incb = 'GGTGAGTTTGAGGTTG'
+        strand_inv = 'GGTGAGTTTCAGGTTGATGTGGAG'
+        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
+        
     if rxn == "distal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTCAGTTTGAGGTTG'
@@ -71,7 +83,7 @@ def main():
     if rxn == "perfect_toehold7": # incumbent(16) + invader(23) + substrate(26)
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTCAGTTTGAGGTTG'
-        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGA'
+        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGA'  
         ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
     
     
