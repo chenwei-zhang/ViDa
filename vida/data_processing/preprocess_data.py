@@ -4,7 +4,7 @@ import gzip
 import os
 import argparse
 import time
-from utils import concat_hata, concat_gao, concat_machinek, get_uniq
+from utils import concat_hata, concat_gao, concat_machinek, get_uniq, parse_cids
 
 
 def main():
@@ -45,8 +45,9 @@ def main():
     else:
         print("[Preprocess] Preprocess Machinek data")
 
-        ref_name = loaded_data["ref_name"]
-        dp, dp_og, energy, trans_time = concat_machinek(states, times, energies)
+        ref_name_list = loaded_data["ref_name_list"]
+        trajs_ids = loaded_data["trajs_ids"]
+        dp, dp_og, energy, trans_time, order_cid = concat_machinek(states, times, energies, trajs_ids)
         pair = None
         
     # else:
@@ -56,7 +57,8 @@ def main():
     # get the unique structures and their corresponding indices
     print("[Preprocess] Get the unique structures and their corresponding indices")
     
-    dp_uniq, dp_og_uniq, energy_uniq, pair_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, energy, pair)
+    dp_uniq, dp_og_uniq, energy_uniq, id_uniq, pair_uniq, indices_uniq, indices_all = get_uniq(dp, dp_og, energy, order_cid, pair)
+    
     
     # save read data
     print(f"[Preprocess] Saving preprocessed data to {outpath}")
@@ -65,6 +67,7 @@ def main():
     "dp_uniq": dp_uniq,
     "dp_og_uniq": dp_og_uniq,
     "energy_uniq": energy_uniq,
+    "id_uniq": id_uniq,
     "indices_uniq": indices_uniq,
     "indices_all": indices_all,
     "trans_time": trans_time,
@@ -78,7 +81,7 @@ def main():
         data_to_save["pair_uniq"] = pair_uniq
     
     else:
-        data_to_save["ref_name"] = ref_name
+        data_to_save["ref_name_list"] = np.array(ref_name_list, dtype=object)
 
     # save the data to npz file
     np.savez_compressed(outpath, **data_to_save)

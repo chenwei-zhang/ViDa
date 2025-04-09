@@ -39,10 +39,11 @@ if __name__ == '__main__':
         adj_uniq = sim_adj(dp_uniq)
         
     elif num_strand == 3:
-        ref_name = loaded_data["ref_name"]
+        ref_name_list = loaded_data["ref_name_list"]
         dp_uniq = loaded_data["dp_uniq"]
+        id_uniq = loaded_data["id_uniq"]
         
-        adj_uniq = sim_adj_3strand(dp_uniq, ref_name)    
+        adj_uniq = sim_adj_3strand(dp_uniq, id_uniq, ref_name_list)    
                             
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")

@@ -60,41 +60,45 @@ def main():
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTGAGTTTGAGGTTG'
         strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
-        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
         
     if rxn == "proximal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTGAGTTTGAGGTTG'
         strand_inv = 'GGTGAGTTTGAGGTTCATGTGGAG'
-        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
         
     if rxn == "central_toehold8":  # incumbent(16) + invader(24) + substrate(26)
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTGAGTTTGAGGTTG'
         strand_inv = 'GGTGAGTTTCAGGTTGATGTGGAG'
-        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
         
     if rxn == "distal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTCAGTTTGAGGTTG'
         strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
-        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
     
     if rxn == "perfect_toehold7": # incumbent(16) + invader(23) + substrate(26)
         strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
         strand_incb = 'GGTCAGTTTGAGGTTG'
         strand_inv = 'GGTGAGTTTGAGGTTGATGTGGA'  
-        ref_strands = strand_incb + '+' + strand_inv + '+' + strand_sub
-    
-    
-    
+        
+    if rxn == "perfect_toehold7_dangle": # incumbent(33) + invader(24) + substrate(27)
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
+        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'
+        
+    if rxn == "proximal_toehold7_dangle":  # incumbent(33) + invader(24) + substrate(27)
+        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  
+        strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'
+        
+    # incb + sub + inv ==> a + b + c
+    ref_strands = strand_incb + '+' + strand_sub + '+' + strand_inv   
     ref_name_list = assign_base_names(ref_strands)
-    ref_name = [item for sublist in ref_name_list for item in sublist]
     
     # Load data
     print(f"[Read] Loading data from {inpath}")
         
-    trajs_states,trajs_times,trajs_energies = read_machinek(
+    trajs_states,trajs_times,trajs_energies,trajs_ids = read_machinek(
                                                     inpath,
                                                     rxn, 
                                                     num_traj
@@ -111,7 +115,8 @@ def main():
     "trajs_states": trajs_states,
     "trajs_times": trajs_times,
     "trajs_energies": trajs_energies,
-    "ref_name": ref_name,
+    "trajs_ids": trajs_ids,
+    "ref_name_list": ref_name_list,
     }
     
     # Save the data to the file using pickle
@@ -119,6 +124,8 @@ def main():
         pickle.dump(data_to_save, file)
     
     print("[Read] Done!")
+        
+        
         
         
 if __name__ == '__main__':
