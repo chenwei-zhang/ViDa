@@ -96,11 +96,11 @@ def main():
     ref_name_list = assign_base_names(ref_strands)
     
     # Load data
-    print(f"[Read] Loading data from {inpath}")
-        
+    fpath = os.path.join(inpath, f"{rxn}.hdf5")
+    print(f"[Read] Loading data from {fpath}")
+    
     trajs_states,trajs_times,trajs_energies,trajs_ids = read_machinek(
-                                                    inpath,
-                                                    rxn, 
+                                                    fpath,
                                                     num_traj
                                                     )
     

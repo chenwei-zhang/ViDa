@@ -228,7 +228,7 @@ def read_machinek_txt(fpath, rxn, ref_name_list, strand_list, strand_sub, strand
     return trajs_seqs, trajs_states, trajs_times, trajs_energies, trajs_shortnames, trajs_incbinvpair
         
 
-def read_machinek(inpath, rxn, num_traj):
+def read_machinek(fpath, num_traj):
     def _read_trajectory_h5(fpath, sim_no): 
         import h5py as h5
         with h5.File(fpath, "r") as f:
@@ -237,9 +237,7 @@ def read_machinek(inpath, rxn, num_traj):
             structs = [s.decode() for s in f[str(sim_no)]["structs"]]          
             ids = [s.decode() for s in f[str(sim_no)]["ordered_ids"]]
         return times, energies, structs, ids
-    
-    fpath = os.path.join(inpath, f"{rxn}.hdf5")
-    
+        
     trajs_states, trajs_times, trajs_energies, trajs_ids  = [],[],[], []
 
     for i in tqdm.tqdm(range(num_traj)):
