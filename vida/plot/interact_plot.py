@@ -24,12 +24,13 @@ if __name__ == '__main__':
     # Load the data
     print(f"[Plot] Loading preprocessed data from {predata}")
     
-    loaded_data = np.load(predata)
+    loaded_data = np.load(predata, allow_pickle=True)
     
     energy_uniq = loaded_data["energy_uniq"]
     dp_og_uniq = loaded_data["dp_og_uniq"]
     trans_time = loaded_data["trans_time"]
     indices_uniq = loaded_data["indices_uniq"]
+    id_uniq = loaded_data["id_uniq"]
     indices_all = loaded_data["indices_all"]
     energy  = energy_uniq[indices_all]
     dp_og = dp_og_uniq[indices_all]
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     hold_time = hold_time_uniq[indices_all]
     cum_time = cum_time_uniq[indices_all]
     freq = freq_uniq[indices_all]
-    
+    order_ids = id_uniq[indices_all]
     
     print(f"[Plot] Loading embedded data from {embeddata}")
     
@@ -79,9 +80,10 @@ if __name__ == '__main__':
     phate_coords = phate_coords_uniq[indices_all]
     
     plt_args = (trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, 
-                pca_coords, phate_coords, 
+                pca_coords, phate_coords, order_ids,
                 dp_og_uniq, hold_time_uniq, energy_uniq, cum_time_uniq, freq_uniq,
-                pca_coords_uniq, phate_coords_uniq)
+                pca_coords_uniq, phate_coords_uniq,
+                )
     
     if "Gao" in predata:
         plt_args = (*plt_args, 
@@ -125,10 +127,10 @@ if __name__ == '__main__':
         # for vis in ["PCA"]:
             plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
             
-            fig = plot_machineck(df,dfall,vis=vis)
-            savename = outpath+"_"+vis+".html"
-            fig.write_html(savename)
-            print(f"[Plot] Plot saved to {savename}")
+            # fig = plot_machineck(df,dfall,vis=vis)
+            # savename = outpath+"_"+vis+".html"
+            # fig.write_html(savename)
+            # print(f"[Plot] Plot saved to {savename}")
         
     print(f"[Plot] Done!")
     
