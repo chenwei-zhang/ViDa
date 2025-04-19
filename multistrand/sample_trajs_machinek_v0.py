@@ -9,21 +9,18 @@ import h5py as h5
 import argparse
 
 from pathlib import Path
-import sys
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--row", type=int)
 parser.add_argument("--nsims", default=1, type=int)
 parser.add_argument("--save_id", default="", type=str)
-parser.add_argument("--timestep", default=1e-7, type=float)
 args = parser.parse_args()
 
 
 def load_Machinek_row(data_filename, row): 
    
     df = pd.read_csv(data_filename)
-    row_data = df.loc[row]
     row_data = df.loc[row]
 
     sequences = {"incumbent": row_data["Incumbent sequence (5'->3')"],
@@ -201,57 +198,35 @@ def read_sim(traj_filename, sim_no):
     return structs, energies, times, trajectory_seed
 
 
-
-def pack_trajectory(opt: Options, timestep: float):
+def pack_trajectory(opt: Options):
 
     strands = opt.strand_names()
 
     ordered_structs = []
     ordered_ids = []
-    times = []
-    energies = []    
-    cumulative_time = 0
-    next_snapshot_time = timestep 
 
-    for i, state in enumerate(opt.full_trajectory):
-        current_time = opt.full_trajectory_times[i]
-        # print("Current time: ", current_time)
-        # print("Next snapshot at: ", next_snapshot_time)
-        # print('\n')
-        
-        # Record state if it's time for a snapshot OR it's the first state OR it's the last state
-        if_record = (i == 0) or (i == len(opt.full_trajectory_times)-1) or (current_time >= next_snapshot_time)
-        
-        if if_record:
-            ids = [[strands[n].id for n in cmplx.strand_names.split(',')] for cmplx in state]
-            order = np.argsort([min(s) for s in ids])  # inducing an ordering of the complexes 
-            energy = sum(cmplx.energy for cmplx in state)
-            
-            normalized = [normalizeCyclicPermutation(ids[i], state[i].sequence, state[i].structure) for i in order]
-            seq = [s[0] for s in normalized]
-            sct = [s[1] for s in normalized]
+    for state in opt.full_trajectory:
 
-            ordered_structs.append(sct)
-            ordered_ids.append([ids[i] for i in order])
-            energies.append(energy)
-            times.append(current_time)
-            
-            # Update the next time to take a snapshot
-            while next_snapshot_time <= current_time:
-                next_snapshot_time += timestep
-    
+        ids = [[strands[n].id for n in cmplx.strand_names.split(',')] for cmplx in state]
+
+        order = np.argsort([min(s) for s in ids]) # inducing an ordering of the complexes 
+
+        normalized = [normalizeCyclicPermutation(ids[i], state[i].sequence, state[i].structure) for i in order]
+        seq = [s[0] for s in normalized]
+        sct = [s[1] for s in normalized]
+
+        ordered_structs.append(sct)
+        ordered_ids.append([ids[i] for i in order])
+
     structs = np.array(
         [' '.join(s) for s in ordered_structs],
         dtype=str)
-    energies = np.array(energies, dtype=np.float64)
-    times = np.array(times, dtype=np.float64)
+    energies = np.array(
+        [sum(cmplx.energy for cmplx in s) for s in opt.full_trajectory],
+        dtype=np.float64)
+    times = np.array(opt.full_trajectory_times, dtype=np.float64)
     end = opt.interface.end_states
-    
-    print("Total number of collected states: ", len(structs))
-    sys.stdout.flush()
-    
     return (structs, energies, times, end, ordered_ids)
-
 
 
 def incomplete(stoplog): 
@@ -260,18 +235,18 @@ def incomplete(stoplog):
     return a == ['incumbent', 'invader', 'target']
 
 
-def simulate(opt: Options, timestep: float, verbose: bool=False):
+def simulate(opt: Options, verbose: bool=False):
     sys = SimSystem(opt)
     sys.start()
     if verbose:
         printTrajectory(opt, show_seed=True)
     
-    return pack_trajectory(opt, timestep)
+    return pack_trajectory(opt)
 
 
-def batched_simulation(opt, sim_no, traj_filename, timestep):
+def batched_simulation(opt, sim_no, traj_filename):
 
-    structs, energies, times, stoplog, ordered_ids = simulate(opt, timestep, verbose=False)
+    structs, energies, times, stoplog, ordered_ids = simulate(opt, verbose=False)
 
     save_sim(sim_no, traj_filename, structs, energies, times, opt.interface_trajectory_seed, ordered_ids)
 
@@ -293,12 +268,19 @@ def main():
     row = args.row
     nsims = args.nsims
     save_id = "" if args.save_id==None else "_"+args.save_id 
-    timestep = args.timestep
+
+
+    if row in [0, 1]: 
+        timeout = 2e3
+    elif row in [4, 8, 11, 17]: 
+        timeout = 1e-3
+    else:  
+        timeout = 5e-4
+
 
     simulation_specs = {"num_simulations":1,
                         "output_interval":1,
-                        "simulation_time":float('inf'),
-                        }
+                        "simulation_time":timeout}
 
 
     data_filename = "reactions/machinek/Machinek_SupTable6.csv"
@@ -309,13 +291,8 @@ def main():
     assert not Path(traj_filename).exists()
     
     for sim_no in range(nsims):
-        print("\nStarting simulation", sim_no)
-        sys.stdout.flush()
-        
         opt = create_options_FSM(sequences, experiment_specs, simulation_specs)
-        batched_simulation(opt, sim_no, traj_filename, timestep)
-        
-        
+        batched_simulation(opt, sim_no, traj_filename)
 
 
 if __name__ == "__main__":
