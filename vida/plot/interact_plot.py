@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import argparse
-from plot_funcs import sort_gao, sort_hata, sort_machinek, plot_gao, plot_hata, plot_machineck, plot_machineck_png
+from plot_funcs import sort_gao, sort_hata, sort_machinek, plot_gao, plot_hata, plot_machineck, plot_machineck_png, map_id_to_shortname
 
 if __name__ == '__main__': 
     # Record the start time
@@ -79,10 +79,13 @@ if __name__ == '__main__':
     pca_coords = pca_coords_uniq[indices_all]
     phate_coords = phate_coords_uniq[indices_all]
     
+    print(f"[Plot] Converting order ids to names")
+    id_uniq_name = np.array([map_id_to_shortname(i) for i in id_uniq])
+    
     plt_args = (trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, 
                 pca_coords, phate_coords, order_ids,
                 dp_og_uniq, hold_time_uniq, energy_uniq, cum_time_uniq, freq_uniq,
-                pca_coords_uniq, phate_coords_uniq,
+                pca_coords_uniq, phate_coords_uniq, id_uniq_name,
                 )
     
     if "Gao" in predata:
@@ -123,14 +126,14 @@ if __name__ == '__main__':
     
     # TODO
     else:
-        for vis in ["PCA","PHATE"]:
-        # for vis in ["PCA"]:
+        # for vis in ["PCA","PHATE"]:
+        for vis in ["PHATE"]:
             plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
             
-            # fig = plot_machineck(df,dfall,vis=vis)
-            # savename = outpath+"_"+vis+".html"
-            # fig.write_html(savename)
-            # print(f"[Plot] Plot saved to {savename}")
+            fig = plot_machineck(df,dfall,vis=vis)
+            savename = outpath+"_"+vis+".html"
+            fig.write_html(savename)
+            print(f"[Plot] Plot saved to {savename}")
         
     print(f"[Plot] Done!")
     

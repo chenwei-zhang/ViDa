@@ -23,6 +23,23 @@ def replace_strings(s):
     return s
 
 
+def map_id_to_shortname(id):
+    if id == [(0, 1, 2)]:
+        return 'Incumbent+Substrate+Invader'
+    elif id == [(0, 1), (2,)]:
+        return 'Incumbent+Substrate  Invader'
+    elif id == [(0,), (1, 2)]:
+        return 'Incumbent  Substrate+Invader'
+    elif id == [(0, 2, 1)]:
+        return 'Incumbent+Invader+Substrate'
+    elif id == [(0, 2), (1,)]:
+        return 'Incumbent+Invader  Substrate'
+    elif id == [(0,), (2, 1)]:
+        return 'Incumbent  Invader+Substrate'
+    else:
+        raise ValueError("Invalid reaction ordering")
+    
+    
 
 def sort_gao(plt_args):
     # Load the data
@@ -86,7 +103,7 @@ def sort_machinek(plt_args):
     trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, \
         pca_coords, phate_coords, order_ids, \
         dp_og_uniq, hold_time_uniq, energy_uniq, cum_time_uniq, freq_uniq, \
-        pca_coords_uniq, phate_coords_uniq, \
+        pca_coords_uniq, phate_coords_uniq, id_uniq_name, \
         = plt_args
         
     # List of arrays to split
@@ -115,6 +132,7 @@ def sort_machinek(plt_args):
         sub_phate_coords.append(phate_coords_i_unique)
         sub_order_ids.append(order_ids_i_unique)
         
+        
     # Use zip to unpack the sub-arrays into separate variables if needed
     sub_dp_og, sub_trans_time, sub_energy, sub_pca_coords, sub_phate_coords, sub_order_ids = sub_arrays
     # Sort the trajectories by reaction time
@@ -130,6 +148,7 @@ def sort_machinek(plt_args):
                 "CumT": cum_time_uniq, "Freq": freq_uniq,
                 "PCA 1": pca_coords_uniq[:,0], "PCA 2": pca_coords_uniq[:,1],
                 "PHATE 1": phate_coords_uniq[:,0], "PHATE 2": phate_coords_uniq[:,1],
+                "ID_Name": id_uniq_name,
                 }
                 )
     dfall = pd.DataFrame(data={
@@ -408,12 +427,14 @@ def plot_machineck(df,dfall,vis):
             text=df['DP'],
             customdata=np.stack((
                     df['HT'],
+                    df['ID_Name'],
                     ),axis=-1),
             hovertemplate=
+                "%{customdata[1]}<br>" +
                 "<b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
                 "Energy:  %{marker.color:.3f} kcal/mol<br>"+
-                "Expected holding time:  %{customdata[0]:.3e} s</b><br>",
+                "Expected holding time:  %{customdata[0]:.3e} s<br>",
             name="Energy landscape",
             # visible='legendonly',
         )
@@ -437,8 +458,10 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                 df["Energy"],
                 df["Freq"],
+                df["ID_Name"],
                 ),axis=-1),
             hovertemplate=
+                "%{customdata[2]}<br>" +
                 "<b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
                 "Energy:  %{customdata[0]:.3f} kcal/mol<br>"+
@@ -467,8 +490,10 @@ def plot_machineck(df,dfall,vis):
             customdata=np.stack((
                 df["Energy"],
                 df["CumT"],
+                df["ID_Name"],
                 ),axis=-1),
             hovertemplate=
+                "%{customdata[2]}<br>" +
                 "<b>%{text}</b><br>" +
                 "X: %{x}   " + "   Y: %{y} <br>"+
                 "Energy:  %{customdata[0]:.3f} kcal/mol<br>"+
@@ -579,8 +604,8 @@ def plot_machineck_png(df, dfall, vis, output_dir):
         os.makedirs(output_dir)
     
     # Create the base figure with energy landscape background
-    for i in range(0, len(dfall)):
-    # for i in range(10, 11):
+    # for i in range(0, len(dfall)):
+    for i in range(0, 300):
         print(f"Plotting trajectory {dfall['IDX'][i]}")
         
         # Create a new figure for each trajectory
@@ -745,6 +770,7 @@ def plot_machineck_png(df, dfall, vis, output_dir):
                     color="black"
                     )
                 ),
+        )
         #     annotations=[
         #         dict(
         #             x=0.98,  # x position (0-1 range, 1 is far right)
@@ -765,10 +791,13 @@ def plot_machineck_png(df, dfall, vis, output_dir):
         #             borderpad=4
         #         )
         #     ]
-        )
+        # )
         
         # Save the figure as a PNG file
-        output_file = os.path.join(output_dir, f"{vis}_{i}_trajectory-{dfall['IDX'][i]}.png")
+        output_file = os.path.join(output_dir, f"{vis}_{i}_trajectory-{dfall['IDX'][i]}-{text_ammo}.png")
         write_image(fig, output_file, width=1200, height=800, engine="kaleido")                
         
         print(f"Saved trajectory {dfall['IDX'][i]} to {output_file}")
+        
+        # if i == 10:
+        #     break
