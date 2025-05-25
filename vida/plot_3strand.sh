@@ -1,14 +1,14 @@
 #!/bin/bash
 
 VIDA="/Users/chenwei/Desktop/Github/ViDa"
-# NAME='Machinek-PRF'
-NAME='Machinek-Mismatch2'
-
+NAME='perfect_toehold7_dangle_CC2GG'
+# NAME='proximal_toehold8'
+# NAME='proximal_toehold7_dangle'
 
 
 ### PLOT ###
-TNAME='24-0701-1546'  # 24-0324-0120
-CKPT='checkpoint_epoch_59'
+TNAME='25-0427-0352'
+CKPT='checkpoint_epoch_69'
 # CKPT='model'
 
 
