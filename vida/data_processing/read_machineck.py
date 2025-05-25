@@ -91,6 +91,11 @@ def main():
         strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  
         strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'
         
+    if rxn == "perfect_toehold7_dangle_CC2GG": # incumbent(33) + invader(24) + substrate(27)
+        strand_sub = 'CGGTCCACATTCAACCTCAAACTCACC'
+        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
+        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'
+        
     # incb + sub + inv ==> a + b + c
     ref_strands = strand_incb + '+' + strand_sub + '+' + strand_inv   
     ref_name_list = assign_base_names(ref_strands)
