@@ -541,11 +541,18 @@ def plot_machineck(df,dfall,vis):
     #         )
     #     )
     
+    
+    # Record the first successful trajectory's index
+    for i in range(0, len(dfall)):
+        if dfall["OrderID"][i][-1] == [(0,), (1, 2)] or dfall["OrderID"][i][-1] == [(0,),(2, 1)]:
+            succ_idx = i
+            break
+    
     # label initial  # and final states
     fig.add_trace(
         go.Scattergl(
-            x=[dfall[f"{vis}"][0][0,0],dfall[f"{vis}"][0][-1,0]],
-            y=[dfall[f"{vis}"][0][0,1],dfall[f"{vis}"][0][-1,1]],
+            x=[dfall[f"{vis}"][succ_idx][0,0],dfall[f"{vis}"][succ_idx][-1,0]],
+            y=[dfall[f"{vis}"][succ_idx][0,1],dfall[f"{vis}"][succ_idx][-1,1]],
             # x=[dfall[f"{vis}"][0][0,0]],
             # y=[dfall[f"{vis}"][0][0,1]],
             mode='markers+text',
