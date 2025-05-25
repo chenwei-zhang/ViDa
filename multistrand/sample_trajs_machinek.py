@@ -210,7 +210,6 @@ def pack_trajectory(opt: Options, timestep: float):
     ordered_ids = []
     times = []
     energies = []    
-    cumulative_time = 0
     next_snapshot_time = timestep 
 
     for i, state in enumerate(opt.full_trajectory):
