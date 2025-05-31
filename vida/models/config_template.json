@@ -6,7 +6,7 @@
     "learning_rate": 1e-4,
 
     "comment 2": "The following paramters can be changed.",
-    "dataset": "Machinek-Mismatch2",
+    "dataset": "Machinek_<name>",
     "device": "mps",
     "batch_size": 256,
     "n_epochs": 100,

@@ -18,11 +18,11 @@
 *.csv
 *.pickle
 *.html
-*.json
+# *.json
 # *.pkl
 output_files
 temp
-!data/*json
+# !data/*json
 !data/post_data/Gao-P4T4/*npz
 !data/post_data/Hata-39/*npz
 code/model_config
