@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import argparse
-from plot_funcs import sort_gao, sort_hata, sort_machinek, plot_gao, plot_hata, plot_machineck, plot_machineck_png, map_id_to_shortname
+from plot_funcs import sort_machinek, plot_machineck, plot_machineck_png, map_id_to_shortname
 
 if __name__ == '__main__': 
     # Record the start time
@@ -34,25 +34,6 @@ if __name__ == '__main__':
     indices_all = loaded_data["indices_all"]
     energy  = energy_uniq[indices_all]
     dp_og = dp_og_uniq[indices_all]
-    
-    if "Gao" in predata:
-        pair_uniq = loaded_data["pair_uniq"]
-        pair = pair_uniq[indices_all]
-        
-    if "Hata" in predata:
-        pair_uniq = loaded_data["pair_uniq"]
-        pair = pair_uniq[indices_all]
-        type_uniq = loaded_data["type_uniq"]
-        type = type_uniq[indices_all]
-        
-    
-    # if "Machinek" in predata:
-        # seq_uniq = loaded_data["seq_uniq"]
-        # shortname_uniq = loaded_data["shortname_uniq"]
-        # incbinvpair_uniq = loaded_data["incbinvpair_uniq"]
-        # seq = seq_uniq[indices_all]
-        # shortname = shortname_uniq[indices_all]
-        # incbinvpair = incbinvpair_uniq[indices_all]
    
     
     print(f"[Plot] Loading time data from {timedata}")
@@ -88,53 +69,24 @@ if __name__ == '__main__':
                 pca_coords_uniq, phate_coords_uniq, id_uniq_name,
                 )
     
-    if "Gao" in predata:
-        plt_args = (*plt_args, 
-                    pair_uniq, pair)
-        
-    if "Hata" in predata:
-        plt_args = (*plt_args, 
-                    pair_uniq, pair,
-                    type_uniq, type)
-
     # Sort trajectories by their hold time
     print(f"[Plot] Sorting trajectories by their reaction time")
     
-    if "Hata" in predata:
-        df, dfsucc, dffail = sort_hata(plt_args)
-        
-    elif "Gao" in predata:
-        df, dfall = sort_gao(plt_args)
-    
-    # TODO
-    else:
-        df, dfall = sort_machinek(plt_args)
+    df, dfall = sort_machinek(plt_args)
     
     
     # Make the plot
     print(f"[Plot] Making plot")    
+
+    # for vis in ["PCA","PHATE"]:
+    for vis in ["PHATE"]:
+        plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
         
-    if "Hata" in predata:
-        fig = plot_hata(df,dfsucc,dffail,vis='PHATE')
-        savename = outpath
+        fig = plot_machineck(df,dfall,vis=vis)
+        savename = outpath+"_"+vis+".html"
         fig.write_html(savename)
-        
-    elif "Gao" in predata:
-        fig = plot_gao(df,dfall,vis='PHATE')
-        savename = outpath
-        fig.write_html(savename)
+        print(f"[Plot] Plot saved to {savename}")
     
-    # TODO
-    else:
-        # for vis in ["PCA","PHATE"]:
-        for vis in ["PHATE"]:
-            plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
-            
-            fig = plot_machineck(df,dfall,vis=vis)
-            savename = outpath+"_"+vis+".html"
-            fig.write_html(savename)
-            print(f"[Plot] Plot saved to {savename}")
-        
     print(f"[Plot] Done!")
     
     # Record the end time
