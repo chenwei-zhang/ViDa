@@ -322,9 +322,4 @@ if __name__ == "__main__":
 
 
 # Example: from the machinek directory run
-    # python sample_trajs.py --row 6 --nsims 5 --save_id test
-
-# Arguments: 
-    # "row" is the reaction to pull from the csv file 
-    # "nsims" is the the number of FSM samples
-    # save_id is appended to the experiment id when the hdf5 file is saved
+    # python sample_trajs_machinek.py --row 0 --nsims 10 --save_id test --timestep 1e-7
