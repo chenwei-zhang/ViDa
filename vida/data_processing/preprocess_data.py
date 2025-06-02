@@ -29,7 +29,7 @@ def main():
     energies = loaded_data["trajs_energies"]
         
     print("[Preprocess] Preprocess Machinek data")
-    ref_name_list = loaded_data["ref_name_list"]
+    base_names = loaded_data["base_names"]
     trajs_ids = loaded_data["trajs_ids"]
     dp, dp_og, energy, trans_time, order_cid = concat_machinek(states, times, energies, trajs_ids)
 
@@ -47,7 +47,7 @@ def main():
     "indices_uniq": indices_uniq,
     "indices_all": indices_all,
     "trans_time": trans_time,
-    "ref_name_list": np.array(ref_name_list, dtype=object),
+    "base_names": np.array(base_names, dtype=object),
     }
     
     # save the data to npz file

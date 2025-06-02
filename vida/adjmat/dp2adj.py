@@ -5,57 +5,29 @@ import tqdm
 ############### Three-Strand Structure ###############
 ####################################################
 
-def solve_order(order_id, ref_name_list):
-    """ 
-    0 refers to the incumbent (33), denoted as "a"
-    1 refers to the substrate (27), denoted as "b"
-    2 refers to the invader (24),   denoted as "c"
-    default ref_name_list order: a, b, c 
-    """
+def reorder_base_names(order_id, base_names):
     
-    if order_id == [(0, 1, 2)] or order_id == [(0, 1),(2,)] or order_id == [(0,),(1, 2)]:
-        alter_name = np.concatenate([ref_name_list[0], ref_name_list[1], ref_name_list[2]])
-    
-    elif order_id == [(0, 2, 1)] or order_id == [(0, 2),(1,)] or order_id == [(0,),(2, 1)]:
-        alter_name = np.concatenate([ref_name_list[0], ref_name_list[2], ref_name_list[1]])
-                
-    else:
-        print(order_id)
-        raise ValueError("Invalid reaction ordering")
-    
-    return alter_name
+    return np.array([base for cmplx in order_id for strand in cmplx for base in base_names[strand]])
 
 
+# convert dot-parenthesis notation to undirected graph (adjacency matrix representation)
+def dp2adj_3strand(base_names_reordered, dp_structure, nodes):
 
-# convert dot-parenthesis notation to adjacency matrix for three-strand
-def dp2adj_3strand(ref_name, alter_name, dp_structure):
-    # construct backbone edges
-    def build_consecutive_edges(input_list):
-        edges = [(input_list[i], input_list[i+1]) for i in range(len(input_list)-1)]
-        
-        return edges
+    # build backbone edges
+    backbones = [(base_names_reordered[i],base_names_reordered[i+1]) for i in range(len(base_names_reordered)-1) if base_names_reordered[i][0]==base_names_reordered[i+1][0]]
 
-     # build backbone edges
-    all_backbone_edges = build_consecutive_edges(alter_name)
-    # remove cross-strand edges
-    backbones = []
-    for edge in all_backbone_edges:
-        # Only keep edges that connect nucleotides with the same prefix (a-a, b-b, c-c)
-        if edge[0][0] == edge[1][0]:
-            backbones.append(edge)
-            
     # build base pair edges
     stack = []  # Initialize stack to keep track of opening brackets
     base_pairs = []  # Initialize list to store pairs    
     
-    for name, char in zip(alter_name, dp_structure):
+    for base, char in zip(base_names_reordered, dp_structure):
         
         if char == '(':
-            stack.append(name)  # Push index of opening bracket onto stack
+            stack.append(base)  # Push index of opening bracket onto stack
         elif char == ')':
             if stack:
-                opening_index = stack.pop()  # Pop top index from stack
-                base_pairs.append((opening_index, name))  # Create a pair
+                other_base = stack.pop()  # Pop top index from stack
+                base_pairs.append((other_base, base))  # Create a pair
             else:
                 print("Error: Mismatched brackets")
                 return None
@@ -65,11 +37,7 @@ def dp2adj_3strand(ref_name, alter_name, dp_structure):
         return None
     
     # collect all edges
-    all_pairs = backbones + base_pairs
- 
-    # assign nodes and edges
-    nodes = ref_name.tolist() 
-    edges = all_pairs 
+    edges = backbones + base_pairs
 
     # Initialize adjacency matrix with zeros
     adjacency_matrix = np.zeros((len(nodes), len(nodes)), dtype=int)
@@ -85,13 +53,14 @@ def dp2adj_3strand(ref_name, alter_name, dp_structure):
 
     
 
-def sim_adj_3strand(dps, orders, ref_name_list):
+def construct_adj_matrices(dps, orders, base_names):
     
-    ref_name = np.concatenate([ref_name_list[0], ref_name_list[1], ref_name_list[2]])
-    adj_mtr = []
-    
+    nodes = sorted(base for strand in base_names for base in strand)
+
+    adj_matrices = []
+
     for dp, order_id in tqdm.tqdm(zip(dps, orders), total=len(dps)):
-        alter_name = solve_order(order_id, ref_name_list)
-        adj_mtr.append(dp2adj_3strand(ref_name, alter_name, dp))
+        base_names_reordered = reorder_base_names(order_id, base_names)
+        adj_matrices.append(dp2adj_3strand(base_names_reordered, dp, nodes))
     
-    return np.array(adj_mtr)
+    return np.array(adj_matrices)

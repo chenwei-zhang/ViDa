@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
 import time
-from dp2adj import sim_adj_3strand
+from dp2adj import construct_adj_matrices
 
 
 if __name__ == '__main__':
@@ -29,11 +29,11 @@ if __name__ == '__main__':
     loaded_data = np.load(inpath, allow_pickle=True)
         
     if num_strand == 3:
-        ref_name_list = loaded_data["ref_name_list"]
+        base_names = loaded_data["base_names"]
         dp_uniq = loaded_data["dp_uniq"]
         id_uniq = loaded_data["id_uniq"]
         # convert dot-parenthesis notation to adjacency matrix
-        adj_uniq = sim_adj_3strand(dp_uniq, id_uniq, ref_name_list)    
+        adj_uniq = construct_adj_matrices(dp_uniq, id_uniq, base_names)    
                             
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")

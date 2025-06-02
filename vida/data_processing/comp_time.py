@@ -4,25 +4,25 @@ import time
 import tqdm
 
 
-def sim_ht(trans_time):
-    """calculate holding time for each trajectory
+def empirical_holding_times(arrival_times):
     """
-    hold_time = np.array([])
-    idx = np.where(trans_time==0)[0]
-    
-    for i in tqdm.tqdm(range(len(idx))):
-        if i < len(idx)-1:
-            temp_t = trans_time[idx[i]:idx[i+1]]
-            hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
-        else:
-            temp_t = trans_time[idx[i]:]
-            hold_time = np.append(hold_time,np.concatenate([np.diff(temp_t),[0]]))
-    
-    # get each individual trajectory's index
-    temp = np.append(idx, len(trans_time))
-    trj_id = (temp-1)[1:]
+    calculate the empirical holding time of each state, along each trajectory
+    """
 
-    return hold_time, trj_id
+    # get each individual trajectory's index
+    starts = np.where(arrival_times==0)[0]
+    ends = np.append(starts[1:]-1, len(arrival_times)-1)
+    
+    hold_time = np.array([])
+    for i in tqdm.tqdm(range(len(starts))):
+        if i < len(starts)-1:
+            times = arrival_times[starts[i]:starts[i+1]]
+        else:
+            times = arrival_times[starts[i]:]
+
+        hold_time = np.append(hold_time,np.concatenate([np.diff(times),[0]])) 
+
+    return hold_time, ends
 
 
 # calulate the average time fraction of unique states
@@ -30,13 +30,9 @@ def mean_holdingtime(hold_time, indices_uniq, indices_all):
     """calculate the average time fraction of each unique state
         based on the coordination number: indices_all
     """
-    hold_time_uniq = np.empty(len(indices_uniq))
-    
-    for i in tqdm.tqdm(range(len(indices_uniq))):
-        ht_temp = np.where(i==indices_all)[0]
-        hold_time_uniq[i] = sum(hold_time[ht_temp])/len(ht_temp)
 
-    return hold_time_uniq
+    cum_time_uniq, freq_uniq = cumu_holdingtime(hold_time, indices_uniq, indices_all)
+    return cum_time_uniq/freq_uniq
 
 
 # calulate the cumulative time fraction of unique states
@@ -83,7 +79,7 @@ if __name__ == '__main__':
     print("[Comp_time] Calculating holding time for each trajectory")
 
     # get the holding time for each trajectory
-    hold_time, trj_id = sim_ht(trans_time)
+    hold_time, trj_id = empirical_holding_times(trans_time)
     
     # calculate the average (unique) holding time
     print("[Comp_time] Calculating the average holding time for each unique state")

@@ -95,9 +95,7 @@ def main():
         strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
         strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'
         
-    # incb + sub + inv ==> a + b + c
-    ref_strands = strand_incb + '+' + strand_sub + '+' + strand_inv   
-    ref_name_list = assign_base_names(ref_strands)
+    base_names = assign_base_names(strand_incb, strand_sub, strand_inv)
     
     # Load data
     fpath = os.path.join(inpath, f"{rxn}.hdf5")
@@ -120,7 +118,7 @@ def main():
     "trajs_times": trajs_times,
     "trajs_energies": trajs_energies,
     "trajs_ids": trajs_ids,
-    "ref_name_list": ref_name_list,
+    "base_names": base_names,
     }
     
     # Save the data to the file using pickle

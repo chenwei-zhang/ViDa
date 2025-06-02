@@ -2,12 +2,13 @@ import numpy as np
 import copy
 import re
 import tqdm
-
+import h5py as h5
+from string import ascii_lowercase
 
 
 # get the unique structures and their corresponding indices
 def get_uniq(dp, dp_og, energy, order_cid=None, pair=None):
-        
+
     dp_og_uniq, indices_uniq, indices_all = np.unique(dp_og,return_index=True,return_inverse=True)
     
     dp_uniq = dp[indices_uniq]
@@ -32,23 +33,19 @@ def get_uniq(dp, dp_og, energy, order_cid=None, pair=None):
        
 
 def read_machinek(fpath, num_traj):
-    def _read_trajectory_h5(fpath, sim_no): 
-        import h5py as h5
-        with h5.File(fpath, "r") as f:
+    trajs_states, trajs_times, trajs_energies, trajs_ids  = [],[],[], []
+
+    with h5.File(fpath, "r") as f:
+        for sim_no in tqdm.tqdm(range(num_traj)):
             times = f[str(sim_no)]["times"][:]
             energies = f[str(sim_no)]["energies"][:]
             structs = [s.decode() for s in f[str(sim_no)]["structs"]]          
-            ids = [s.decode() for s in f[str(sim_no)]["ordered_ids"]]
-        return times, energies, structs, ids
-        
-    trajs_states, trajs_times, trajs_energies, trajs_ids  = [],[],[], []
+            ids = [s.decode() for s in f[str(sim_no)]["ordered_ids"]]       
 
-    for i in tqdm.tqdm(range(num_traj)):
-        traj = _read_trajectory_h5(fpath, i)
-        trajs_times.append(traj[0])
-        trajs_energies.append(traj[1])
-        trajs_states.append(traj[2])
-        trajs_ids.append(traj[3])
+            trajs_times.append(times)
+            trajs_energies.append(energies)
+            trajs_states.append(structs)
+            trajs_ids.append(ids)
     
     trajs_times = np.array(trajs_times, dtype=object)
     trajs_energies = np.array(trajs_energies, dtype=object)
@@ -92,17 +89,16 @@ def concat_machinek(states, times, energies, trajs_ids):
 
  
 # assign unique identifier to each base
-def assign_base_names(sequence):
-    split_sequence = re.split(r'\s|\+', sequence)
-    base_names = []
+def assign_base_names(*sequences):
+    """ 
+    0 refers to the incumbent (33), denoted as "a"
+    1 refers to the substrate (27), denoted as "b"
+    2 refers to the invader (24),   denoted as "c"
+    default base_names order: a, b, c 
+    """
 
-    for strand_index, strand in enumerate(split_sequence):
-        strand_names = []
-        
-        for base_index, base_type in enumerate(strand):
-            strand_names.append(f'{chr(ord("a") + strand_index)}{base_index + 1}')
-            
-        base_names.append(strand_names)
+    base_names = [ [f'{ascii_lowercase[strand_index]}{base_index + 1}' for base_index in range(len(strand))]
+                    for strand_index, strand in enumerate(sequences)]    
     
     return base_names
 
