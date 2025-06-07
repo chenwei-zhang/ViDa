@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
 import time
-from mpt_ged import get_all_edges, build_wdg, calculate_mpt, calculate_ged, calculate_prob
+from mpt_ged import get_transitions, build_wdg, calculate_mpt, calculate_ged, calculate_prob
 
 
 if __name__ == '__main__':
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     loaded_data = np.load(holdtime)
         
     hold_time_uniq = loaded_data["hold_time_uniq"]
-    trj_id = loaded_data["trj_id"]
+    endpoints = loaded_data["trj_id"]
     
     
     print(f"[Comp_dist] Loading adjacency matrix from {adjmat}")
@@ -47,19 +47,19 @@ if __name__ == '__main__':
     # Build the edges
     print("[Comp_dist] Building the edges")
     
-    all_edges = get_all_edges(indices_all, trj_id)
+    transitions = get_transitions(indices_all, endpoints) 
     
     
     # Construct the modified weighted undirected graph
     print("[Comp_dist] Constructing the weighted directed graph")
     
-    DG = build_wdg(all_edges, hold_time_uniq)
+    DG = build_wdg(transitions, hold_time_uniq) 
     
     
     # Calculate the graph edit distance between X_i and x_dj
     print("[Comp_dist] Computing the minimum passage time distance")
     
-    x_dj, d_ij = calculate_mpt(DG)
+    x_dj, d_ij = calculate_mpt(DG) 
     
     
     # Calculate the graph edit distance between X_i and x_ej
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     # Calculate the probability of being visited during a simulated trajectory
     print("[Comp_dist] Computing the node probability")
     
-    p_i = calculate_prob(indices_all, trj_id, hold_time_uniq)
+    p_i = calculate_prob(indices_all, endpoints, len(hold_time_uniq))
     
     
     # save pickle file for shortest path

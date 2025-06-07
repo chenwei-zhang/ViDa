@@ -1,148 +1,178 @@
 import numpy as np
 import networkx as nx
-import heapq
 from annoy import AnnoyIndex
 import tqdm
 
-# Build the edges
-def get_all_edges(indices_all, trj_id):
-    all_nodes = indices_all
-    all_edges = []
+def get_transitions(indices_all, endpoints):
     
-    # Create a boolean mask to track which edges to keep
-    keep_edge = [True] * (len(all_nodes) - 1)
-    
-    # Mark edges to delete
-    for idx in trj_id[:-1]:
-        keep_edge[idx] = False
-    
-    # Remove the deleted edges
-    for i, (previous, current) in enumerate(zip(all_nodes, all_nodes[1:])):
-        if keep_edge[i]:
-            all_edges.append((previous, current))
-    
-    return all_edges
+    '''
+    Returns the sampled elementary transitions 
+    '''
+
+    edges = [(indices_all[i], indices_all[i+1]) for i in range(len(indices_all)-1) if i not in endpoints[:-1]]
+
+    return np.unique(edges, axis=0)
 
 
-# construct weighted directed graph
-def build_wdg(all_edges, hold_time_uniq):
-    DG = nx.DiGraph()
-    
-    # Explicitly add all nodes
-    all_nodes = set()
-    for edge in all_edges:
-        all_nodes.add(int(edge[0]))
-        all_nodes.add(int(edge[1]))
-    
-    # Add missing nodes
-    max_node = max(all_nodes)
-    for node_id in range(max_node + 1):
-        if node_id not in all_nodes:
-            DG.add_node(node_id)
-    
+def build_wdg(transitions, hold_time_uniq):
+
+    '''
+    Returns a graph for the sampled Multistrand states and transitions
+        Nodes: sampled secondary structures  
+        Edges: sampled elementary transitions
+        Weights: weight of (i -> j) is the empirical holding time of state i (independent of j)   
+    '''
+
+    # TODO: Instead of the empirical holding time for the weights, consider: 
+    #  (a) empirical transition time
+    #  (b) expected holding time, or
+    #  (c) expected transition time  
+
+    # TODO: Use enumerated transitions rather than sampled transitions
+ 
+    G = nx.DiGraph()
+  
+    # Add nodes
+    state_ids = range(len(hold_time_uniq))
+    G.add_nodes_from(state_ids)
+
     # Add edges
-    for i in range(len(all_edges)):
-        weight = hold_time_uniq[all_edges[i][0]]
-        DG.add_edge(int(all_edges[i][0]), int(all_edges[i][1]), weight=float(weight))
-    
-    return DG  
+    weighed_edges = [(transitions[i][0], transitions[i][1], hold_time_uniq[transitions[i][0]]) for i in range(len(transitions))]
+    G.add_weighted_edges_from(weighed_edges)
+   
+    return G  
 
 
-def dijkstra_n_shortest_paths(graph, source, n_neigh=100):
-    # Initialize data structures
-    visited = set()
-    distances = {node: float('infinity') for node in graph}
-    distances[source] = 0
-    priority_queue = [(0, source)]
-    paths = []
+def calculate_mpt(G, k=100):
 
-    # Main loop
-    while priority_queue and len(paths) < n_neigh:
-                
-        _, current_node = heapq.heappop(priority_queue)
+    '''
+    Uses the digraph representation of the sampled Multistrand states/transitions 
+    to calculate a time-based distance from each state to its nearest k states
+ 
+    dist(x0,xn) = min_{all paths x0->x1...->xn in G} sum_{i=0}^{n-1} edge-weight(xi->x{i+1}) 
+                = min_{all paths x0->x1...->xn in G} sum_{i=0}^{n-1} empirical-holding-time(xi)
+
+    Returns: 
+        nearest_neighbours[i]: 
+            indices of the k states nearest to state i (ties broken arbitrarily)
+        nearest_distances[i][k]: 
+            the distance between state i and state nearest_distances[i][k], 
+    '''
+
+    n_states = len(G.nodes)
+
+    # initalize each node's k nearest neighbours as itself, with distance 0.0
+    nearest_distances = np.zeros((n_states, k), dtype=float)
+    nearest_neighbours = np.tile(np.arange(n_states),(k,1)).T 
+
+    # TODO: consider using NetworKit implementation of all-pairs-shortest-path 
+    # TODO: tune cutoff based on graph size/properties 
+    results = nx.all_pairs_dijkstra_path_length(G, cutoff=10e-8)
+   
+    for r in results:
+
+        source = r[0]
+        distances = r[1]
         
-        if current_node in visited:
-            continue
+        sorted_distances = np.array(sorted(distances.items(), key=lambda item: item[1]))
 
-        visited.add(current_node)
+        k0 = min(k, sorted_distances.shape[0])
 
-        for neighbor, weight in graph[current_node].items():
-            if neighbor not in visited:
-                tentative_distance = distances[current_node] + weight['weight']
-
-                if tentative_distance < distances[neighbor]:
-                    distances[neighbor] = tentative_distance
-                    heapq.heappush(priority_queue, (tentative_distance, neighbor))
-                            
-        paths.append((source, current_node, distances[current_node]))
+        nearest_neighbours[source,:k0] = sorted_distances[:k0,0]
+        nearest_distances[source,:k0] = sorted_distances[:k0,1]
         
-    return np.array(paths)
+    # normalize distances
+    min_val = np.min(nearest_distances)
+    max_val = np.max(nearest_distances)
+    norm_dij = (nearest_distances - min_val) / (max_val - min_val) 
+
+    return nearest_neighbours, norm_dij
 
 
-def calculate_mpt(G,n_neigh=100):
-    x_dj, d_ij = [], []
-    
-    for  i in tqdm.tqdm(range(len(G.nodes))):
-        # calculate the shortest path from node i to its 100 nearest neighbors including itself
-        shortest_path_i = dijkstra_n_shortest_paths(G, i)
-        x_dj.append(shortest_path_i[:,1].astype(int))
-        d_ij.append(shortest_path_i[:,2].astype(float))
-        
-        # pad the x_dj and d_ij to the same length
-        if len(x_dj[i]) < n_neigh:
-            x_dj[i] = np.pad(x_dj[i], (0, n_neigh-len(x_dj[i])), 'constant', constant_values=i)
-            d_ij[i] = np.pad(d_ij[i], (0, n_neigh-len(d_ij[i])), 'constant', constant_values=0)
-    
-    # normalize the d_ij
-    min_val = np.min(d_ij)
-    max_val = np.max(d_ij)
-    norm_dij = (d_ij - min_val) / (max_val - min_val) 
-    
-    return np.array(x_dj, dtype=int), norm_dij
+def calculate_ged(adj_uniq,k=100):
 
+    '''
+    Uses the adjacency matrix representation of the secondary structures
+    to calculate a distance proportional to the number of elementary steps.
 
-def calculate_ged(adj_uniq,n_neigh=100):
-    x_ej, e_ij = [], []
+    dist(x,y) = 2 * min. no. elementary steps separating x and y
+ 
+    Returns: 
+        nearest_neighbours[i]: 
+            indices of the k states nearest to state i (ties broken arbitrarily)
+        nearest_distances[i][k]: 
+            distance between state i and state nearest_distances[i][k]
+    '''
 
-    num_graphs = len(adj_uniq)
-    num_features = len(adj_uniq[0]) * len(adj_uniq[0][0])
+    # TODO: remove the 2x factor. Rescale loss as necessary 
 
-    # Initialize AnnoyIndex
-    annoy_index = AnnoyIndex(num_features, 'manhattan')
+    n_states = len(adj_uniq)
+    n_bases = len(adj_uniq[0])
+
+    annoy_index = AnnoyIndex(n_bases**2, 'manhattan')
 
     # Add vectors to the index
-    for i, matrix in tqdm.tqdm(enumerate(adj_uniq)):
-        vector = matrix.flatten()
-        annoy_index.add_item(i, vector)
+    for i in range(n_states):
+        annoy_index.add_item(i, adj_uniq[i].flatten())
+
+    # TODO: parameter tuning
+    #       set n_trees as large as possible within memory constraints
+    #       set search_k as large as possible within time constraints
 
     # Build the index
-    annoy_index.build(10)  # may need to tune this parameter
+    annoy_index.build(n_trees=10, n_jobs=-1) 
 
-    for i in tqdm.tqdm(range(num_graphs)):
-        indices, distances = annoy_index.get_nns_by_item(i, n_neigh, include_distances=True)
-        e_ij.append(distances)
-        x_ej.append(indices)
+    nearest_neighbours = np.zeros((n_states,k))
+    nearest_distances = np.zeros((n_states,k))
+
+    for i in tqdm.tqdm(range(n_states)):
+        indices, distances = annoy_index.get_nns_by_item(i, k, search_k=-1, include_distances=True)
+
+        nearest_neighbours[i,:] = indices
+        nearest_distances[i,:] = distances
+
+    return nearest_neighbours, nearest_distances
+
+
+def calculate_prob(indices_all, endpoints, n_states):
+
+    '''
+    Returns: prop[i] = prop. of trajectories in which state i appears at least once
+    '''
+
+    # TODO:
+    #  - The current feature for state i is:  
+    #        state i -> mean_{trajs k} (1_{i appears in k}) 
+    #  - i.e. the mean of a binary variable, for which we only have n_traj samples.
+    #  - This feature could be very unstable and uninformative 
+    #  - Alternatives could be: state i ->  
+    #      - mean_{trajs k} (number of occurences of i in k / number of steps in k)
+    #      - mean_{trajs k} (time spent in i in k / total time of k)
+    #      - (sum_{trajs k} number of occurences of i in k) / (sum_{trajs k} number of steps in k)
+    #      - (sum_{trajs k} time spent in i in k) / (sum_{trajs k} total time of k)
+    #      - equilibrium probability i (calculated from Nupack)
+
+    n_trajs = len(endpoints)
+    trajs = np.split(indices_all, endpoints+1, axis=0)
     
-    return np.array(x_ej), np.array(e_ij)
+    counts = np.zeros((n_trajs, n_states))   
+    for k in tqdm.tqdm(range(n_trajs)):
+        counts[k,:] = np.histogram(trajs[k], bins=n_states, range=(0,n_states))[0]
 
+    # counts[k,i] = no. times that state i appears in trajectory k
+    # obs[i]  = no.   of trajectories in which state i appears at least once
+    # prop[i] = prop. of trajectories in which state i appears at least once
 
-# calculate the probability of being visited during a simulated trajectory 
-def calculate_prob(indices_all, trj_id, hold_time_uniq):
-    split_id = trj_id + 1  # index for split to each trajectory
-    p_i = np.zeros(len(hold_time_uniq))
+    obs = np.sum(counts>0,axis=0)   
 
-    for i in tqdm.tqdm(range(len(split_id))):
-        if i == 0:
-            trj = set(indices_all[0:split_id[i]])
-        else:
-            trj = set(indices_all[split_id[i-1]:split_id[i]])
+    prop = obs / n_trajs # NOTE: corrected .01x scaling error in prev version
 
-        p_i[list(trj)] += 1
-
-    p_i = p_i / 100
-
-    return p_i
+    return prop
 
 
 
-    
+# TODO: 
+# Think about the consequences of having a cutoff at a constant 100 nodes, rather than value-based cuttof 
+#   - Some states may have many more nearby states than others
+#   - there is quite a bit of arbitrary tie-breaking in calculate_ged(). Are results robust to ways of breaking ties?
+# Think about the consequences of a state s being duplicated several times as its own nearest neighbour (in calculate_mpt) 

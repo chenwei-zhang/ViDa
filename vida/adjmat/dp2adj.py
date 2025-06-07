@@ -13,6 +13,8 @@ def reorder_base_names(order_id, base_names):
 # convert dot-parenthesis notation to undirected graph (adjacency matrix representation)
 def dp2adj_3strand(base_names_reordered, dp_structure, nodes):
 
+    # TODO: consider treating backbone and bp edges differently. Maybe backbone edges should be directed, ie 3'->5'? 
+
     # build backbone edges
     backbones = [(base_names_reordered[i],base_names_reordered[i+1]) for i in range(len(base_names_reordered)-1) if base_names_reordered[i][0]==base_names_reordered[i+1][0]]
 

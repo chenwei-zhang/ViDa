@@ -37,16 +37,14 @@ def mean_holdingtime(hold_time, indices_uniq, indices_all):
 
 # calulate the cumulative time fraction of unique states
 def cumu_holdingtime(hold_time, indices_uniq, indices_all):
-    """calculate the average time fraction of each unique state
-        based on the coordination number: indices_all
+    """ 
+    empirical holding time of each unique state
     """
-    cum_time_uniq = np.empty(len(indices_uniq))
-    freq_uniq = np.zeros(len(indices_uniq),dtype=np.int64)
-    
-    for i in tqdm.tqdm(range(len(indices_uniq))):
-        ht_temp = np.where(i==indices_all)[0]
-        cum_time_uniq[i] = sum(hold_time[ht_temp])
-        freq_uniq[i] = len(ht_temp)
+    cum_time_uniq = np.zeros(len(indices_uniq),dtype=float)
+    freq_uniq = np.zeros(len(indices_uniq),dtype=int)
+
+    np.add.at(cum_time_uniq, indices_all, hold_time)
+    np.add.at(freq_uniq, indices_all, 1)
 
     return cum_time_uniq, freq_uniq
 
@@ -79,18 +77,16 @@ if __name__ == '__main__':
     print("[Comp_time] Calculating holding time for each trajectory")
 
     # get the holding time for each trajectory
-    hold_time, trj_id = empirical_holding_times(trans_time)
-    
-    # calculate the average (unique) holding time
-    print("[Comp_time] Calculating the average holding time for each unique state")
-    
-    hold_time_uniq = mean_holdingtime(hold_time, indices_uniq, indices_all)
-
+    hold_time, endpoints = empirical_holding_times(trans_time)
 
     # calculate the cumulative (unique) holding time
     print("[Comp_time] Calculating the cumulative holding time for each unique state")
 
     cum_time_uniq, freq_uniq = cumu_holdingtime(hold_time, indices_uniq, indices_all)
+
+    # calculate the average (unique) holding time
+    print("[Comp_time] Calculating the average holding time for each unique state")
+    hold_time_uniq = cum_time_uniq/freq_uniq
 
     # save time data
     print(f"[Comp_time] Saving time data to {outpath}")
@@ -100,7 +96,7 @@ if __name__ == '__main__':
     "hold_time_uniq": hold_time_uniq,
     "cum_time_uniq": cum_time_uniq,
     "freq_uniq": freq_uniq,
-    "trj_id": trj_id,
+    "trj_id": endpoints,
     }
     
     np.savez_compressed(outpath, **data_to_save)
