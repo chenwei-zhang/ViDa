@@ -61,6 +61,8 @@ def calculate_mpt(G, k=100):
 
     n_states = len(G.nodes)
 
+    k = min(k, n_states) 
+    
     # initalize each node's k nearest neighbours as itself, with distance 0.0
     nearest_distances = np.zeros((n_states, k), dtype=float)
     nearest_neighbours = np.tile(np.arange(n_states),(k,1)).T 
@@ -108,6 +110,8 @@ def calculate_ged(adj_uniq,k=100):
 
     n_states = len(adj_uniq)
     n_bases = len(adj_uniq[0])
+
+    k = min(k, n_states) 
 
     annoy_index = AnnoyIndex(n_bases**2, 'manhattan')
 
