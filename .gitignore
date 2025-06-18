@@ -165,3 +165,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+nupack-4.0.1.12/
+nupack-4.0.1.12.zip
+nupack-4.0.2.0/
+nupack-4.0.2.0.zip

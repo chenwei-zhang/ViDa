@@ -2,13 +2,29 @@ import numpy as np
 import argparse
 import time
 from mpt_ged import get_transitions, build_wdg, calculate_mpt, calculate_ged, calculate_prob
+import pandas as pd
 
+
+def load_raw_data(data_filename, name): 
+   
+    df = pd.read_csv(data_filename)
+
+    row = df[df['reaction_id'] == name].index[0]
+        
+    row_data = df.loc[row]
+
+    sequences = {"incumbent": row_data["incumbent"],
+                 "substrate": row_data["substrate"],
+                 "invader": row_data["invader"]}
+
+    return sequences
 
 if __name__ == '__main__':
     # Record the start time
     start_time = time.time()
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--rxn', required=True, help='Reaction name')
     parser.add_argument('--inpath', required=True, help='preprocessed data, time data')
     parser.add_argument('--holdtime', required=True, help='average holding time for each node')
     parser.add_argument('--adjmat', required=True, help='ajacency matrix for each node')
@@ -16,6 +32,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    reaction_id = args.rxn
     inpath = args.inpath
     holdtime = args.holdtime
     outpath = args.outpath
@@ -24,10 +41,12 @@ if __name__ == '__main__':
     # Load the data
     print(f"[Comp_dist] Loading preprocessed index from {inpath}")
     
-    loaded_data = np.load(inpath)
+    loaded_data = np.load(inpath, allow_pickle=True)
     
     indices_all = loaded_data["indices_all"]
-        
+
+    dp_og_uniq = loaded_data['dp_og_uniq']
+    id_uniq = loaded_data['id_uniq']
     
     print(f"[Comp_dist] Loading average holding time from {holdtime}")
 
@@ -71,7 +90,9 @@ if __name__ == '__main__':
     # Calculate the probability of being visited during a simulated trajectory
     print("[Comp_dist] Computing the node probability")
     
-    p_i = calculate_prob(indices_all, endpoints, len(hold_time_uniq))
+    sequences = load_raw_data("raw_data.csv", reaction_id)
+    sequences_list = [sequences['incumbent'],sequences['substrate'],sequences['invader']]
+    p_i = calculate_prob(dp_og_uniq, id_uniq, sequences_list)
     
     
     # save pickle file for shortest path

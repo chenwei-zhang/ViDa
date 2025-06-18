@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from annoy import AnnoyIndex
 import tqdm
+import nupack as nu 
 
 def get_transitions(indices_all, endpoints):
     
@@ -138,41 +139,26 @@ def calculate_ged(adj_uniq,k=100):
     return nearest_neighbours, nearest_distances
 
 
-def calculate_prob(indices_all, endpoints, n_states):
+def calculate_prob(dp_og_uniq, id_uniq, sequences):
 
     '''
-    Returns: prop[i] = prop. of trajectories in which state i appears at least once
+    Returns: prop[i] = Nupack equilibrium probability of state i
     '''
+  
+    # TODO: add celsius, sodium, magnesium to raw data file and use in Nupack model
+    eq_model = nu.Model(material='dna04-nupack3')
 
-    # TODO:
-    #  - The current feature for state i is:  
-    #        state i -> mean_{trajs k} (1_{i appears in k}) 
-    #  - i.e. the mean of a binary variable, for which we only have n_traj samples.
-    #  - This feature could be very unstable and uninformative 
-    #  - Alternatives could be: state i ->  
-    #      - mean_{trajs k} (number of occurences of i in k / number of steps in k)
-    #      - mean_{trajs k} (time spent in i in k / total time of k)
-    #      - (sum_{trajs k} number of occurences of i in k) / (sum_{trajs k} number of steps in k)
-    #      - (sum_{trajs k} time spent in i in k) / (sum_{trajs k} total time of k)
-    #      - equilibrium probability i (calculated from Nupack)
+    n_states = dp_og_uniq.shape[0]
+    prob = np.zeros(n_states, dtype=float)   
 
-    n_trajs = len(endpoints)
-    trajs = np.split(indices_all, endpoints+1, axis=0)
-    
-    counts = np.zeros((n_trajs, n_states))   
-    for k in tqdm.tqdm(range(n_trajs)):
-        counts[k,:] = np.histogram(trajs[k], bins=n_states, range=(0,n_states))[0]
+    for i in tqdm.tqdm(range(n_states)):
 
-    # counts[k,i] = no. times that state i appears in trajectory k
-    # obs[i]  = no.   of trajectories in which state i appears at least once
-    # prop[i] = prop. of trajectories in which state i appears at least once
-
-    obs = np.sum(counts>0,axis=0)   
-
-    prop = obs / n_trajs # NOTE: corrected .01x scaling error in prev version
-
-    return prop
-
+        strcts = dp_og_uniq[i].split(" ")
+        seqs = [[sequences[s] for s in id_uniq[i][j]] for j in range(len(id_uniq[i]))]
+       
+        prob[i] = np.prod([nu.structure_probability(strands=seqs[j], structure=strcts[j], model=eq_model) for j in range(len(seqs))])
+       
+    return prob
 
 
 # TODO: 
