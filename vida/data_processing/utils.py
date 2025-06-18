@@ -3,7 +3,23 @@ import copy
 import re
 import tqdm
 import h5py as h5
+import pandas as pd
 from string import ascii_lowercase
+
+
+def load_raw_data(data_filename, name): 
+   
+    df = pd.read_csv(data_filename)
+
+    row = df[df['reaction_id'] == name].index[0]
+        
+    row_data = df.loc[row]
+
+    sequences = {"incumbent": row_data["incumbent"],
+                 "substrate": row_data["substrate"],
+                 "invader": row_data["invader"]}
+
+    return sequences
 
 
 # get the unique structures and their corresponding indices

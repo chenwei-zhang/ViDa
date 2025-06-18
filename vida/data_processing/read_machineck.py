@@ -3,7 +3,9 @@ import argparse
 import pickle
 import gzip
 import time
-from utils import read_machinek, assign_base_names
+
+from utils import read_machinek, assign_base_names, load_raw_data
+
 
 
 def main():
@@ -16,89 +18,16 @@ def main():
     args = parser.parse_args()
 
     inpath = args.inpath
-    rxn = args.rxn
+    reaction_id = args.rxn
     outpath = args.outpath
     num_traj = args.num_traj
 
-    if rxn == "Machinek-PRF":
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'  # substrate (or target)
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  # incumbent
-        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'  # invader
-        
-    if rxn == "Machinek-Mismatch2":
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  
-        strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'  
-    
-    if rxn == "Machinek-Mismatch10":
-        strand_sub = 'CCCTCCACATACCTCAAATCACTCACC'
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTGATTTGAGGT'
-        strand_inv = 'GGTGAGTCATTTGAGGTATGTGGA'
-        
-    if rxn == "Machinek-Mismatch14":
-        strand_sub =  'CCCTCCACATTCAACCTCAAACTCACC'
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
-        strand_inv = 'GGTCAGTTTGAGGTTGAATGTGGA'
-        
-    if rxn == "Machinek-Mismatch14C2T":
-        strand_sub =  'CCCTCCACATTCAACCTCAAACTCACC'
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
-        strand_inv = 'GGTTAGTTTGAGGTTGAATGTGGA'
-    
-    if rxn == "Machinek-Mismatch2C2A":
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
-        strand_inv = 'GGTGAGTTTGAGGTTAAATGTGGA'  
-    
-    if rxn == "Machinek-Mismatch2C2T":
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
-        strand_inv = 'GGTGAGTTTGAGGTTTAATGTGGA'  
-        
-    if rxn == "perfect_toehold8":  # incumbent(16) + invader(24) + substrate(26)
-        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
-        strand_incb = 'GGTGAGTTTGAGGTTG'
-        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
-        
-    if rxn == "proximal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
-        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
-        strand_incb = 'GGTGAGTTTGAGGTTG'
-        strand_inv = 'GGTGAGTTTGAGGTTCATGTGGAG'
-        
-    if rxn == "central_toehold8":  # incumbent(16) + invader(24) + substrate(26)
-        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
-        strand_incb = 'GGTGAGTTTGAGGTTG'
-        strand_inv = 'GGTGAGTTTCAGGTTGATGTGGAG'
-        
-    if rxn == "distal_toehold8":  # incumbent(16) + invader(24) + substrate(26)
-        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
-        strand_incb = 'GGTCAGTTTGAGGTTG'
-        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGAG'  
-    
-    if rxn == "perfect_toehold7": # incumbent(16) + invader(23) + substrate(26)
-        strand_sub = 'CCCTCCACATCAACCTCAAACTCACC'
-        strand_incb = 'GGTCAGTTTGAGGTTG'
-        strand_inv = 'GGTGAGTTTGAGGTTGATGTGGA'  
-        
-    if rxn == "perfect_toehold7_dangle": # incumbent(33) + invader(24) + substrate(27)
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC'
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
-        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'
-        
-    if rxn == "proximal_toehold7_dangle":  # incumbent(33) + invader(24) + substrate(27)
-        strand_sub = 'CCCTCCACATTCAACCTCAAACTCACC' 
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'  
-        strand_inv = 'GGTGAGTTTGAGGTTCAATGTGGA'
-        
-    if rxn == "perfect_toehold7_dangle_CC2GG": # incumbent(33) + invader(24) + substrate(27)
-        strand_sub = 'CGGTCCACATTCAACCTCAAACTCACC'
-        strand_incb = 'TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA'
-        strand_inv = 'GGTGAGTTTGAGGTTGAATGTGGA'
-        
-    base_names = assign_base_names(strand_incb, strand_sub, strand_inv)
+    sequences = load_raw_data("raw_data.csv", reaction_id)
+       
+    base_names = assign_base_names(sequences['incumbent'], sequences['substrate'], sequences['invader'])
     
     # Load data
-    fpath = os.path.join(inpath, f"{rxn}.hdf5")
+    fpath = os.path.join(inpath, f"{reaction_id}.hdf5")
     print(f"[Read] Loading data from {fpath}")
     
     trajs_states,trajs_times,trajs_energies,trajs_ids = read_machinek(
