@@ -21,7 +21,6 @@ def map_id_to_shortname(id):
         raise ValueError("Invalid reaction ordering")
     
 
-
 def sort_machinek(plt_args):
     # Load the data
     trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, \
@@ -35,30 +34,37 @@ def sort_machinek(plt_args):
     # Get each trajectory using a single loop
     subtrj_id = (trj_id+1)[:-1]
     sub_arrays = [np.split(arr, subtrj_id) for arr in arrays_to_split]
-    # Process each trajectory to get unique states
-    processed_arrays = [[] for _ in range(len(arrays_to_split))]
-    
-    for i in range(len(sub_arrays[0])):  # For each trajectory
+    sub_dp_og, sub_trans_time, sub_energy, sub_pca_coords, sub_phate_coords, sub_order_ids = [], [], [], [], [], []
+    for i in range(len(sub_arrays[0])):
         dp_og_i = sub_arrays[0][i]
+        sub_trans_time_i = sub_arrays[1][i]
+        energy_i = sub_arrays[2][i]
+        pca_coords_i = sub_arrays[3][i]
+        phate_coords_i = sub_arrays[4][i]
+        order_ids_i = sub_arrays[5][i]
+        # get the unique states
+        dp_og_i_unique, idx = np.unique(dp_og_i, axis=0, return_index=True)
+        energy_i_unique = energy_i[idx]
+        pca_coords_i_unique = pca_coords_i[idx]
+        phate_coords_i_unique = phate_coords_i[idx]
+        order_ids_i_unique = order_ids_i[idx]
+        sub_dp_og.append(dp_og_i_unique)
+        sub_trans_time.append(sub_trans_time_i)
+        sub_energy.append(energy_i_unique)
+        sub_pca_coords.append(pca_coords_i_unique)
+        sub_phate_coords.append(phate_coords_i_unique)
+        sub_order_ids.append(order_ids_i_unique)
         
-        # Get unique states and their indices
-        _, idx = np.unique(dp_og_i, axis=0, return_index=True)
         
-        # Apply uniqueness to relevant arrays
-        processed_arrays[0].append(dp_og_i[idx])           # dp_og (unique)
-        processed_arrays[1].append(sub_arrays[1][i])       # trans_time (all)
-        processed_arrays[2].append(sub_arrays[2][i][idx])  # energy (unique)
-        processed_arrays[3].append(sub_arrays[3][i][idx])  # pca_coords (unique)
-        processed_arrays[4].append(sub_arrays[4][i][idx])  # phate_coords (unique)
-        processed_arrays[5].append(sub_arrays[5][i][idx])  # order_ids (unique)
-    
-    # Sort trajectories by reaction time (last element of trans_time)
-    sorted_indices = np.argsort([arr[-1] for arr in processed_arrays[1]])[::-1]
-    # Apply sorting to all arrays
-    sorted_arrays = [np.array(arr, dtype=object)[sorted_indices] for arr in processed_arrays]
+    # Use zip to unpack the sub-arrays into separate variables if needed
+    sub_dp_og, sub_trans_time, sub_energy, sub_pca_coords, sub_phate_coords, sub_order_ids = sub_arrays
+    # Sort the trajectories by reaction time
+    sorted_indices = np.argsort([sub_array[-1] for sub_array in sub_trans_time])[::-1]
+    # Use list comprehension and zip to sort all arrays simultaneously
+    sorted_arrays = [np.array(arr,dtype=object)[sorted_indices] for arr in sub_arrays] 
     # Unpack the sorted arrays into separate variables
     sorted_sub_dp_og, sorted_sub_trans_time, sorted_sub_energy, sorted_sub_pca_coords, sorted_sub_phate_coords, sorted_sub_order_ids = sorted_arrays
-    
+        
     # make dataframe for plotting   
     df = pd.DataFrame(data={
                 "Energy": energy_uniq, "DP": dp_og_uniq, "HT": hold_time_uniq,
@@ -441,5 +447,5 @@ def plot_machineck_png(df, dfall, vis, output_dir):
         
         print(f"Saved trajectory {dfall['IDX'][i]} to {output_file}")
         
-        if i == 5:
+        if i == 10:
             break
