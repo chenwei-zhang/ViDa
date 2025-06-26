@@ -21,3 +21,10 @@ conda activate vida_env
 ```bash
 pip install -r requirements.txt
 ```
+
+### 4. Install GSAE package
+```bash
+git clone https://github.com/KrishnaswamyLab/GSAE.git
+cd GSAE
+pip install -e . --no-deps
+```
