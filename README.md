@@ -28,3 +28,8 @@ git clone https://github.com/KrishnaswamyLab/GSAE.git
 cd GSAE
 pip install -e . --no-deps
 ```
+
+### 5. Install NUPACK
+```unzip -q nupack-4.0.2.0.zip
+pip install -U nupack -f nupack-4.0.2.0/package
+```
