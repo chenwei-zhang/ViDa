@@ -10,17 +10,16 @@ from utils import read_machinek, assign_base_names, load_raw_data
 
 def main():
     parser = argparse.ArgumentParser(description='Load Data')
-    parser.add_argument('--inpath', required=True, help='Path to input data file')
     parser.add_argument('--rxn', required=True, help='Reaction name')
     parser.add_argument('--num_traj', required=True, type=int, help='Number of files')
-    parser.add_argument('--outpath', required=True, help='output file path')
     
     args = parser.parse_args()
 
-    inpath = args.inpath
     reaction_id = args.rxn
-    outpath = args.outpath
     num_traj = args.num_traj
+
+    inpath = "vida/data/raw_data/machinektest"
+    outpath = "vida/data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
 
     sequences = load_raw_data("raw_data.csv", reaction_id)
        
@@ -39,7 +38,6 @@ def main():
     print(f"[Read] Saving preprocessed data to {outpath}")
     
     outpath_dir = os.path.dirname(outpath)
-    print(outpath_dir)
     os.makedirs(outpath_dir, exist_ok=True)
     
     data_to_save = {

@@ -9,16 +9,16 @@ from vida_model import VIDA, Encoder, Decoder, Regressor
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', required=True, help='load dataloader')
-    parser.add_argument('--fconfig', required=True, help='config file')
-    parser.add_argument('--outpath', required=True, help='output dataloader')
+    parser.add_argument('--rxn', required=True, help='Reaction name')
 
     args = parser.parse_args()
 
-    data = args.data
-    fconfig = args.fconfig
-    outpath = args.outpath
-        
+    reaction_id = args.rxn
+
+    data = "vida/data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
+    fconfig = "vida/data/post_data/{}/config_template.json".format(reaction_id)
+    outpath = "vida/data/post_data/{}".format(reaction_id)
+
     # Load the data
     print(f"[Train] Loading dataloader from {data}")
     

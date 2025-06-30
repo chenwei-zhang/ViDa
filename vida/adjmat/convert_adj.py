@@ -9,16 +9,17 @@ if __name__ == '__main__':
     start_time = time.time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--inpath', required=True, help='preprocessed data file')
-    parser.add_argument('--outpath', required=True, help='output adjacency matrix')
     parser.add_argument('--num_strand', type=int, default=3, help='number of strands')
+    parser.add_argument('--rxn', required=True, help='Reaction name')
         
     args = parser.parse_args()
 
-    inpath = args.inpath
+    reaction_id = args.rxn
     num_strand = args.num_strand
-    outpath = args.outpath
-    
+
+    inpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    outpath = "vida/data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
+
     
     # Load the data
     print(f"[dp2adj] Loading preprocessed dp_uniq from {inpath}")

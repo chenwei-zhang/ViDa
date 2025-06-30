@@ -9,14 +9,16 @@ from utils import concat_machinek, get_uniq
 
 def main():
     parser = argparse.ArgumentParser(description='Load Data')
-    parser.add_argument('--inpath', required=True, help='Path to input pickle data file')
-    parser.add_argument('--outpath', required=True, help='Output pickle file path')
+    parser.add_argument('--rxn', required=True, help='Reaction name')
     
     args = parser.parse_args()
 
-    inpath = args.inpath
-    outpath = args.outpath
-    
+    reaction_id = args.rxn
+
+    inpath = "vida/data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
+    outpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+
+   
     print(f"[Preprocess] Loading data from {inpath}")
     
     # Load the data

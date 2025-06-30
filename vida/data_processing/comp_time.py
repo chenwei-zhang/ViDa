@@ -56,14 +56,16 @@ if __name__ == '__main__':
     start_time = time.time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--inpath', required=True, help='preprocessed data file')
-    parser.add_argument('--outpath', required=True, help='output time data')
+    parser.add_argument('--rxn', required=True, help='Reaction name')
 
     args = parser.parse_args()
 
-    inpath = args.inpath
-    outpath = args.outpath
-    
+    reaction_id = args.rxn
+
+    inpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    outpath = "vida/data/post_data/{}/time_{}.npz".format(reaction_id, reaction_id)
+
+
     # Load the data
     print(f"[Comp_time] Loading preprocessed trans_time and index from {inpath}")
 

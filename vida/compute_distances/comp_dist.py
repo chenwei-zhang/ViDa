@@ -25,19 +25,17 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--rxn', required=True, help='Reaction name')
-    parser.add_argument('--inpath', required=True, help='preprocessed data, time data')
-    parser.add_argument('--holdtime', required=True, help='average holding time for each node')
-    parser.add_argument('--adjmat', required=True, help='ajacency matrix for each node')
-    parser.add_argument('--outpath', required=True, help='output minimum passage time distance')
 
     args = parser.parse_args()
 
     reaction_id = args.rxn
-    inpath = args.inpath
-    holdtime = args.holdtime
-    outpath = args.outpath
-    adjmat = args.adjmat
-    
+
+    inpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    holdtime = "vida/data/post_data/{}/time_{}.npz".format(reaction_id, reaction_id)
+    adjmat = "vida/data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
+    outpath = "vida/data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
+
+
     # Load the data
     print(f"[Comp_dist] Loading preprocessed index from {inpath}")
     

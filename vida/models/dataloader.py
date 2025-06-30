@@ -11,19 +11,17 @@ if __name__ == '__main__':
     start_time = time.time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--predata', required=True, help='preprocessed data file')
-    parser.add_argument('--scatter', required=True, help='scatter transform data file')
-    parser.add_argument('--dist', required=True, help='distance data file')
-    parser.add_argument('--fconfig', required=True, help='config file')
-    parser.add_argument('--outpath', required=True, help='output dataloader')
+    parser.add_argument('--rxn', required=True, help='Reaction name')
 
-    args = parser.parse_args()
+    args = parser.parse_args()    
+    reaction_id = args.rxn
 
-    predata = args.predata
-    scatter = args.scatter
-    dist = args.dist
-    fconfig = args.fconfig
-    outpath = args.outpath
+    predata = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    scatter = "vida/data/post_data/{}/scatt_{}.npz".format(reaction_id, reaction_id)
+    dist = "vida/data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
+    fconfig = "vida/data/post_data/{}/config_template.json".format(reaction_id)
+    outpath = "vida/data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
+
         
     # Load the data
     print(f"[Dataloader] Loading preprocessed data from {predata}")
