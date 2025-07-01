@@ -20,7 +20,7 @@ python vida/scatter_transform/adj2scatt.py --rxn $NAME
 
 
 # ##
-cp vida/models/config_template.json vida/data/post_data/$NAME/config_template.json
+cp vida/models/config_template.json data/post_data/$NAME/config_template.json
 python vida/models/dataloader.py --rxn $NAME 
 
 

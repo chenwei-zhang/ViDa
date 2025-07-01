@@ -15,8 +15,8 @@ def main():
 
     reaction_id = args.rxn
 
-    inpath = "vida/data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
-    outpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    inpath = "data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
+    outpath = "data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
 
    
     print(f"[Preprocess] Loading data from {inpath}")

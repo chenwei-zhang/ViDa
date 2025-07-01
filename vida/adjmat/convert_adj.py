@@ -17,8 +17,8 @@ if __name__ == '__main__':
     reaction_id = args.rxn
     num_strand = args.num_strand
 
-    inpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
-    outpath = "vida/data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
+    inpath = "data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    outpath = "data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
 
     
     # Load the data

@@ -18,10 +18,10 @@ def main():
     reaction_id = args.rxn
     num_traj = args.num_traj
 
-    inpath = "vida/data/raw_data/machinektest"
-    outpath = "vida/data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
+    inpath = "data/raw_data/machinektest"
+    outpath = "data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
 
-    sequences = load_raw_data("raw_data.csv", reaction_id)
+    sequences = load_raw_data("data/raw_data.csv", reaction_id)
        
     base_names = assign_base_names(sequences['incumbent'], sequences['substrate'], sequences['invader'])
     

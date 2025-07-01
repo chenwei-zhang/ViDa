@@ -14,8 +14,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     reaction_id = args.rxn
         
-    inpath = "vida/data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
-    outpath = "vida/data/post_data/{}/scatt_{}.npz".format(reaction_id, reaction_id)
+    inpath = "data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
+    outpath = "data/post_data/{}/scatt_{}.npz".format(reaction_id, reaction_id)
 
     # Load the data
     print(f"[adj2scatt] Loading preprocessed adj_uniq from {inpath}")

@@ -16,11 +16,11 @@ if __name__ == '__main__':
     args = parser.parse_args()    
     reaction_id = args.rxn
 
-    predata = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
-    scatter = "vida/data/post_data/{}/scatt_{}.npz".format(reaction_id, reaction_id)
-    dist = "vida/data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
-    fconfig = "vida/data/post_data/{}/config_template.json".format(reaction_id)
-    outpath = "vida/data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
+    predata = "data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    scatter = "data/post_data/{}/scatt_{}.npz".format(reaction_id, reaction_id)
+    dist = "data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
+    fconfig = "data/post_data/{}/config_template.json".format(reaction_id)
+    outpath = "data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
 
         
     # Load the data

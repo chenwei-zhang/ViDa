@@ -30,10 +30,10 @@ if __name__ == '__main__':
 
     reaction_id = args.rxn
 
-    inpath = "vida/data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
-    holdtime = "vida/data/post_data/{}/time_{}.npz".format(reaction_id, reaction_id)
-    adjmat = "vida/data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
-    outpath = "vida/data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
+    inpath = "data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
+    holdtime = "data/post_data/{}/time_{}.npz".format(reaction_id, reaction_id)
+    adjmat = "data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
+    outpath = "data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
 
 
     # Load the data
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Calculate the probability of being visited during a simulated trajectory
     print("[Comp_dist] Computing the node probability")
     
-    sequences = load_raw_data("raw_data.csv", reaction_id)
+    sequences = load_raw_data("data/raw_data.csv", reaction_id)
     sequences_list = [sequences['incumbent'],sequences['substrate'],sequences['invader']]
     p_i = calculate_prob(dp_og_uniq, id_uniq, sequences_list)
     

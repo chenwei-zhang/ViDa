@@ -15,9 +15,9 @@ if __name__ == '__main__':
 
     reaction_id = args.rxn
 
-    data = "vida/data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
-    fconfig = "vida/data/post_data/{}/config_template.json".format(reaction_id)
-    outpath = "vida/data/post_data/{}".format(reaction_id)
+    data = "data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
+    fconfig = "data/post_data/{}/config_template.json".format(reaction_id)
+    outpath = "data/post_data/{}".format(reaction_id)
 
     # Load the data
     print(f"[Train] Loading dataloader from {data}")
