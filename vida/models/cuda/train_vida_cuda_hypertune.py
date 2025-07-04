@@ -51,7 +51,7 @@ def objective(trial):
     optimizer = torch.optim.Adam(vida.parameters(), lr=config.learning_rate)
     
     # Define scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=config.lr_patience, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=config.lr_patience)
 
     # Train VIDA with the suggested hyperparameters
     val_loss_final = train(fconfig, vida, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='repeat')

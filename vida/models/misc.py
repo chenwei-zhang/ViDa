@@ -259,7 +259,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     model.to(config.device)
 
     # Initialize early stop object
-    early_stop.best_loss = np.Inf
+    early_stop.best_loss = np.inf
     early_stop.num_epochs_without_improvement = 0
     early_stop.nan_counter = 0
 
