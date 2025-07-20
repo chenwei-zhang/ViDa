@@ -3,21 +3,15 @@
     "hidden_dim": 400,
     "latent_dim": 25,
     "log_interval": 10,
-
-    "comment 2": "The following paramters can be changed.",
-    "dataset": "Machinek_<name>",
-    "device": "mps",
     "batch_size": 256,
     "n_epochs": 100,
-    "patience": 30, 
-    "lr_patience": 30,
-    "learning_rate": 5e-5,
-    "alpha": 1,
-    "beta": 0.0001,
-    "gamma": 0.3,
-    "delta": 4e-4,
-    "epsilon": 1e-5,
+    "device": "mps",
 
-    "comment 3": "The following paramters are appended upon training."
-    
+    "comment 2": "The following paramters will be automatically changed or added during tuning.",
+    "learning_rate": null,
+    "alpha": null,
+    "beta": null,
+    "gamma": null,
+    "delta": null,
+    "epsilon": null
 }

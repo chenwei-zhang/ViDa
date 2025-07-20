@@ -25,7 +25,7 @@ class Config:
 
 
 # make data loader
-def dataloader(scar_uniq, energy_uniq, config, ratio):
+def dataloader(scar_uniq, energy_uniq, batch_size, ratio):
     data_tup = (torch.Tensor(scar_uniq),
                 torch.Tensor(energy_uniq),
                 torch.arange(len(scar_uniq)))
@@ -39,11 +39,11 @@ def dataloader(scar_uniq, energy_uniq, config, ratio):
     train_data, val_data = torch.utils.data.random_split(data_dataset, [train_size, val_size], 
                                                          generator=torch.Generator().manual_seed(42))
 
-    data_loader = torch.utils.data.DataLoader(data_dataset, batch_size=config.batch_size,
+    data_loader = torch.utils.data.DataLoader(data_dataset, batch_size=batch_size,
                                               shuffle=False, num_workers=0)
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=config.batch_size, 
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, 
                                                shuffle=True, num_workers=0)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size=config.batch_size,
+    val_loader = torch.utils.data.DataLoader(val_data, batch_size=batch_size,
                                              shuffle=False, num_workers=0)
 
     return data_loader, train_loader, val_loader
@@ -259,7 +259,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     model.to(config.device)
 
     # Initialize early stop object
-    early_stop.best_loss = np.inf
+    early_stop.best_loss = 10
     early_stop.num_epochs_without_improvement = 0
     early_stop.nan_counter = 0
 
@@ -415,3 +415,6 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     
     # save the model
     torch.save(model.state_dict(), f'{log_dir}/model.pt')
+    
+    return val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged
+

@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import argparse
 import time
-from misc import Config, dataloader
+from misc import dataloader
 import gzip
 
 
@@ -12,14 +12,15 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--rxn', required=True, help='Reaction name')
+    parser.add_argument('--batch_size', type=int, default=256, help='Batch size for dataloader')
 
     args = parser.parse_args()    
     reaction_id = args.rxn
+    batch_size = args.batch_size
 
     predata = "data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
     scatter = "data/post_data/{}/scatt_{}.npz".format(reaction_id, reaction_id)
     dist = "data/post_data/{}/mpt-ged_{}.npz".format(reaction_id, reaction_id)
-    fconfig = "data/post_data/{}/config_template.json".format(reaction_id)
     outpath = "data/post_data/{}/dataloader_{}.pkl.gz".format(reaction_id, reaction_id)
 
         
@@ -46,18 +47,12 @@ if __name__ == '__main__':
     x_ej = loaded_data["x_ej"]
     d_ij = loaded_data["d_ij"]
     e_ij = loaded_data["e_ij"]
-    p_i = loaded_data["p_i"]
-
-    
-    print(f"[Dataloader] Loading config data from {fconfig}")
-    
-    config = Config(fconfig)    
-    
+    p_i = loaded_data["p_i"]    
     
     # make the dataloader
     print(f"[Dataloader] Making dataloader")
     
-    data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, config, ratio=0.9)
+    data_loader, train_loader, val_loader = dataloader(scar_uniq, energy_uniq, batch_size, ratio=0.9)
 
     dist_loader = {
         'p_i': p_i,
