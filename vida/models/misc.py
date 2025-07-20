@@ -400,7 +400,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             torch.save(model.state_dict(), f'{log_dir}/checkpoint_epoch_{epoch}.pt')           
         
         # Check if validation loss has not improved for `patience` epochs
-        if early_stop(val_loss, epoch, config.patience):
+        if early_stop(val_loss, epoch, patience=5):
             break
         
         # Clear the cache
