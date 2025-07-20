@@ -138,7 +138,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["CumT"],
-                sizeref=2e-4,  # PRF: 5e-3,
+                sizeref=1e-4,  # PRF: 5e-3,
                 color=df["Energy"], 
                 colorscale="Plasma",
                 showscale=False,
@@ -194,42 +194,78 @@ def plot_machineck(df,dfall,vis):
         )
     )
     
-    # # layout trajectory on top of energy landscape
-    # for i in range(0, len(dfall)):
-    #     fig.add_trace(
-    #         go.Scattergl(
-    #             x=dfall[f"{vis}"][i][:,0],
-    #             y=dfall[f"{vis}"][i][:,1],
-    #             mode='lines+markers',
-    #             line=dict(
-    #                 color='rgba(0,0,0,0.6)',
-    #                 width=1,
-    #             ),
-    #             marker=dict(
-    #                 sizemode='diameter',
-    #                 size=4.5,
-    #                 color=dfall["Energy"][i],
-    #                 colorscale="Plasma",
-    #                 # color=[color_mapping[type_val] for type_val in dfall["ShortName"][i]],
-    #                 # colorbar=dict(
-    #                 #     x=-0.2,
-    #                 #     y=0.5,
-    #                 #     tickvals=[],
-    #                 #     len=1,
-    #                 # ),
-    #             ),
-    #             customdata=np.stack((
-    #                 dfall['DP'][i],
-    #                 dfall['Energy'][i],
-    #             ),axis=-1),
-    #             hovertemplate=
-    #                 "<b>%{customdata[0]}<br>" +
-    #                 "X: %{x}   " + "   Y: %{y} <br>"+
-    #                 "Energy:  %{customdata[1]:.3f} kcal/mol<br>",
-    #             visible='legendonly',
-    #             name = "Trace {}".format(dfall["IDX"][i]),
-    #         )
-    #     )
+    # layout trajectory on top of energy landscape
+    # for i in range(0, len(dfall))::
+        # fig.add_trace(
+        #     go.Scattergl(
+        #         x=dfall[f"{vis}"][i][:,0],
+        #         y=dfall[f"{vis}"][i][:,1],
+        #         mode='lines+markers',
+        #         line=dict(
+        #             color='rgba(0,0,0,0.6)',
+        #             width=1,
+        #         ),
+        #         marker=dict(
+        #             sizemode='diameter',
+        #             size=4.5,
+        #             color=dfall["Energy"][i],
+        #             colorscale="Plasma",
+        #             # color=[color_mapping[type_val] for type_val in dfall["ShortName"][i]],
+        #             # colorbar=dict(
+        #             #     x=-0.2,
+        #             #     y=0.5,
+        #             #     tickvals=[],
+        #             #     len=1,
+        #             # ),
+        #         ),
+        #         customdata=np.stack((
+        #             dfall['DP'][i],
+        #             dfall['Energy'][i],
+        #         ),axis=-1),
+        #         hovertemplate=
+        #             "<b>%{customdata[0]}<br>" +
+        #             "X: %{x}   " + "   Y: %{y} <br>"+
+        #             "Energy:  %{customdata[1]:.3f} kcal/mol<br>",
+        #         visible='legendonly',
+        #         name = "Trace {}".format(dfall["IDX"][i]),
+        #     )
+        # )
+        
+        
+    # plot interesting traces with different colors
+    color_list = ["green", "blue", "black"]
+    for num, i in enumerate([0, 32]):  #[3, 1, 42]  [32,0]
+        fig.add_trace(
+            go.Scattergl(
+                x=dfall[f"{vis}"][i][:,0],
+                y=dfall[f"{vis}"][i][:,1],
+                mode='lines',
+                line=dict(
+                    color=color_list[num],
+                    width=0.8,
+                ),
+            )
+        )
+    color_list = ["green", "blue", "black"]
+    for num, i in enumerate([0,32]): #[3, 1, 42]  [0,32]
+        fig.add_trace(
+            go.Scattergl(
+                x=[dfall[f"{vis}"][i][0,0],dfall[f"{vis}"][i][-1,0]],
+                y=[dfall[f"{vis}"][i][0,1],dfall[f"{vis}"][i][-1,1]],
+                mode='markers+text',
+                marker_color=color_list[num],
+                marker_size=20,
+                text=["I", "F"],
+                textposition="middle center",
+                textfont=dict(
+                family="sans serif",
+                size=15,
+                color="white"
+                ),
+                hoverinfo='skip',
+                showlegend=True,
+            )
+        ) 
     
     # Record the first successful trajectory's index
     for i in range(0, len(dfall)):
@@ -258,7 +294,7 @@ def plot_machineck(df,dfall,vis):
             color="black"
             ),
             hoverinfo='skip',
-            showlegend=False,
+            showlegend=True,
             )
         )
 
