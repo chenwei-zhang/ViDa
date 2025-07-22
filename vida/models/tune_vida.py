@@ -69,7 +69,8 @@ def make_objective(reaction_id, base_config):
         val_loss, *_ = train(tmp_config, model, data_loader, train_loader, val_loader,
                              dist_loader, optimizer, scheduler,
                              outpath=f"data/post_data/{reaction_id}",
-                             neigh_mode='repeat')
+                             neigh_mode='repeat',
+                             is_tuning=True)
         return val_loss
     
     return objective

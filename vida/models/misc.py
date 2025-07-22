@@ -68,12 +68,12 @@ def early_stop(val_loss, epoch, patience):
         return False
     
     if np.isnan(val_loss):
-        # Increment NaN counter and check if it has reached 2
+        # Increment NaN counter and check if it has reached 1
         early_stop.nan_counter += 1
-        if early_stop.nan_counter >= 2:
+        if early_stop.nan_counter >= 1:
             print("Stopping early due to NaN loss", flush=True)
             return True
-        return False  # Continue training if NaN counter is less than 2
+        return False  # Continue training if NaN counter is less than 1
 
     # Reset NaN counter if loss is not NaN
     early_stop.nan_counter = 0
@@ -208,7 +208,7 @@ def validate(config, model, data_loader, val_loader, p_i, d_ij, e_ij, x_dj, x_ej
  
        
 # train vida     
-def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='unique'):
+def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, optimizer, scheduler, outpath, neigh_mode='unique', is_tuning=False):
     
     '''
     Train VIDA!
@@ -238,8 +238,12 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         os.makedirs(f'{outpath}/model_config')
     
     log_time = time.strftime("%y-%m%d-%H%M")
-    log_dir = f'{outpath}/model_config/{log_time}'
-    
+    if is_tuning:
+        log_dir = f"{outpath}/model_config/trial/TRIAL_{log_time}"
+    else:
+        log_dir = f"{outpath}/model_config/{log_time}"
+
+        
     # write the log to tensorboard
     writer = SummaryWriter(log_dir=log_dir)
     
@@ -284,6 +288,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     
         
     print('\n ------- Start Training -------')
+    best_models = []
     for epoch in range(config.n_epochs):
         start_time = time.time()
         training_loss = 0
@@ -339,6 +344,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
             
             # backpropagation and optimization
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # clip gradients to avoid exploding gradients
             optimizer.step()
             
             training_loss += loss.item()
@@ -395,9 +401,19 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
         epoch_time = end_time - start_time
         print (f'Epoch {epoch} train+val time: {epoch_time:.2f} seconds \n')
         
-        # save the model checkpoint every 10 epochs
-        if (epoch+1) % 10 == 0:
-            torch.save(model.state_dict(), f'{log_dir}/checkpoint_epoch_{epoch}.pt')           
+        # save the best models when training
+        if not is_tuning:
+            current_model_path = f'{log_dir}/checkpoint_epoch_{epoch}_loss_{val_loss:.4f}.pt'
+            torch.save(model.state_dict(), current_model_path)
+            best_models.append((val_loss, current_model_path))
+            best_models = sorted(best_models, key=lambda x: x[0])[:3] # keep only the top 3 models
+            # delete the previous best models
+            saved_paths = set(path for _, path in best_models)
+            for f in os.listdir(log_dir):
+                if f.startswith("checkpoint_epoch_") and f.endswith(".pt"):
+                    full = os.path.join(log_dir, f)
+                    if full not in saved_paths:
+                        os.remove(full)
         
         # Check if validation loss has not improved for `patience` epochs
         if early_stop(val_loss, epoch, patience=5):
@@ -413,8 +429,9 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     writer.close()
     print('\n ------- Finished Training -------')
     
-    # save the model
-    torch.save(model.state_dict(), f'{log_dir}/model.pt')
-    
+    if not is_tuning:
+        # save the final model
+        torch.save(model.state_dict(), f'{log_dir}/final_model_epoch_{epoch}.pt')
+            
     return val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged
 
