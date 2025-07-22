@@ -80,8 +80,9 @@ if __name__ == '__main__':
 
     # for vis in ["PCA","PHATE"]:
     for vis in ["PHATE"]:
+        # static plot
         plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
-        
+        # interactive plot
         fig = plot_machineck(df,dfall,vis=vis)
         savename = outpath+"_"+vis+".html"
         fig.write_html(savename)
