@@ -35,12 +35,9 @@ def build_model(config, input_dim):
 def make_objective(reaction_id, base_config):
     def objective(trial):
         # Suggest hyperparameters
-        lr      = trial.suggest_float('learning_rate', 1e-6, 1e-3, log=True)
-        alpha   = trial.suggest_float('alpha', 0.1, 5.0) # linear scaling
-        beta    = trial.suggest_float('beta', 1e-6, 1e-2, log=True)
-        gamma   = trial.suggest_float('gamma', 0.1, 1.0) # linear scaling
-        delta   = trial.suggest_float('delta', 1e-5, 1e-2, log=True)
-        epsilon = trial.suggest_float('epsilon', 1e-6, 1e-3, log=True)
+        lr = trial.suggest_float('learning_rate', 1e-6, 1e-4, log=True)
+        delta = trial.suggest_float('delta', 1e-4, 1e-3, log=True)
+        epsilon = trial.suggest_float('epsilon', 1e-5, 1e-4, log=True)
 
         # Make a temporary config file for this trial
         tmp_config = tempfile.mktemp(suffix=".json")
@@ -49,12 +46,9 @@ def make_objective(reaction_id, base_config):
         cfg.update({
             "reaction_id": reaction_id,
             "learning_rate": lr,
-            "alpha": alpha,
-            "beta": beta,
-            "gamma": gamma,
             "delta": delta,
             "epsilon": epsilon,
-            "n_epochs": 10 # shorten epochs to speed up tuning
+            "n_epochs":10 # shorten epochs to speed up tuning
         })
 
         # Load data and build model
@@ -80,7 +74,7 @@ def make_objective(reaction_id, base_config):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--rxn', required=True, help='Reaction name (folder)')
-    parser.add_argument('--trials', type=int, default=50, help='Number of Optuna trials')
+    parser.add_argument('--trials', type=int, default=20, help='Number of Optuna trials')
     args = parser.parse_args()
 
     reaction_id = args.rxn

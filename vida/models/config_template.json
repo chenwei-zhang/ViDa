@@ -9,9 +9,9 @@
 
     "comment 2": "The following paramters will be automatically changed or added during tuning.",
     "learning_rate": null,
-    "alpha": null,
-    "beta": null,
-    "gamma": null,
+    "alpha": 1.0,
+    "beta": 0.0001,
+    "gamma": 0.3,
     "delta": null,
     "epsilon": null
 }
