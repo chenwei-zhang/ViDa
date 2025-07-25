@@ -415,14 +415,14 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
                     if full not in saved_paths:
                         os.remove(full)
         
-        # Check if validation loss has not improved for `patience` epochs
-        if early_stop(val_loss, epoch, patience=5):
-            break
-        
         # Clear the cache
         gc.collect()
         # torch.mps.empty_cache()  ## not available yet
         torch.cuda.empty_cache()
+        
+        # Check if validation loss has not improved for `patience` epochs
+        if early_stop(val_loss, epoch, patience=10):
+            break    
        
     config.update({'Training finished at epoch': epoch})
     
@@ -431,7 +431,7 @@ def train(fconfig, model, data_loader, train_loader, val_loader, dist_loader, op
     
     if not is_tuning:
         # save the final model
-        torch.save(model.state_dict(), f'{log_dir}/final_model_epoch_{epoch}.pt')
+        torch.save(model.state_dict(), f'{log_dir}/checkpoint_epoch_{epoch}_stop.pt')
             
     return val_loss, val_bce, val_kld, val_pred, val_mpt, val_ged
 
