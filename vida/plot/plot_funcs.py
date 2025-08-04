@@ -1,27 +1,52 @@
+import os
 import numpy as np
 import pandas as pd
+import plotly.io as pio
 import plotly.graph_objects as go
+from plotly.io import write_image
 
+class ID_to_Name:
+    """
+    Map state ID to strand name
+    """
+    @staticmethod
+    def map_id_to_shortname_gao(id):
+        if id == [(0, 1)]:
+            return 'P+T'
+        elif id == [(0,), (1,)]:
+            return 'P  T'
+        else:
+            raise ValueError("Invalid reaction ordering")      
 
-
-def map_id_to_shortname(id):
-    if id == [(0, 1, 2)]:
-        return 'Incumbent+Substrate+Invader'
-    elif id == [(0, 1), (2,)]:
-        return 'Incumbent+Substrate  Invader'
-    elif id == [(0,), (1, 2)]:
-        return 'Incumbent  Substrate+Invader'
-    elif id == [(0, 2, 1)]:
-        return 'Incumbent+Invader+Substrate'
-    elif id == [(0, 2), (1,)]:
-        return 'Incumbent+Invader  Substrate'
-    elif id == [(0,), (2, 1)]:
-        return 'Incumbent  Invader+Substrate'
-    else:
-        raise ValueError("Invalid reaction ordering")
+    @staticmethod
+    def map_id_to_shortname_machinek(id):
+        if id == [(0, 1, 2)]:
+            return 'Incumbent+Substrate+Invader'
+        elif id == [(0, 1), (2,)]:
+            return 'Incumbent+Substrate  Invader'
+        elif id == [(0,), (1, 2)]:
+            return 'Incumbent  Substrate+Invader'
+        elif id == [(0, 2, 1)]:
+            return 'Incumbent+Invader+Substrate'
+        elif id == [(0, 2), (1,)]:
+            return 'Incumbent+Invader  Substrate'
+        elif id == [(0,), (2, 1)]:
+            return 'Incumbent  Invader+Substrate'
+        else:
+            raise ValueError("Invalid reaction ordering")
+    
+    @staticmethod
+    def get_mapper(reaction_id):
+        if 'gao' in reaction_id.lower():
+            return ID_to_Name.map_id_to_shortname_gao
+        elif 'machinek' in reaction_id.lower():
+            return ID_to_Name.map_id_to_shortname_machinek
+        else:
+            raise ValueError(f"Unknown reaction_id: {reaction_id}")
+        
     
 
-def sort_machinek(plt_args):
+def sort_data(plt_args):
     # Load the data
     trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, \
         pca_coords, phate_coords, order_ids, \
@@ -55,7 +80,6 @@ def sort_machinek(plt_args):
         sub_phate_coords.append(phate_coords_i_unique)
         sub_order_ids.append(order_ids_i_unique)
         
-        
     # Use zip to unpack the sub-arrays into separate variables if needed
     sub_dp_og, sub_trans_time, sub_energy, sub_pca_coords, sub_phate_coords, sub_order_ids = sub_arrays
     # Sort the trajectories by reaction time
@@ -86,10 +110,10 @@ def sort_machinek(plt_args):
 
 
 ###############################################################################
-# plot 2D landscape (sorted)
+# plot 2D interactive landscape (sorted)
 ###############################################################################
 
-def plot_machineck(df,dfall,vis):
+def plot_interactive(df,dfall,vis):
     fig = go.Figure()
     
     # plot energy landscape background
@@ -99,8 +123,6 @@ def plot_machineck(df,dfall,vis):
             mode='markers',
             marker=dict(
                 sizemode='diameter',
-                # size=df["HT"],
-                # sizeref=1e-8,
                 size=5,
                 color=df["Energy"],
                 colorscale="Plasma",
@@ -126,7 +148,6 @@ def plot_machineck(df,dfall,vis):
                 "Energy:  %{marker.color:.3f} kcal/mol<br>"+
                 "Expected holding time:  %{customdata[0]:.3e} s<br>",
             name="Energy landscape",
-            # visible='legendonly',
         )
     )
 
@@ -138,7 +159,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["CumT"],
-                sizeref=1e-3,  # PRF: 5e-3,
+                sizeref=1e-4, # machinek: 1e-3,  gao: 1e-4
                 color=df["Energy"], 
                 colorscale="Plasma",
                 showscale=False,
@@ -170,7 +191,7 @@ def plot_machineck(df,dfall,vis):
             marker=dict(
                 sizemode='diameter',
                 size=df["Freq"],
-                sizeref=20000, # PRF: 25000,  mm14: 6500, 
+                sizeref=1000, # machinek: 20000,  gao: 1000 
                 color=df["Energy"],
                 colorscale="Plasma",
                 showscale=False,
@@ -224,8 +245,8 @@ def plot_machineck(df,dfall,vis):
                 showlegend=True,
             )
         )
-        
-        
+
+
     # # plot interesting traces with different colors ##
     # color_list = ["green", "blue", "black"]
     # for num, i in enumerate([0, 32]):  #[3, 1, 42]  [32,0]
@@ -265,7 +286,7 @@ def plot_machineck(df,dfall,vis):
     # label initial and successful final states
     # Record the first successful trajectory's index
     for i in range(0, len(dfall)):
-        if dfall["OrderID"][i][-1] == [(0,), (1, 2)] or dfall["OrderID"][i][-1] == [(0,),(2, 1)]:
+        if dfall["OrderID"][i][-1] == [(0,), (1, 2)] or dfall["OrderID"][i][-1] == [(0,),(2, 1)] or dfall["OrderID"][i][-1] == [(0, 1)]:
             succ_idx = i
             break
         else:
@@ -273,12 +294,12 @@ def plot_machineck(df,dfall,vis):
             
     fig.add_trace(
         go.Scattergl(
-            x=[dfall[f"{vis}"][succ_idx][0,0],dfall[f"{vis}"][succ_idx][-1,0]],
-            y=[dfall[f"{vis}"][succ_idx][0,1],dfall[f"{vis}"][succ_idx][-1,1]],
+            x=[dfall[f"{vis}"][succ_idx][0,0]],
+            y=[dfall[f"{vis}"][succ_idx][0,1]],
             mode='markers+text',
             marker_color="lime", 
             marker_size=20,
-            text=["I", "F"],
+            text=["I"],
             textposition="middle center",
             textfont=dict(
             family="sans serif",
@@ -286,10 +307,30 @@ def plot_machineck(df,dfall,vis):
             color="black"
             ),
             hoverinfo='skip',
+            name = "Initial",
             showlegend=True,
             )
         )
-
+    fig.add_trace(
+        go.Scattergl(
+            x=[dfall[f"{vis}"][succ_idx][-1,0]],
+            y=[dfall[f"{vis}"][succ_idx][-1,1]],
+            mode='markers+text',
+            marker_color="lime", 
+            marker_size=20,
+            text=["F"],
+            textposition="middle center",
+            textfont=dict(
+            family="sans serif",
+            size=15,
+            color="black"
+            ),
+            hoverinfo='skip',
+            name = "Final",
+            showlegend=True,
+            )
+        )
+        
     fig.update_xaxes(
         range=[min(df["{} 1".format(vis)])*1.1,max(df["{} 1".format(vis)])*1.1]
     )
@@ -318,11 +359,7 @@ def plot_machineck(df,dfall,vis):
   
 
 
-def plot_machineck_png(df, dfall, vis, output_dir):
-    import os
-    from plotly.io import write_image
-    import plotly.io as pio
-    
+def plot_png(df, dfall, vis, output_dir, num_png=10):
     pio.renderers.default = 'png'
     
     # Create output directory if it doesn't exist
@@ -330,7 +367,7 @@ def plot_machineck_png(df, dfall, vis, output_dir):
         os.makedirs(output_dir)
     
     # Create the base figure with energy landscape background
-    for i in range(0, len(dfall)):
+    for i in range(0, num_png):
         print(f"Plotting trajectory {dfall['IDX'][i]}")
         
         # Create a new figure for each trajectory
@@ -443,7 +480,7 @@ def plot_machineck_png(df, dfall, vis, output_dir):
         )
         
         # Add annotations (optional)
-        if dfall["OrderID"][i][-1] == [(0,), (1, 2)] or dfall["OrderID"][i][-1] == [(0,),(2, 1)]:
+        if dfall["OrderID"][i][-1] == [(0,), (1, 2)] or dfall["OrderID"][i][-1] == [(0,),(2, 1)] or dfall["OrderID"][i][-1] == [(0, 1)]:
             text_ammo = "SUCCESS"
         else:
             text_ammo = "FAILURE"
@@ -474,6 +511,3 @@ def plot_machineck_png(df, dfall, vis, output_dir):
         write_image(fig, output_file, width=1200, height=800, engine="kaleido")                
         
         print(f"Saved trajectory {dfall['IDX'][i]} to {output_file}")
-        
-        if i == 10:
-            break

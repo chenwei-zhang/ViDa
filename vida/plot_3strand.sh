@@ -1,11 +1,13 @@
 #!/bin/bash
 
 VIDA="/Users/chenwei/Desktop/Github/ViDa"
-NAME='central_toehold8'
+NAME='gao_p4t4'
+# NAME='machinek_perfect_toehold8'
+
 
 ### PLOT ###
-TNAME='25-0531-1435'
-CKPT='checkpoint_epoch_9'
+TNAME='25-0803-2258'
+CKPT='checkpoint_epoch_93_loss_0.0126'
 
 echo "Embedding"
 cd $VIDA/vida/models
@@ -17,4 +19,4 @@ fi
 
 echo "Plotting"
 cd $VIDA/vida/plot
-python interact_plot.py --predata $VIDA/data/post_data/$NAME/preprocess_"$NAME".npz --timedata $VIDA/data/post_data/$NAME/time_"$NAME".npz --embeddata $VIDA/data/post_data/$NAME/model_config/$TNAME/embed_"$CKPT"_"$NAME".npz --outpath $VIDA/data/post_data/$NAME/model_config/$TNAME/plot_"$CKPT"_"$NAME"
+python interact_plot.py --predata $VIDA/data/post_data/$NAME/preprocess_"$NAME".npz --timedata $VIDA/data/post_data/$NAME/time_"$NAME".npz --embeddata $VIDA/data/post_data/$NAME/model_config/$TNAME/embed_"$CKPT"_"$NAME".npz --outpath $VIDA/data/post_data/$NAME/model_config/$TNAME/plot_"$CKPT"_"$NAME" --rxn $NAME 

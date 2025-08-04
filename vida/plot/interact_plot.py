@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import argparse
-from plot_funcs import sort_machinek, plot_machineck, plot_machineck_png, map_id_to_shortname
+from plot_funcs import ID_to_Name, sort_data, plot_interactive, plot_png
 
 if __name__ == '__main__': 
     # Record the start time
@@ -12,6 +12,8 @@ if __name__ == '__main__':
     parser.add_argument('--timedata', required=True, help='time data file')
     parser.add_argument('--embeddata', required=True, help='embedded data file')
     parser.add_argument('--outpath', required=True, help='output plot in html format')
+    parser.add_argument('--rxn', required=True, help='Reaction name')
+    
     
     args = parser.parse_args()
     
@@ -19,6 +21,7 @@ if __name__ == '__main__':
     timedata = args.timedata
     embeddata = args.embeddata
     outpath = args.outpath
+    reaction_id = args.rxn
     
     
     # Load the data
@@ -61,8 +64,9 @@ if __name__ == '__main__':
     phate_coords = phate_coords_uniq[indices_all]
     
     print(f"[Plot] Converting order ids to names")
-    id_uniq_name = np.array([map_id_to_shortname(i) for i in id_uniq])
-    
+    mapper = ID_to_Name.get_mapper(reaction_id)
+    id_uniq_name = np.array([mapper(i) for i in id_uniq])
+        
     plt_args = (trj_id, dp_og, trans_time, hold_time, energy, cum_time, freq, 
                 pca_coords, phate_coords, order_ids,
                 dp_og_uniq, hold_time_uniq, energy_uniq, cum_time_uniq, freq_uniq,
@@ -72,7 +76,7 @@ if __name__ == '__main__':
     # Sort trajectories by their hold time
     print(f"[Plot] Sorting trajectories by their reaction time")
     
-    df, dfall = sort_machinek(plt_args)
+    df, dfall = sort_data(plt_args)
     
     
     # Make the plot
@@ -80,10 +84,10 @@ if __name__ == '__main__':
 
     # for vis in ["PCA","PHATE"]:
     for vis in ["PHATE"]:
-        # static plot
-        plot_machineck_png(df,dfall,vis=vis, output_dir=outpath)
-        # interactive plot
-        fig = plot_machineck(df,dfall,vis=vis)
+        # # static plot
+        plot_png(df,dfall,vis=vis, output_dir=outpath, num_png=10)
+        # # interactive plot
+        fig = plot_interactive(df,dfall,vis=vis)
         savename = outpath+"_"+vis+".html"
         fig.write_html(savename)
         print(f"[Plot] Plot saved to {savename}")
