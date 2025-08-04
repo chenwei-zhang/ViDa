@@ -1,0 +1,3 @@
+Experiment ID,temperature (°C),sodium conc (M),magnesium conc (M),Incumbent sequence (5'->3'),Target sequence (5'->3'),Invader sequence (5'->3'),Invader conc (nM),Incumbent/Target conc (nM),k (M-1s-1)
+perfect_toehold7_dangle,23,0.05,0.01,TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA,CCCTCCACATTCAACCTCAAACTCACC,GGTGAGTTTGAGGTTGAATGTGGA,5,5,?
+proximal_toehold7_dangle,23,0.05,0.01,TGGTGTTTGTGGGTGTGGTGAGTTTGAGGTTGA,CCCTCCACATTCAACCTCAAACTCACC,GGTGAGTTTGAGGTTCAATGTGGA,10,10,?
