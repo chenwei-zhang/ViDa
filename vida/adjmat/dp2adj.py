@@ -1,9 +1,16 @@
 import numpy as np
 import tqdm
+import re
 
 
-############### Three-Strand Structure ###############
-####################################################
+def natural_key(s):
+    """
+    Sorting key for alphanumeric strings like 'a10', ensuring numeric parts are sorted numerically.
+
+    Example: sorts ['a1', 'a2', 'a10'] correctly instead of ['a1', 'a10', 'a2'].
+    """
+    return [int(text) if text.isdigit() else text for text in re.split(r'(\d+)', s)]
+
 
 def reorder_base_names(order_id, base_names):
     
@@ -11,7 +18,7 @@ def reorder_base_names(order_id, base_names):
 
 
 # convert dot-parenthesis notation to undirected graph (adjacency matrix representation)
-def dp2adj_3strand(base_names_reordered, dp_structure, nodes):
+def dp2adj(base_names_reordered, dp_structure, nodes):
 
     # TODO: consider treating backbone and bp edges differently. Maybe backbone edges should be directed, ie 3'->5'? 
 
@@ -57,12 +64,12 @@ def dp2adj_3strand(base_names_reordered, dp_structure, nodes):
 
 def construct_adj_matrices(dps, orders, base_names):
     
-    nodes = sorted(base for strand in base_names for base in strand)
-
+    nodes = sorted((base for strand in base_names for base in strand), key=natural_key)
+    
     adj_matrices = []
 
     for dp, order_id in tqdm.tqdm(zip(dps, orders), total=len(dps)):
         base_names_reordered = reorder_base_names(order_id, base_names)
-        adj_matrices.append(dp2adj_3strand(base_names_reordered, dp, nodes))
+        adj_matrices.append(dp2adj(base_names_reordered, dp, nodes))
     
     return np.array(adj_matrices)

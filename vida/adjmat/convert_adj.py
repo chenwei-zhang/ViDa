@@ -9,13 +9,11 @@ if __name__ == '__main__':
     start_time = time.time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_strand', type=int, default=3, help='number of strands')
     parser.add_argument('--rxn', required=True, help='Reaction name')
         
     args = parser.parse_args()
 
     reaction_id = args.rxn
-    num_strand = args.num_strand
 
     inpath = "data/post_data/{}/preprocess_{}.npz".format(reaction_id, reaction_id)
     outpath = "data/post_data/{}/adjmat_{}.npz".format(reaction_id, reaction_id)
@@ -24,18 +22,16 @@ if __name__ == '__main__':
     # Load the data
     print(f"[dp2adj] Loading preprocessed dp_uniq from {inpath}")
     print("[dp2adj] Loading preprocessed")
-    print(f"[dp2adj] Number of strands: {num_strand}")
     print(f"[dp2adj] Converting dot-parenthesis notation to adjacency matrix")
     
     loaded_data = np.load(inpath, allow_pickle=True)
         
-    if num_strand == 3:
-        base_names = loaded_data["base_names"]
-        dp_uniq = loaded_data["dp_uniq"]
-        id_uniq = loaded_data["id_uniq"]
-        # convert dot-parenthesis notation to adjacency matrix
-        adj_uniq = construct_adj_matrices(dp_uniq, id_uniq, base_names)    
-                            
+    base_names = loaded_data["base_names"]
+    dp_uniq = loaded_data["dp_uniq"]
+    id_uniq = loaded_data["id_uniq"]
+    # convert dot-parenthesis notation to adjacency matrix
+    adj_uniq = construct_adj_matrices(dp_uniq, id_uniq, base_names)    
+                        
     # save adjacency matrix
     print(f"[dp2adj] Saving adjacency matrix to {outpath}")
  
