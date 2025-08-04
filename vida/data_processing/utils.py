@@ -14,11 +14,16 @@ def load_raw_data(data_filename, name):
     row = df[df['reaction_id'] == name].index[0]
         
     row_data = df.loc[row]
-
-    sequences = {"incumbent": row_data["incumbent"],
-                 "substrate": row_data["substrate"],
-                 "invader": row_data["invader"]}
-
+    
+    if 'gao' in name:
+        sequences = {"P": row_data["P"],
+                     "T": row_data["T"]}
+        
+    elif 'machinek' in name:
+        sequences = {"incumbent": row_data["incumbent"],
+                    "substrate": row_data["substrate"],
+                    "invader": row_data["invader"]}
+    
     return sequences
 
 
@@ -48,7 +53,7 @@ def get_uniq(dp, dp_og, energy, order_cid=None, pair=None):
 
        
 
-def read_machinek(fpath, num_traj):
+def read_data(fpath, num_traj):
     trajs_states, trajs_times, trajs_energies, trajs_ids  = [],[],[], []
 
     with h5.File(fpath, "r") as f:
@@ -72,10 +77,10 @@ def read_machinek(fpath, num_traj):
 
 
 
-# cooncatanate all sturcutres for machinek dataset: 
-def concat_machinek(states, times, energies, trajs_ids):
-    # convert concantenate two individual structures to one structure 
-    def process_machinek(dp_og):
+# cooncatanate all sturcutres for dataset: 
+def concat_data(states, times, energies, trajs_ids):
+    # convert concantenate individual structures to one structure 
+    def process_dp(dp_og):
         dp = copy.deepcopy(dp_og)
         for i in range(len(dp)):
             if " " in dp[i]:
@@ -88,7 +93,7 @@ def concat_machinek(states, times, energies, trajs_ids):
     dp, dp_og, energy, trans_time, order_cid = [],[],[],[],[]
     
     for i in tqdm.tqdm(range(len(states))):
-        sims_dp = process_machinek(states[i])
+        sims_dp = process_dp(states[i])
         dp.append(sims_dp)
         dp_og.append(states[i])
         energy.append(energies[i])
@@ -107,10 +112,15 @@ def concat_machinek(states, times, energies, trajs_ids):
 # assign unique identifier to each base
 def assign_base_names(*sequences):
     """ 
+    Machinek reaction:
     0 refers to the incumbent (33), denoted as "a"
     1 refers to the substrate (27), denoted as "b"
     2 refers to the invader (24),   denoted as "c"
     default base_names order: a, b, c 
+    
+    Gao reaction:
+    0 refers to P strand (25), denoted as "a"
+    1 refers to T strand (25), denoted as "b"
     """
 
     base_names = [ [f'{ascii_lowercase[strand_index]}{base_index + 1}' for base_index in range(len(strand))]

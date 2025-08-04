@@ -4,7 +4,7 @@ import gzip
 import os
 import argparse
 import time
-from utils import concat_machinek, get_uniq
+from utils import concat_data, get_uniq
 
 
 def main():
@@ -30,10 +30,10 @@ def main():
     times = loaded_data["trajs_times"]
     energies = loaded_data["trajs_energies"]
         
-    print("[Preprocess] Preprocess Machinek data")
+    print("[Preprocess] Preprocess data")
     base_names = loaded_data["base_names"]
     trajs_ids = loaded_data["trajs_ids"]
-    dp, dp_og, energy, trans_time, order_cid = concat_machinek(states, times, energies, trajs_ids)
+    dp, dp_og, energy, trans_time, order_cid = concat_data(states, times, energies, trajs_ids)
 
     # get the unique structures and their corresponding indices
     print("[Preprocess] Get the unique structures and their corresponding indices")

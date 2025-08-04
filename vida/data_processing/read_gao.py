@@ -18,12 +18,12 @@ def main():
     reaction_id = args.rxn
     num_traj = args.num_traj
 
-    inpath = "data/raw_data/machinektest"
+    inpath = "data/raw_data"
     outpath = "data/post_data/{}/{}.pkl.gz".format(reaction_id, reaction_id)
 
-    sequences = load_raw_data("data/raw_data.csv", reaction_id)
+    sequences = load_raw_data("data/raw_data_gao.csv", reaction_id)
        
-    base_names = assign_base_names(sequences['incumbent'], sequences['substrate'], sequences['invader'])
+    base_names = assign_base_names(sequences['P'], sequences['T'])
     
     # Load data
     fpath = os.path.join(inpath, f"{reaction_id}.hdf5")
