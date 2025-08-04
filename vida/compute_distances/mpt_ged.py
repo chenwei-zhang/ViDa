@@ -139,7 +139,7 @@ def calculate_ged(adj_uniq,k=100):
     return nearest_neighbours, nearest_distances
 
 
-def calculate_prob(dp_og_uniq, id_uniq, sequences):
+def calculate_prob_nupack(dp_og_uniq, id_uniq, sequences):
 
     '''
     Returns: prop[i] = Nupack equilibrium probability of state i
@@ -159,6 +159,31 @@ def calculate_prob(dp_og_uniq, id_uniq, sequences):
         prob[i] = np.prod([nu.structure_probability(strands=seqs[j], structure=strcts[j], model=eq_model) for j in range(len(seqs))])
        
     return prob
+
+
+
+def calculate_prob_empirical(indices_all, endpoints, n_states):
+
+    '''
+    Returns: prop[i] = prop. of trajectories in which state i appears at least once
+    '''
+    
+    n_trajs = len(endpoints)
+    trajs = np.split(indices_all, endpoints+1, axis=0)
+    
+    counts = np.zeros((n_trajs, n_states))   
+    for k in tqdm.tqdm(range(n_trajs)):
+        counts[k,:] = np.histogram(trajs[k], bins=n_states, range=(0,n_states))[0]
+
+    # counts[k,i] = no. times that state i appears in trajectory k
+    # obs[i]  = no.   of trajectories in which state i appears at least once
+    # prop[i] = prop. of trajectories in which state i appears at least once
+    
+    obs = np.sum(counts>0,axis=0)
+
+    prop = obs / n_trajs
+
+    return prop
 
 
 # TODO: 

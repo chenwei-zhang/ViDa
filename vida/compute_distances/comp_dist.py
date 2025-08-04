@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
 import time
-from mpt_ged import get_transitions, build_wdg, calculate_mpt, calculate_ged, calculate_prob
+from mpt_ged import get_transitions, build_wdg, calculate_mpt, calculate_ged, calculate_prob_empirical, calculate_prob_nupack
 import pandas as pd
 
 
@@ -12,12 +12,18 @@ def load_raw_data(data_filename, name):
     row = df[df['reaction_id'] == name].index[0]
         
     row_data = df.loc[row]
-
-    sequences = {"incumbent": row_data["incumbent"],
-                 "substrate": row_data["substrate"],
-                 "invader": row_data["invader"]}
-
+    
+    if 'gao' in name:
+        sequences = {"P": row_data["P"],
+                     "T": row_data["T"]}
+        
+    elif 'machinek' in name:
+        sequences = {"incumbent": row_data["incumbent"],
+                    "substrate": row_data["substrate"],
+                    "invader": row_data["invader"]}
+    
     return sequences
+
 
 if __name__ == '__main__':
     # Record the start time
@@ -88,10 +94,17 @@ if __name__ == '__main__':
     # Calculate the probability of being visited during a simulated trajectory
     print("[Comp_dist] Computing the node probability")
     
-    sequences = load_raw_data("data/raw_data.csv", reaction_id)
-    sequences_list = [sequences['incumbent'],sequences['substrate'],sequences['invader']]
-    p_i = calculate_prob(dp_og_uniq, id_uniq, sequences_list)
+    # ## Nupack Probability ##
+    # if 'machinek' in reaction_id:
+    #     sequences = load_raw_data("data/raw_data_machinek.csv", reaction_id)
+    #     sequences_list = [sequences['incumbent'], sequences['substrate'], sequences['invader']]
+    # elif 'gao' in reaction_id:
+    #     sequences = load_raw_data("data/raw_data_gao.csv", reaction_id)
+    #     sequences_list = [sequences['P'], sequences['T']]
+    # p_i = calculate_prob_nupack(dp_og_uniq, id_uniq, sequences_list)
     
+    ## Empirical Probability ##
+    p_i = calculate_prob_empirical(indices_all, endpoints, len(hold_time_uniq))
     
     # save pickle file for shortest path
     print(f"[Comp_dist] Saving MPT and GED to {outpath}")
