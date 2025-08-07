@@ -13,7 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('--embeddata', required=True, help='embedded data file')
     parser.add_argument('--outpath', required=True, help='output plot in html format')
     parser.add_argument('--rxn', required=True, help='Reaction name')
-    
+    parser.add_argument('--num_png', type=int, default=10, help='Number of PNG files to generate')
     
     args = parser.parse_args()
     
@@ -22,6 +22,7 @@ if __name__ == '__main__':
     embeddata = args.embeddata
     outpath = args.outpath
     reaction_id = args.rxn
+    num_png = args.num_png
     
     
     # Load the data
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     # for vis in ["PCA","PHATE"]:
     for vis in ["PHATE"]:
         # # static plot
-        plot_png(df,dfall,vis=vis, output_dir=outpath, num_png=10)
+        plot_png(df,dfall,vis=vis, output_dir=outpath, num_png=num_png)
         # # interactive plot
         fig = plot_interactive(df,dfall,vis=vis)
         savename = outpath+"_"+vis+".html"

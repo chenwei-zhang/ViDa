@@ -116,6 +116,9 @@ def sort_data(plt_args):
 def plot_interactive(df,dfall,vis):
     fig = go.Figure()
     
+    global_min_energy = df["Energy"].min()
+    global_max_energy = df["Energy"].max()
+    
     # plot energy landscape background
     fig.add_trace(go.Scattergl(
             x=df["{} 1".format(vis)], 
@@ -126,6 +129,8 @@ def plot_interactive(df,dfall,vis):
                 size=5,
                 color=df["Energy"],
                 colorscale="Plasma",
+                cmin=global_min_energy,
+                cmax=global_max_energy,
                 showscale=True,
                 colorbar=dict(
                     title="Free energy (kcal/mol)",  
@@ -231,6 +236,8 @@ def plot_interactive(df,dfall,vis):
                     size=4.5,
                     color=dfall["Energy"][i],
                     colorscale="Plasma",
+                    cmin=global_min_energy,
+                    cmax=global_max_energy,
                 ),
                 customdata=np.stack((
                     dfall['DP'][i],
@@ -365,6 +372,9 @@ def plot_png(df, dfall, vis, output_dir, num_png=10):
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+        
+    global_min_energy = df["Energy"].min()
+    global_max_energy = df["Energy"].max()
     
     # Create the base figure with energy landscape background
     for i in range(0, num_png):
@@ -438,6 +448,8 @@ def plot_png(df, dfall, vis, output_dir, num_png=10):
                     size=4.5,
                     color=unique_energies,
                     colorscale="Plasma",
+                    cmin=global_min_energy,
+                    cmax=global_max_energy,
                 ),
                 customdata=np.stack((
                     unique_dp,
