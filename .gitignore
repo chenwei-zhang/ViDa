@@ -34,6 +34,7 @@ data/post_data/Machinek-PRF
 data/raw_data/Machinek-data
 data/raw_data
 GSAE
+vida/evaluation
 
 lightning_logs
 # Byte-compiled / optimized / DLL files

@@ -220,38 +220,57 @@ def plot_interactive(df,dfall,vis):
         )
     )
     
-    # layout trajectory a few trajecories on top of energy landscape
-    for i in range(0, 3):
-        fig.add_trace(
-            go.Scattergl(
-                x=dfall[f"{vis}"][i][:,0],
-                y=dfall[f"{vis}"][i][:,1],
-                mode='lines+markers',
-                line=dict(
-                    color='rgba(0,0,0,0.6)',
-                    width=1,
-                ),
-                marker=dict(
-                    sizemode='diameter',
-                    size=4.5,
-                    color=dfall["Energy"][i],
-                    colorscale="Plasma",
-                    cmin=global_min_energy,
-                    cmax=global_max_energy,
-                ),
-                customdata=np.stack((
-                    dfall['DP'][i],
-                    dfall['Energy'][i],
-                ),axis=-1),
-                hovertemplate=
-                    "<b>%{customdata[0]}<br>" +
-                    "X: %{x}   " + "   Y: %{y} <br>"+
-                    "Energy:  %{customdata[1]:.3f} kcal/mol<br>",
-                visible='legendonly',
-                name = "Trace {}".format(dfall["IDX"][i]),
-                showlegend=True,
-            )
-        )
+    
+    # # layout trajectory a few trajecories on top of energy landscape
+    # for i in range(0, 3):
+    #     fig.add_trace(
+    #         go.Scattergl(
+    #             x=dfall[f"{vis}"][i][:,0],
+    #             y=dfall[f"{vis}"][i][:,1],
+    #             mode='lines+markers',
+    #             line=dict(
+    #                 color='rgba(0,0,0,0.6)',
+    #                 width=1,
+    #             ),
+    #             marker=dict(
+    #                 sizemode='diameter',
+    #                 size=4.5,
+    #                 color=dfall["Energy"][i],
+    #                 colorscale="Plasma",
+    #                 cmin=global_min_energy,
+    #                 cmax=global_max_energy,
+    #             ),
+    #             customdata=np.stack((
+    #                 dfall['DP'][i],
+    #                 dfall['Energy'][i],
+    #             ),axis=-1),
+    #             hovertemplate=
+    #                 "<b>%{customdata[0]}<br>" +
+    #                 "X: %{x}   " + "   Y: %{y} <br>"+
+    #                 "Energy:  %{customdata[1]:.3f} kcal/mol<br>",
+    #             visible='legendonly',
+    #             name = "Trace {}".format(dfall["IDX"][i]),
+    #             showlegend=True,
+    #         )
+    #     )
+    
+    # for i in range(0, 20):
+    #     fig.add_trace(
+    #         go.Scattergl(
+    #             x=dfall[f"{vis}"][i][:,0],
+    #             y=dfall[f"{vis}"][i][:,1],
+    #             mode='lines',      # Only lines, no markers
+    #             line=dict(
+    #                 color='rgba(0,0,0,0.8)',
+    #                 width=1,
+    #             ),
+    #             hoverinfo='skip',  # Skip hover on lines for speed
+    #             # name = "Trace {}".format(dfall["IDX"][i]),
+    #             name = "Trace {}".format(i+1),
+    #             visible='legendonly',
+                
+    #         )
+    #     )
 
 
     # # plot interesting traces with different colors ##
@@ -346,12 +365,16 @@ def plot_interactive(df,dfall,vis):
     )
     
     fig.update_layout(
-        title="ViDa-{} Vis".format(vis),
+        # title="ViDa-{} Vis".format(vis),
+        title="ViDa Visualization".format(vis),
         xaxis=dict(
-                title="{} 1".format(vis),
+                # title="{} 1".format(vis),
+                title="X"
+                
             ),
         yaxis=dict(
-                title="{} 2".format(vis),
+                # title="{} 2".format(vis),
+                title="Y"
             ),
         legend=dict(
             title_font=dict(size=10),
